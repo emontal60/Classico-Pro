@@ -104,6 +104,7 @@
         .badge-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
         .badge-active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 
+        /* Action Buttons Group */
         .actions-group { display: flex; align-items: center; gap: 10px; }
         .adjust-box { display: flex; align-items: center; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 2px 8px; border: 1px solid var(--border); }
         .adjust-input { width: 45px; background: transparent; border: none; color: var(--accent); text-align: center; font-weight: 800; font-size: 1rem; }
@@ -221,7 +222,7 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFobHhtZGJ2dnFlbGdieXpwdWd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDQzNjIsImV4cCI6MjA5MjI4MDM2Mn0.0m75h76gjrkR9zADCrkw-0zsibI4qXGhM8PzlZdkSgk';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // --- Core Functions (Must be defined before usage) ---
+        // --- Core Functions ---
         
         function showDashboard(user) {
             document.getElementById('auth-screen').style.display = 'none';
@@ -246,16 +247,11 @@
             location.reload(); 
         }
 
-        // Init & Session Persistence
         async function initAuth() {
             const savedUser = sessionStorage.getItem('classico_owner');
-            if (savedUser) {
-                showDashboard(JSON.parse(savedUser));
-            }
-
+            if (savedUser) showDashboard(JSON.parse(savedUser));
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && !savedUser) showDashboard(session.user);
-
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
                     sessionStorage.setItem('classico_owner', JSON.stringify(session.user));
@@ -272,10 +268,8 @@
         async function refreshData() {
             const btn = document.querySelector('.btn-refresh i');
             if(btn) btn.style.transform = 'rotate(360deg)';
-            
             const { data: subs } = await supabaseClient.from('subscriptions').select('*').order('created_at', {ascending: false});
             const { data: logs } = await supabaseClient.from('subscription_logs').select('*').order('activated_at', {ascending: false});
-            
             renderTables(subs || [], logs || []);
             if(btn) setTimeout(() => btn.style.transform = 'rotate(0deg)', 500);
         }
@@ -285,25 +279,25 @@
             const activeBody = document.getElementById('active-body');
             const historyBody = document.getElementById('history-body');
             if(!pendingBody) return;
-
             pendingBody.innerHTML = activeBody.innerHTML = historyBody.innerHTML = '';
 
             let pCount = 0, aCount = 0, totalRev = 0;
-
             subs.forEach(s => {
                 if (s.status === 'pending') {
                     pCount++;
                     pendingBody.innerHTML += `
                         <tr>
                             <td class="id-cell">${s.machine_id}</td>
-                            <td><span class="badge badge-pending">${s.plan_type === 'yearly'?'سنوي':'شهري'}</span></td>
+                            <td><span class="badge badge-pending">
+                                ${s.plan_type === 'yearly' ? 'سنوي' : (s.plan_type === 'trial' ? 'تجريبي ⏳' : 'شهري')}
+                            </span></td>
                             <td>${new Date(s.created_at).toLocaleDateString('ar-EG')}</td>
                             <td><button class="btn-approve" onclick="approve('${s.machine_id}', '${s.plan_type}')">تفعيل</button></td>
                         </tr>
                     `;
                 } else if (s.status === 'active') {
                     aCount++;
-                    totalRev += (s.plan_type === 'yearly' ? 4500 : 400);
+                    totalRev += (s.plan_type === 'yearly' ? 4500 : (s.plan_type === 'trial' ? 0 : 400));
                     const rem = Math.max(0, Math.ceil((new Date(s.expires_at) - new Date()) / (1000*60*60*24)));
                     activeBody.innerHTML += `
                         <tr>
@@ -328,7 +322,7 @@
                 historyBody.innerHTML += `
                     <tr>
                         <td>${l.machine_id}</td>
-                        <td>${l.plan_type==='yearly'?'سنوي':'شهري'}</td>
+                        <td>${l.plan_type==='yearly'?'سنوي':(l.plan_type==='trial'?'تجريبي':'شهري')}</td>
                         <td>${new Date(l.activated_at).toLocaleDateString('ar-EG')}</td>
                         <td>${l.expires_at ? new Date(l.expires_at).toLocaleDateString('ar-EG') : '---'}</td>
                         <td><button class="btn-icon btn-del" onclick="deleteLog(${l.id})">🗑️</button></td>
@@ -343,7 +337,9 @@
         }
 
         async function approve(mid, plan) {
-            const days = plan === 'yearly' ? 365 : (plan === 'monthly' ? 30 : 7);
+            let days = 30;
+            if (plan === 'yearly') days = 365;
+            if (plan === 'trial') days = 7;
             const expiry = new Date(); expiry.setDate(expiry.getDate() + days);
             confirmAction('تفعيل الجهاز', `تفعيل ${mid}؟`, async () => {
                 await supabaseClient.from('subscriptions').update({ status: 'active', expires_at: expiry.toISOString() }).eq('machine_id', mid);
