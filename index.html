@@ -104,13 +104,11 @@
         .badge-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
         .badge-active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 
-        /* Action Buttons Group */
         .actions-group { display: flex; align-items: center; gap: 10px; }
         .adjust-box { display: flex; align-items: center; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 2px 8px; border: 1px solid var(--border); }
         .adjust-input { width: 45px; background: transparent; border: none; color: var(--accent); text-align: center; font-weight: 800; font-size: 1rem; }
         .adjust-input:focus { outline: none; }
         
-        .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; }
         .btn-edit { background: var(--accent); color: #000; padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; border: none; cursor: pointer; }
         .btn-edit:hover { box-shadow: 0 0 15px var(--accent-glow); transform: translateY(-1px); }
         .btn-del { background: rgba(239, 68, 68, 0.1); color: var(--danger); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s; }
@@ -223,19 +221,8 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFobHhtZGJ2dnFlbGdieXpwdWd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDQzNjIsImV4cCI6MjA5MjI4MDM2Mn0.0m75h76gjrkR9zADCrkw-0zsibI4qXGhM8PzlZdkSgk';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                document.getElementById('auth-error').innerText = error.message;
-                document.getElementById('auth-error').style.display = 'block';
-            } else {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-            }
-        }
-
+        // --- Core Functions (Must be defined before usage) ---
+        
         function showDashboard(user) {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
@@ -243,21 +230,32 @@
             refreshData();
         }
 
-        function logout() { supabaseClient.auth.signOut(); location.reload(); }
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                document.getElementById('auth-error').innerText = error.message;
+                document.getElementById('auth-error').style.display = 'block';
+            }
+        }
+
+        function logout() { 
+            supabaseClient.auth.signOut(); 
+            sessionStorage.removeItem('classico_owner');
+            location.reload(); 
+        }
 
         // Init & Session Persistence
         async function initAuth() {
-            // 1. Check manual persistence first (for local file stability)
             const savedUser = sessionStorage.getItem('classico_owner');
             if (savedUser) {
                 showDashboard(JSON.parse(savedUser));
             }
 
-            // 2. Check initial supabase session
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && !savedUser) showDashboard(session.user);
 
-            // 3. Listen for changes (Login/Logout/Refresh)
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' && session) {
                     sessionStorage.setItem('classico_owner', JSON.stringify(session.user));
@@ -273,19 +271,21 @@
 
         async function refreshData() {
             const btn = document.querySelector('.btn-refresh i');
-            btn.style.transform = 'rotate(360deg)';
+            if(btn) btn.style.transform = 'rotate(360deg)';
             
             const { data: subs } = await supabaseClient.from('subscriptions').select('*').order('created_at', {ascending: false});
             const { data: logs } = await supabaseClient.from('subscription_logs').select('*').order('activated_at', {ascending: false});
             
             renderTables(subs || [], logs || []);
-            setTimeout(() => btn.style.transform = 'rotate(0deg)', 500);
+            if(btn) setTimeout(() => btn.style.transform = 'rotate(0deg)', 500);
         }
 
         function renderTables(subs, logs) {
             const pendingBody = document.getElementById('pending-body');
             const activeBody = document.getElementById('active-body');
             const historyBody = document.getElementById('history-body');
+            if(!pendingBody) return;
+
             pendingBody.innerHTML = activeBody.innerHTML = historyBody.innerHTML = '';
 
             let pCount = 0, aCount = 0, totalRev = 0;
@@ -338,7 +338,8 @@
 
             document.getElementById('stat-active').innerText = aCount;
             document.getElementById('stat-pending').innerText = pCount;
-            document.getElementById('stat-revenue').innerHTML = `${totalRev.toLocaleString()} <small style="font-size:1rem">ج.م</small>`;
+            const revEl = document.getElementById('stat-revenue');
+            if(revEl) revEl.innerHTML = `${totalRev.toLocaleString()} <small style="font-size:1rem">ج.م</small>`;
         }
 
         async function approve(mid, plan) {
@@ -374,12 +375,17 @@
         }
 
         function confirmAction(title, msg, onConfirm) {
+            const overlay = document.getElementById('modal-overlay');
+            if(!overlay) return;
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-msg').innerText = msg;
-            document.getElementById('modal-overlay').style.display = 'flex';
+            overlay.style.display = 'flex';
             document.getElementById('modal-confirm').onclick = () => { closeModal(); onConfirm(); };
         }
-        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+        function closeModal() { 
+            const overlay = document.getElementById('modal-overlay');
+            if(overlay) overlay.style.display = 'none'; 
+        }
     </script>
 </body>
 </html>
