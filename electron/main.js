@@ -6,7 +6,21 @@ const { fork } = require('child_process');
 let mainWindow;
 let serverProcess;
 
-function startServer() {
+// Single Instance Lock
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+
+  function startServer() {
   // Start the Express server (server.js) as a child process
   const serverPath = path.join(__dirname, '../server.js');
   const userDataPath = app.getPath('userData');
@@ -75,18 +89,24 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  startServer();
-  createWindow();
+    startServer();
+    createWindow();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
   });
-});
+} // End of single instance lock else block
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    if (serverProcess) serverProcess.kill();
     app.quit();
+  }
+});
+
+app.on('before-quit', () => {
+  if (serverProcess) {
+    serverProcess.kill();
   }
 });
 

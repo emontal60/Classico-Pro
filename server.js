@@ -240,25 +240,51 @@ app.get('/api/data', async (req, res) => {
         const mid = (await getMid()).toUpperCase();
         
         // --- ROBUST PATH DETECTION ---
+        const devPath = path.join(__dirname, 'database.json');
+        const parentDevPath = path.join(__dirname, '..', 'database.json');
+        const userDataPath = process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null;
+        
+        // Priority order for reading
         const possiblePaths = [
-            process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null,
-            path.join(__dirname, 'database.json'), // Root
-            path.join(__dirname, '..', 'database.json') // Parent (if in electron/ folder)
+            userDataPath,
+            devPath,
+            parentDevPath
         ].filter(p => p !== null);
 
         let localPath = possiblePaths[0];
-        // Find the first one that actually exists
+        let foundExisting = false;
+
         for (const p of possiblePaths) {
             if (fs.existsSync(p)) {
                 localPath = p;
+                foundExisting = true;
+                console.log(`[Server] 📂 Database found at: ${p}`);
                 break;
+            }
+        }
+
+        // --- AUTO-MIGRATION ---
+        // If we found NO data in AppData but we HAVE data in the project root, COPY IT!
+        if (process.env.CLASSICO_DATA_PATH && !foundExisting) {
+            const rootPath = path.join(__dirname, 'database.json');
+            const parentRootPath = path.join(__dirname, '..', 'database.json');
+            const sourcePath = fs.existsSync(rootPath) ? rootPath : (fs.existsSync(parentRootPath) ? parentRootPath : null);
+            
+            if (sourcePath && sourcePath !== localPath) {
+                try {
+                    console.log(`[Migration] 📦 Copying data from ${sourcePath} to ${localPath}`);
+                    fs.copyFileSync(sourcePath, localPath);
+                    foundExisting = true; // Now it exists
+                } catch (mErr) {
+                    console.error("[Migration] Failed to migrate data:", mErr.message);
+                }
             }
         }
 
         console.log(`[Server] 📂 Fetching data from: ${localPath}`);
         let data = null;
 
-        if (fs.existsSync(localPath)) {
+        if (foundExisting && fs.existsSync(localPath)) {
             try {
                 data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
                 console.log(`[Server] ✅ Data loaded successfully (${fs.statSync(localPath).size} bytes)`);
@@ -298,11 +324,11 @@ app.post('/api/save', async (req, res) => {
         const data = req.body;
 
         // --- ROBUST PATH DETECTION ---
-        const possiblePaths = [
-            process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null,
-            path.join(__dirname, 'database.json'),
-            path.join(__dirname, '..', 'database.json')
-        ].filter(p => p !== null);
+        const userDataPath = process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null;
+        const devPath = path.join(__dirname, 'database.json');
+        const parentDevPath = path.join(__dirname, '..', 'database.json');
+
+        const possiblePaths = [userDataPath, devPath, parentDevPath].filter(p => p !== null);
 
         let localPath = possiblePaths[0];
         for (const p of possiblePaths) {

@@ -35,7 +35,7 @@
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "Classico Pro",
-      "deleteAppDataOnUninstall": true,
+      "deleteAppDataOnUninstall": false,
       "artifactName": "Classico-Pro-Setup-${version}.${ext}"
     },
     "publish": [
