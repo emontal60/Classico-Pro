@@ -11,11 +11,14 @@ function startServer() {
   const serverPath = path.join(__dirname, '../server.js');
   const userDataPath = app.getPath('userData');
   
+  // Use AppData only when packaged (Production)
+  const dataPath = app.isPackaged ? userDataPath : path.join(__dirname, '..');
+
   serverProcess = fork(serverPath, [], {
     env: { 
       ...process.env, 
       ELECTRON_RUN_AS_NODE: '1',
-      CLASSICO_DATA_PATH: userDataPath
+      CLASSICO_DATA_PATH: dataPath
     }
   });
 

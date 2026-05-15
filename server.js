@@ -238,13 +238,30 @@ async function getMid() {
 app.get('/api/data', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
-        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
-        const localPath = path.join(baseDir, 'database.json');
+        
+        // --- ROBUST PATH DETECTION ---
+        const possiblePaths = [
+            process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null,
+            path.join(__dirname, 'database.json'), // Root
+            path.join(__dirname, '..', 'database.json') // Parent (if in electron/ folder)
+        ].filter(p => p !== null);
+
+        let localPath = possiblePaths[0];
+        // Find the first one that actually exists
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                localPath = p;
+                break;
+            }
+        }
+
+        console.log(`[Server] 📂 Fetching data from: ${localPath}`);
         let data = null;
 
         if (fs.existsSync(localPath)) {
             try {
                 data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+                console.log(`[Server] ✅ Data loaded successfully (${fs.statSync(localPath).size} bytes)`);
             } catch (err) {
                 console.error("Failed to read local database.json:", err);
             }
@@ -280,9 +297,22 @@ app.post('/api/save', async (req, res) => {
         const mid = (await getMid()).toUpperCase();
         const data = req.body;
 
+        // --- ROBUST PATH DETECTION ---
+        const possiblePaths = [
+            process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null,
+            path.join(__dirname, 'database.json'),
+            path.join(__dirname, '..', 'database.json')
+        ].filter(p => p !== null);
+
+        let localPath = possiblePaths[0];
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                localPath = p;
+                break;
+            }
+        }
+
         // 1. Save locally IMMEDIATELY (Fast)
-        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
-        const localPath = path.join(baseDir, 'database.json');
         try {
             fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
         } catch (err) {
