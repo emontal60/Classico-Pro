@@ -234,34 +234,33 @@ async function getMid() {
     });
 }
 
+function getDataPath() {
+    const devPath = path.join(__dirname, 'database.json');
+    const parentDevPath = path.join(__dirname, '..', 'database.json');
+    const userDataPath = process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null;
+    
+    const possiblePaths = [userDataPath, devPath, parentDevPath].filter(p => p !== null);
+    
+    for (const p of possiblePaths) {
+        if (fs.existsSync(p)) return p;
+    }
+    return possiblePaths[0] || devPath;
+}
+
+// Helper to ensure directory exists
+function ensureDirectory(filePath) {
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
 // 3. Core Sync API
 app.get('/api/data', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
         
-        // --- ROBUST PATH DETECTION ---
-        const devPath = path.join(__dirname, 'database.json');
-        const parentDevPath = path.join(__dirname, '..', 'database.json');
-        const userDataPath = process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null;
-        
-        // Priority order for reading
-        const possiblePaths = [
-            userDataPath,
-            devPath,
-            parentDevPath
-        ].filter(p => p !== null);
-
-        let localPath = possiblePaths[0];
-        let foundExisting = false;
-
-        for (const p of possiblePaths) {
-            if (fs.existsSync(p)) {
-                localPath = p;
-                foundExisting = true;
-                console.log(`[Server] 📂 Database found at: ${p}`);
-                break;
-            }
-        }
+        const localPath = getDataPath();
+        const foundExisting = fs.existsSync(localPath);
+        if (foundExisting) console.log(`[Server] 📂 Database found at: ${localPath}`);
 
         // --- AUTO-MIGRATION ---
         // If we found NO data in AppData but we HAVE data in the project root, COPY IT!
@@ -303,6 +302,7 @@ app.get('/api/data', async (req, res) => {
                 classico_app_settings: { appName: 'Classico' }
             };
             // Save defaults to local file for next time
+            ensureDirectory(localPath);
             fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
         } else {
             // Ensure menu exists even if empty (optional: only if explicitly null/missing)
@@ -323,23 +323,11 @@ app.post('/api/save', async (req, res) => {
         const mid = (await getMid()).toUpperCase();
         const data = req.body;
 
-        // --- ROBUST PATH DETECTION ---
-        const userDataPath = process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null;
-        const devPath = path.join(__dirname, 'database.json');
-        const parentDevPath = path.join(__dirname, '..', 'database.json');
-
-        const possiblePaths = [userDataPath, devPath, parentDevPath].filter(p => p !== null);
-
-        let localPath = possiblePaths[0];
-        for (const p of possiblePaths) {
-            if (fs.existsSync(p)) {
-                localPath = p;
-                break;
-            }
-        }
+        const localPath = getDataPath();
 
         // 1. Save locally IMMEDIATELY (Fast)
         try {
+            ensureDirectory(localPath);
             fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
         } catch (err) {
             console.error("[Save] Failed to update local database.json:", err);
@@ -669,7 +657,7 @@ app.post('/api/system/factory-reset', async (req, res) => {
         });
 
         // 2. Wipe Local
-        const localPath = path.join(__dirname, 'database.json');
+        const localPath = getDataPath();
         const backupDir = path.join(__dirname, 'backups');
 
         if (fs.existsSync(localPath)) {
