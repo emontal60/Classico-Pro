@@ -1,0 +1,60 @@
+{
+  "name": "classico-local-server",
+  "version": "1.0.0",
+  "description": "Local server for Classico App persistence",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "npm run build --prefix classico-v3",
+    "electron:dev": "npm run build && electron .",
+    "electron:build": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.classico.pro",
+    "productName": "Classico Pro",
+    "copyright": "Copyright © 2024 Classico",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "classico-v3/dist/**/*",
+      "electron/**/*",
+      "server.js",
+      "OwnerPortal.html",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "classico-v3/public/app-icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Classico Pro",
+      "deleteAppDataOnUninstall": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "emontal60",
+        "repo": "Classico-Pro"
+      }
+    ]
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.1",
+    "apexcharts": "^5.11.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

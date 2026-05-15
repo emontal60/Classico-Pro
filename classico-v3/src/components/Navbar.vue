@@ -1,0 +1,290 @@
+<template>
+  <header class="topbar glass-panel" style="border-radius: 0 0 10px 10px !important; width: 100% !important; margin: 0 !important; padding: 35px 25px 10px 25px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: space-between !important; direction: rtl !important;">
+    <div class="logo-container" style="display: flex !important; align-items: center !important; gap: 12px !important; order: 1 !important; margin: 0 !important; padding: 0 !important; flex: 1 !important; justify-content: flex-start !important;">
+      <img :src="appLogo" alt="App Logo" class="app-logo" style="height: 40px !important; margin: 0 !important; order: 1 !important;">
+      <h1 class="logo glow-text" style="font-size: 1.6rem !important; white-space: nowrap !important; margin: 0 !important; order: 2 !important;">{{ appName }}</h1>
+    </div>
+
+    <nav class="top-nav" style="display: flex !important; justify-content: center !important; align-items: center !important; gap: 0.8rem !important; order: 2 !important; flex: 0 1 auto !important;">
+      <router-link v-if="store.appSettings.pageVisibility?.monitoring !== false && store.canAccess('monitoring', 'none')" to="/" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">🎮</span> الأجهزة
+        </button>
+      </router-link>
+      
+      <router-link v-if="store.appSettings.pageVisibility?.lounge !== false && store.canAccess('lounge', 'none')" to="/lounge" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">☕</span> الصالة
+        </button>
+      </router-link>
+
+      <router-link v-if="store.appSettings.pageVisibility?.customers !== false && store.canAccess('customers', 'none')" to="/customers" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">👥</span> حسابات العملاء
+        </button>
+      </router-link>
+
+      <router-link v-if="store.appSettings.pageVisibility?.expenses !== false && store.canAccess('expenses', 'none')" to="/expenses" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">💸</span> المصروفات
+        </button>
+      </router-link>
+
+      <router-link v-if="store.appSettings.pageVisibility?.archive !== false && store.canAccess('archive', 'none')" to="/archive" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">🗄️</span> الأرشيف
+        </button>
+      </router-link>
+      <router-link v-if="store.appSettings.pageVisibility?.menu !== false && store.canAccess('menu', 'none')" to="/menu" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">📋</span> قائمة الأسعار
+        </button>
+      </router-link>
+
+      <router-link v-if="store.canAccess('settings', 'none')" to="/settings" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">⚙️</span> لوحة الإدارة
+        </button>
+      </router-link>
+    </nav>
+
+    <div class="user-profile-widget" style="display: flex !important; align-items: center !important; gap: 10px !important; order: 3 !important; margin: 0 !important; flex: 1 !important; justify-content: flex-end !important;">
+      <button @click="refreshPage" class="glass-icon-btn" title="تحديث">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4V9H9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 20V15H15" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 9C18.5 5.5 15.5 3.5 12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 12.5 3.54224 12.9902 3.62358 13.4655" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 15C5.5 18.5 8.5 20.5 12 20.5C16.6944 20.5 20.5 16.6944 20.5 12C20.5 11.5 20.4578 11.0098 20.3764 10.5345" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Font Zoom Feature -->
+      <div class="zoom-dropdown-container" v-click-outside="() => showZoomMenu = false">
+        <button @click="showZoomMenu = !showZoomMenu" class="glass-icon-btn" :class="{ active: showZoomMenu }" title="حجم الخط">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="8" stroke-width="2"/>
+            <path d="M21 21L16.65 16.65" stroke-width="2" stroke-linecap="round"/>
+            <path d="M11 8V14" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8 11H14" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        
+        <div v-if="showZoomMenu" class="zoom-popover glass-panel shadow-premium">
+          <div class="zoom-title">حجم الخط</div>
+          <div class="zoom-grid">
+            <button @click="changeFontSize('120')" class="zoom-btn" :class="{ current: ui.fontSize === '120' }">2+</button>
+            <button @click="changeFontSize('110')" class="zoom-btn" :class="{ current: ui.fontSize === '110' }">1+</button>
+            <button @click="changeFontSize('90')" class="zoom-btn" :class="{ current: ui.fontSize === '90' }">1-</button>
+            <button @click="changeFontSize('80')" class="zoom-btn" :class="{ current: ui.fontSize === '80' }">2-</button>
+          </div>
+          <button @click="changeFontSize('100')" class="zoom-reset-btn">إعادة ضبط (0)</button>
+        </div>
+      </div>
+      <button @click="toggleFullscreen" class="glass-icon-btn" title="ملء الشاشة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 3H21V9" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 21H3V15" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 3L14 10" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 21L10 14" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="nav-divider"></div>
+
+      <div class="user-badge-premium">
+        <span class="user-role-dot"></span>
+        <span class="user-name-text">{{ username }}</span>
+      </div>
+
+      <button @click="logout" class="logout-btn-premium">
+        <span class="icon">🚪</span> خروج
+      </button>
+    </div>
+  </header>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAppStore } from '../stores/appStore';
+import { useUIStore } from '../stores/uiStore';
+import defaultLogoUrl from '../assets/images/logo1.png';
+
+const store = useAppStore();
+const ui = useUIStore();
+const router = useRouter();
+
+const appName = computed(() => store.appSettings?.appName || 'Classico');
+const appLogo = computed(() => store.appSettings?.appLogo || defaultLogoUrl);
+
+const showZoomMenu = ref(false);
+
+const changeFontSize = (size) => {
+  ui.setFontSize(size);
+  showZoomMenu.value = false;
+};
+
+const username = computed(() => store.session?.username || '---');
+const isAdmin = computed(() => {
+  const role = store.session?.role?.toLowerCase()?.trim();
+  return role === 'manager' || role === 'admin';
+});
+
+const logout = () => {
+  ui.triggerSplash(1000);
+  store.logout();
+  router.push('/login');
+};
+
+const refreshPage = () => {
+  localStorage.setItem('classico_just_refreshed', 'true');
+  window.location.reload();
+};
+
+const toggleFullscreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+};
+
+// Initial font size application
+onMounted(() => {
+  if (ui.fontSize) {
+    document.documentElement.style.fontSize = ui.fontSize + '%';
+  }
+
+  // Handle post-refresh toast
+  if (localStorage.getItem('classico_just_refreshed')) {
+    localStorage.removeItem('classico_just_refreshed');
+    // Wait for the splash screen to fade out (approx 1s)
+    setTimeout(() => {
+      ui.showToast('تم تحديث البيانات بنجاح ✅', 'success');
+    }, 1200);
+  }
+});
+
+// Click outside directive for the zoom menu
+const vClickOutside = {
+  mounted(el, binding) {
+    el.clickOutsideEvent = (event) => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value();
+      }
+    };
+    document.addEventListener("click", el.clickOutsideEvent);
+  },
+  unmounted(el) {
+    document.removeEventListener("click", el.clickOutsideEvent);
+  }
+};
+</script>
+
+<style scoped>
+.zoom-dropdown-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.zoom-popover {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #1e2530;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.8rem; /* Reduced padding */
+  border-radius: 16px; /* Slightly smaller radius */
+  min-width: 160px; /* Reduced width */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem; /* Reduced gap */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.zoom-title {
+  font-size: 0.85rem; /* Smaller title */
+  font-weight: 700;
+  color: #94a3b8;
+  text-align: center;
+  margin-bottom: 0.2rem;
+}
+
+.zoom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Changed to 2 columns */
+  gap: 0.6rem;
+}
+
+.zoom-btn {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: white;
+  padding: 0.5rem 0; /* Smaller buttons */
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem; /* Smaller font */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-btn:hover {
+  background: #334155;
+}
+
+.zoom-btn.current {
+  background: #2dd4bf;
+  color: #0f172a;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.3);
+}
+
+.zoom-reset-btn {
+  margin-top: 0.3rem;
+  background: transparent;
+  border: 1px dashed rgba(45, 212, 191, 0.5);
+  color: #2dd4bf;
+  padding: 0.5rem; /* Smaller reset button */
+  border-radius: 10px;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem; /* Smaller reset font */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zoom-reset-btn:hover {
+  background: rgba(45, 212, 191, 0.05);
+  border-style: solid;
+}
+.nav-btn {
+  flex-shrink: 0; /* Prevent buttons from shrinking/clipping */
+  white-space: nowrap;
+}
+
+.owner-btn-glow {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.owner-btn-glow.active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #fff;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+}
+
+.owner-btn-glow:hover {
+  background: #f59e0b;
+  color: #000;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+}
+</style>

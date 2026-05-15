@@ -1,0 +1,132 @@
+/* assets/css/print.css - Thermal Receipt Styles */
+
+#receipt-print-container {
+    display: none;
+    width: 70mm; /* Reduced width significantly for margin safety */
+    background: white;
+    padding: 20px 10px;
+    color: black;
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    margin: 0 auto; /* Center for preview */
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #receipt-print-container, #receipt-print-container * {
+        visibility: visible;
+    }
+    #receipt-print-container {
+        display: block !important;
+        position: absolute;
+        left: 5mm; /* Extra left padding for the printer */
+        top: 0;
+        width: 65mm;
+        margin: 0;
+        padding: 0;
+    }
+    @page {
+        margin: 0;
+        size: auto;
+    }
+}
+
+.receipt-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.receipt-logo {
+    max-width: 140px;
+    margin-bottom: 10px;
+}
+
+.receipt-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.receipt-subtitle {
+    font-size: 18px;
+    margin: 5px 0;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    padding: 3px 0;
+}
+
+.receipt-info {
+    font-size: 15px;
+    margin-bottom: 10px;
+}
+
+.receipt-section-title {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px dashed #000;
+    margin: 10px 0 5px 0;
+}
+
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.receipt-table td {
+    padding: 6px 0;
+    font-size: 15px;
+}
+
+.bold-amount {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.receipt-total-section {
+    margin-top: 15px;
+    border-top: 2px solid #000;
+    padding-top: 8px;
+}
+
+.receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 5px 0;
+}
+
+.grand-total {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: right;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    border-top: 2px solid #000;
+    padding-top: 5px;
+}
+
+.receipt-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    font-style: italic;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.receipt-divider {
+    border-top: 1px dashed #000;
+    margin: 10px 0;
+}
+
+.receipt-qr {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 10px;
+    color: #666;
+}

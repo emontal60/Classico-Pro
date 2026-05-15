@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-main) !important;
+}
+
+:root {
+    /* Modern Dark Theme Palette */
+    --bg-dark: #0f172a;
+    --bg-deep: #020617;
+    --bg-panel: rgba(30, 41, 59, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+
+    --accent-primary: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-main: #3b82f6;
+
+    --accent-success: #10b981;
+    --accent-danger: #ef4444;
+    --accent-cyan: #06b6d4;
+    
+    --bg-navbar: #0f172a;
+
+    --font-main: 'Cairo', sans-serif;
+    --font-heading: 'Outfit', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loadingBar {
+    from { transform: translateX(0); width: 30%; }
+    to   { transform: translateX(120px); width: 60%; }
+}
