@@ -238,7 +238,8 @@ async function getMid() {
 app.get('/api/data', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
-        const localPath = path.join(__dirname, 'database.json');
+        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
+        const localPath = path.join(baseDir, 'database.json');
         let data = null;
 
         if (fs.existsSync(localPath)) {
@@ -280,7 +281,8 @@ app.post('/api/save', async (req, res) => {
         const data = req.body;
 
         // 1. Save locally IMMEDIATELY (Fast)
-        const localPath = path.join(__dirname, 'database.json');
+        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
+        const localPath = path.join(baseDir, 'database.json');
         try {
             fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
         } catch (err) {
@@ -350,7 +352,8 @@ app.get('/api/system/subscription-verify', async (req, res) => {
         const now = new Date();
 
         // --- ANTI-TAMPER LOGIC ---
-        const localPath = path.join(__dirname, 'database.json');
+        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
+        const localPath = path.join(baseDir, 'database.json');
         if (fs.existsSync(localPath)) {
             try {
                 const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));

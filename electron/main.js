@@ -9,8 +9,14 @@ let serverProcess;
 function startServer() {
   // Start the Express server (server.js) as a child process
   const serverPath = path.join(__dirname, '../server.js');
+  const userDataPath = app.getPath('userData');
+  
   serverProcess = fork(serverPath, [], {
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+    env: { 
+      ...process.env, 
+      ELECTRON_RUN_AS_NODE: '1',
+      CLASSICO_DATA_PATH: userDataPath
+    }
   });
 
   serverProcess.on('message', (msg) => {
