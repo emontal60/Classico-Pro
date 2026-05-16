@@ -35,22 +35,30 @@ set /p confirm="[?] Are you sure you want to build and release a NEW version? (y
 if /i "%confirm%" neq "y" goto menu
 
 echo.
-echo [1/3] Incrementing version...
-call npm version patch --no-git-tag-version
+echo [1/4] Cleaning old builds...
+if exist "dist_electron" rd /s /q "dist_electron"
+if exist "classico-v3\dist" rd /s /q "classico-v3\dist"
 
 echo.
-echo [2/3] Building the Installer (EXE)...
+echo [2/4] Incrementing version (Automatic)...
+:: Force increment to avoid git check issues
+call npm version patch --no-git-tag-version --force
+
+echo.
+echo [3/4] Building the Installer (EXE)...
+echo [System] This may take a few minutes, please wait...
 call npm run electron:build
 
 echo.
-echo [3/3] Syncing with GitHub...
+echo [4/4] Syncing with GitHub...
 call :git_logic
 
 echo.
 echo ===========================================
 echo    SUCCESS! New Version Ready.
 echo ===========================================
-echo NEXT STEPS: Upload 'dist_electron' files to GitHub Releases.
+echo [Done] Version has been incremented.
+echo [Path] Check 'dist_electron' for the new Setup file.
 pause
 goto menu
 
