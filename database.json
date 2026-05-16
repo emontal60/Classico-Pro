@@ -3,34 +3,9 @@
     {
       "id": 1,
       "name": "PlayStation 1",
-      "status": "running",
+      "status": "stopped",
       "hourPrice": 50,
-      "orders": [
-        {
-          "itemId": 2,
-          "name": "سموذي فراولة",
-          "price": 45,
-          "qty": 2,
-          "total": 90
-        },
-        {
-          "itemId": 3,
-          "name": "سموذي توت أزرق",
-          "price": 45,
-          "qty": 1,
-          "total": 45
-        },
-        {
-          "itemId": 4,
-          "name": "سموذي بطيخ",
-          "price": 45,
-          "qty": 1,
-          "total": 45
-        }
-      ],
-      "startTime": "2026-05-16T18:55:23.240Z",
-      "prepaidSeconds": 0,
-      "usedTimeSeconds": 0
+      "orders": []
     },
     {
       "id": 2,
@@ -698,14 +673,7 @@
     }
   ],
   "classico_history": [],
-  "classico_customers": [
-    {
-      "id": 1778964883254,
-      "clientId": 1778624812677,
-      "name": "ابراهيم",
-      "ledger": []
-    }
-  ],
+  "classico_customers": [],
   "classico_archived_customers": [],
   "classico_clients_dir": [
     {
@@ -745,10 +713,10 @@
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-14T21:02:02.659+00:00.399121979e3eed3b7cb4a5232b2099923d8533e196cd039d594fc77ec3b6c673"
   },
-  "classico_last_journal_closure": "2026-05-15T22:13:45.483Z",
+  "classico_last_journal_closure": "2026-05-16T22:44:45.394Z",
   "classico_app_settings": {
     "appName": "Classico",
-    "userId": "USR-YWWRQF",
+    "userId": "USR-A0IQK5",
     "pageVisibility": {
       "monitoring": true,
       "lounge": true,
@@ -759,6 +727,20 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1778971497846.8162,
+      "timestamp": "2026-05-16T22:44:57.846Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1778971486008.0566,
+      "timestamp": "2026-05-16T22:44:46.008Z",
+      "user": "admin",
+      "action": "إعادة ضبط المصنع",
+      "details": "تم إجراء إعادة ضبط كاملة للمصنع ومسح كافة البيانات"
+    },
     {
       "id": 1778952111653.8914,
       "timestamp": "2026-05-16T17:21:51.653Z",
@@ -943,6 +925,5 @@
     }
   ],
   "is_activation": false,
-  "is_reset": false,
-  "last_seen_time": "2026-05-16T21:21:19.977Z"
+  "is_reset": false
 }

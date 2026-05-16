@@ -574,37 +574,108 @@
 
         <!-- BI Analytics Tab -->
         <div v-if="activeTab === 'analytics'" class="tab-content-inner fadeScale">
-          <div class="section-header-premium">
-            <h2 class="premium-title-main">📈 لوحة تحكم ذكاء الأعمال (BI)</h2>
-            <div style="display: flex; gap: 1rem; align-items: flex-end;">
-              <div class="filter-group">
-                <label style="font-size: 0.75rem; color: var(--text-muted);">من تاريخ</label>
-                <input type="date" v-model="analyticsFilter.from" class="search-input-glass" style="width: 150px; padding: 0.4rem;">
+          <div class="section-header-premium" style="display: flex; align-items: center; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem;">
+            <!-- Title & Filters -->
+            <div>
+              <h2 class="premium-title-main">📈 لوحة تحكم ذكاء الأعمال (BI)</h2>
+              <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">اختر الفترة الزمنية لعرض الإحصائيات (الافتراضي: كل البيانات)</p>
+              
+              <div style="display: flex; gap: 1rem; align-items: flex-end; margin-top: 1rem;">
+                <div class="filter-group">
+                  <label style="font-size: 0.75rem; color: var(--text-muted);">من تاريخ</label>
+                  <input type="date" v-model="analyticsFilter.from" class="search-input-glass" style="width: 130px; padding: 0.3rem;">
+                </div>
+                <div class="filter-group">
+                  <label style="font-size: 0.75rem; color: var(--text-muted);">إلى تاريخ</label>
+                  <input type="date" v-model="analyticsFilter.to" class="search-input-glass" style="width: 130px; padding: 0.3rem;">
+                </div>
+                <button @click="() => { updateAnalytics(); initCharts(); }" class="btn-sys-v3 success" style="padding: 0.4rem 1.2rem; margin: 0;">
+                  تطبيق 🔍
+                </button>
               </div>
-              <div class="filter-group">
-                <label style="font-size: 0.75rem; color: var(--text-muted);">إلى تاريخ</label>
-                <input type="date" v-model="analyticsFilter.to" class="search-input-glass" style="width: 150px; padding: 0.4rem;">
+            </div>
+
+            <!-- KPIs (Compact) -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-right: auto; margin-left: auto; justify-content: center;">
+              <div class="glass-panel" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; min-width: 130px;">
+                <div style="font-size: 0.85rem; color: #10b981; margin-bottom: 0.4rem; font-weight: bold;">الإيرادات</div>
+                <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(16,185,129,0.3);">{{ formatCurrency(analyticsData.kpis.revenue) }} ج</div>
               </div>
-              <button @click="() => { updateAnalytics(); initCharts(); }" class="btn-sys-v3 success" style="padding: 0.5rem 1.2rem; margin: 0;">
-                تطبيق الفلتر 🔍
-              </button>
+              <div class="glass-panel" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; min-width: 130px;">
+                <div style="font-size: 0.85rem; color: #ef4444; margin-bottom: 0.4rem; font-weight: bold;">المصروفات والرواتب</div>
+                <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(239,68,68,0.3);">{{ formatCurrency(analyticsData.kpis.expenses) }} ج</div>
+              </div>
+              <div class="glass-panel" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; min-width: 130px;">
+                <div style="font-size: 0.85rem; color: #f59e0b; margin-bottom: 0.4rem; font-weight: bold;">صافي الربح</div>
+                <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(245,158,11,0.3);">{{ formatCurrency(analyticsData.kpis.netProfit) }} ج</div>
+              </div>
             </div>
           </div>
 
-          <div class="analytics-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem; padding-bottom: 3rem;">
-            <!-- Row 1: Busy Hours and Top Items -->
+          <!-- Row 1: Busy Hours & Top Items -->
+          <div class="analytics-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
             <div class="analytics-card glass-panel" style="padding: 1.5rem;">
               <h3 style="margin-bottom: 1rem; color: var(--accent-cyan);">🕒 أكثر الساعات ازدحاماً (حركة الأجهزة)</h3>
               <div id="hoursChart"></div>
             </div>
             
             <div class="analytics-card glass-panel" style="padding: 1.5rem;">
-              <h3 style="margin-bottom: 1rem; color: var(--accent-success);">🏆 الأصناف الأكثر مبيعاً</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0; color: var(--accent-success);">🏆 الأصناف الأكثر مبيعاً</h3>
+                <button @click="toggleItemsChartType" class="btn-sys-v3" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin: 0; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: all 0.3s ease;">
+                  <span v-if="itemsChartType === 'donut'">📊 كأعمدة</span>
+                  <span v-else>🍩 كدائرة</span>
+                </button>
+              </div>
               <div id="itemsChart"></div>
             </div>
+          </div>
 
-            <!-- Row 2: Monthly Comparison -->
-            <div class="analytics-card glass-panel" style="padding: 1.5rem; grid-column: span 2;">
+          <!-- Row 2: Ratio + Staff -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="analytics-card glass-panel" style="padding: 1.5rem;">
+              <h3 style="margin-bottom: 1rem; color: var(--accent-cyan);">⚖️ إيرادات الأجهزة مقابل الصالة</h3>
+              <div id="ratioChart"></div>
+            </div>
+            <div class="analytics-card glass-panel" style="padding: 1.5rem;">
+              <h3 style="margin-bottom: 1rem; color: #8b5cf6;">💼 أداء الموظفين (المبيعات)</h3>
+              <div id="staffChart"></div>
+            </div>
+          </div>
+
+          <!-- Row 3: Income vs Expenses -->
+          <div class="analytics-card glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: #fff;">📈 الإيرادات مقابل المصروفات زمنياً</h3>
+            <div id="incomeChart"></div>
+          </div>
+
+          <!-- Row 4: Debt Analysis & Monthly Profits -->
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; padding-bottom: 3rem;">
+            <div class="analytics-card glass-panel" style="padding: 1.5rem;">
+              <h3 style="margin-bottom: 1rem; color: #ec4899;">🤝 تحليل الديون والمديونيات</h3>
+              
+              <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="flex: 1; background: rgba(16,185,129,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2); text-align: center;">
+                  <div style="font-size: 0.8rem; color: #10b981; margin-bottom: 0.5rem;">الديون المحصلة</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: #10b981;">{{ formatCurrency(analyticsData.debtAnalysis.totalCollected) }} ج</div>
+                </div>
+                <div style="flex: 1; background: rgba(239,68,68,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(239,68,68,0.2); text-align: center;">
+                  <div style="font-size: 0.8rem; color: #ef4444; margin-bottom: 0.5rem;">متبقي في السوق</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: #ef4444;">{{ formatCurrency(analyticsData.debtAnalysis.totalRemaining) }} ج</div>
+                </div>
+              </div>
+
+              <h4 style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem;">أكثر العملاء استدانة (Top 5)</h4>
+              <div v-if="analyticsData.debtAnalysis.topDebtors.length === 0" style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 1rem;">
+                لا توجد ديون مسجلة.
+              </div>
+              <div v-for="d in analyticsData.debtAnalysis.topDebtors" :key="d.name" style="display: flex; justify-content: space-between; padding: 0.8rem; background: rgba(255,255,255,0.02); margin-bottom: 0.5rem; border-radius: 6px;">
+                <span style="color: #cbd5e1;">{{ d.name }}</span>
+                <span style="color: #ef4444; font-weight: bold;">{{ formatCurrency(d.debt) }} ج</span>
+              </div>
+            </div>
+
+            <div class="analytics-card glass-panel" style="padding: 1.5rem;">
               <h3 style="margin-bottom: 1rem; color: var(--accent-warning);">📊 مقارنة صافي الأرباح بين الشهور</h3>
               <div id="profitChart"></div>
             </div>
@@ -1074,7 +1145,7 @@
 </template>
 
 <script setup>
-import { watch, onMounted } from 'vue';
+import { ref, watch, onMounted, nextTick } from 'vue';
 import { useSettingsLogic } from './SettingsLogic';
 import SubscriptionTab from './SubscriptionTab.vue';
 import ApexCharts from 'apexcharts';
@@ -1097,80 +1168,205 @@ const {
   analyticsData, updateAnalytics, analyticsFilter
 } = useSettingsLogic();
 
-const charts = { hours: null, items: null, profit: null };
+const charts = { hours: null, items: null, profit: null, income: null, ratio: null, staff: null };
+const itemsChartType = ref('donut');
+
+const renderItemsChart = () => {
+  try {
+    const iChart = document.querySelector("#itemsChart");
+    if (!iChart) return;
+    if (charts.items) charts.items.destroy();
+
+    const itemNames = (analyticsData.topItems || []).map(i => i.name);
+    const itemQtys = (analyticsData.topItems || []).map(i => i.qty);
+    const isBar = itemsChartType.value === 'bar';
+    
+    const safeNames = itemNames.length ? itemNames : ['لا توجد بيانات'];
+    const safeQtys = itemQtys.length ? itemQtys.map(n => isNaN(Number(n)) ? 0 : Number(n)) : [0];
+
+    let options = {};
+    if (isBar) {
+      options = {
+        series: [{ name: 'الكمية المباعة', data: safeQtys }],
+        chart: { type: 'bar', height: 350, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        xaxis: { categories: safeNames },
+        colors: ['#00e5ff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#3b82f6'],
+        plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
+        dataLabels: { enabled: true, style: { colors: ['#fff'] } },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        tooltip: { theme: 'dark' },
+        legend: { show: false }
+      };
+    } else {
+      options = {
+        series: safeQtys.reduce((a,b)=>a+b, 0) === 0 ? [1] : safeQtys, // Prevent blank if all 0s
+        chart: { type: 'donut', height: 350, foreColor: '#cbd5e1', background: 'transparent' },
+        labels: safeNames,
+        colors: ['#00e5ff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#3b82f6'],
+        stroke: { show: false },
+        plotOptions: { pie: { donut: { size: '70%' } } },
+        dataLabels: { enabled: true },
+        tooltip: { theme: 'dark' },
+        legend: { position: 'bottom' }
+      };
+    }
+
+    charts.items = new ApexCharts(iChart, options);
+    charts.items.render();
+  } catch (err) {
+    console.error('Error rendering itemsChart:', err);
+  }
+};
+
+const toggleItemsChartType = () => {
+  itemsChartType.value = itemsChartType.value === 'donut' ? 'bar' : 'donut';
+  renderItemsChart();
+};
 
 const initCharts = () => {
   const hChart = document.querySelector("#hoursChart");
   const iChart = document.querySelector("#itemsChart");
   const pChart = document.querySelector("#profitChart");
-
-  if (!hChart || !iChart || !pChart) return;
+  const incChart = document.querySelector("#incomeChart");
+  const rChart = document.querySelector("#ratioChart");
+  const sChart = document.querySelector("#staffChart");
 
   // Destroy existing
   try {
     if (charts.hours) charts.hours.destroy();
     if (charts.items) charts.items.destroy();
     if (charts.profit) charts.profit.destroy();
+    if (charts.income) charts.income.destroy();
+    if (charts.ratio) charts.ratio.destroy();
+    if (charts.staff) charts.staff.destroy();
   } catch (e) {}
 
   // 1. Busy Hours
-  charts.hours = new ApexCharts(hChart, {
-    series: [{ name: 'عدد الزيارات', data: analyticsData.busyHours || Array(24).fill(0) }],
-    chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
-    stroke: { curve: 'smooth', width: 3 },
-    colors: ['#00e5ff'],
-    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
-    dataLabels: { enabled: false },
-    xaxis: { categories: Array.from({length: 24}, (_, i) => i + ':00') },
-    grid: { borderColor: 'rgba(255,255,255,0.05)' },
-    tooltip: { theme: 'dark' }
-  });
-  charts.hours.render();
+  if (hChart) {
+    try {
+      charts.hours = new ApexCharts(hChart, {
+        series: [{ name: 'عدد الزيارات', data: analyticsData.busyHours || Array(24).fill(0) }],
+        chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        stroke: { curve: 'smooth', width: 3 },
+        colors: ['#00e5ff'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: Array.from({length: 24}, (_, i) => i + ':00') },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        tooltip: { theme: 'dark' }
+      });
+      charts.hours.render();
+    } catch(e) { console.error('hoursChart error', e); }
+  }
 
   // 2. Top Items
-  const itemNames = (analyticsData.topItems || []).map(i => i.name);
-  const itemQtys = (analyticsData.topItems || []).map(i => i.qty);
-
-  charts.items = new ApexCharts(iChart, {
-    series: itemQtys.length ? itemQtys : [1],
-    chart: { type: 'donut', height: 350, foreColor: '#cbd5e1' },
-    labels: itemNames.length ? itemNames : ['لا توجد بيانات'],
-    colors: ['#00e5ff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#3b82f6'],
-    stroke: { show: false },
-    legend: { position: 'bottom' },
-    plotOptions: { pie: { donut: { size: '70%' } } },
-    tooltip: { theme: 'dark' }
-  });
-  charts.items.render();
+  renderItemsChart();
 
   // 3. Monthly Profit
-  const pLabels = (analyticsData.monthlyProfits || []).map(m => m.month);
-  const pData = (analyticsData.monthlyProfits || []).map(m => m.profit);
+  if (pChart) {
+    try {
+      const pLabels = (analyticsData.monthlyProfits || []).map(m => m.month);
+      const pData = (analyticsData.monthlyProfits || []).map(m => m.profit);
 
-  charts.profit = new ApexCharts(pChart, {
-    series: [{ name: 'صافي الربح', data: pData.length ? pData : [0] }],
-    chart: { type: 'bar', height: 300, foreColor: '#cbd5e1', toolbar: { show: false } },
-    plotOptions: { bar: { borderRadius: 8, columnWidth: '50%', distributed: true } },
-    colors: ['#10b981', '#10b981', '#10b981', '#10b981', '#10b981', '#f59e0b'],
-    dataLabels: { enabled: false },
-    xaxis: { categories: pLabels.length ? pLabels : ['---'] },
-    grid: { borderColor: 'rgba(255,255,255,0.05)' },
-    tooltip: { theme: 'dark' }
-  });
-  charts.profit.render();
+      charts.profit = new ApexCharts(pChart, {
+        series: [{ name: 'صافي الربح', data: pData.length ? pData : [0] }],
+        chart: { type: 'bar', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        plotOptions: { bar: { borderRadius: 8, columnWidth: '50%', distributed: true } },
+        colors: ['#f59e0b', '#10b981', '#00e5ff', '#8b5cf6', '#ec4899'],
+        dataLabels: { enabled: false },
+        xaxis: { categories: pLabels.length ? pLabels : ['---'] },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        tooltip: { theme: 'dark' }
+      });
+      charts.profit.render();
+    } catch(e) { console.error('profitChart error', e); }
+  }
+
+  // 4. Income vs Expenses
+  if (incChart) {
+    try {
+      const iLabels = analyticsData.incomeVsExpenses.map(d => d.date);
+      const revData = analyticsData.incomeVsExpenses.map(d => d.rev);
+      const expData = analyticsData.incomeVsExpenses.map(d => d.exp);
+      
+      charts.income = new ApexCharts(incChart, {
+        series: [
+          { name: 'الإيرادات', data: revData },
+          { name: 'المصروفات', data: expData }
+        ],
+        chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        colors: ['#10b981', '#ef4444'],
+        stroke: { curve: 'smooth', width: 3 },
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: iLabels.length ? iLabels : ['---'] },
+        yaxis: {
+          labels: {
+            formatter: (value) => { return Math.round(value).toLocaleString(); }
+          }
+        },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        tooltip: { theme: 'dark' }
+      });
+      charts.income.render();
+    } catch(e) { console.error('incomeChart error', e); }
+  }
+
+  // 5. Ratio Chart
+  if (rChart) {
+    try {
+      charts.ratio = new ApexCharts(rChart, {
+        series: [analyticsData.ratioData.ps || 0, analyticsData.ratioData.lounge || 0],
+        labels: ['الأجهزة 🎮', 'الصالة ☕'],
+        chart: { type: 'donut', height: 300, foreColor: '#cbd5e1', background: 'transparent' },
+        colors: ['#00e5ff', '#10b981'],
+        stroke: { show: false },
+        legend: { position: 'bottom' },
+        plotOptions: { pie: { donut: { size: '70%' } } },
+        dataLabels: { enabled: true, style: { colors: ['#fff'] } },
+        tooltip: { theme: 'dark' }
+      });
+      charts.ratio.render();
+    } catch(e) { console.error('ratioChart error', e); }
+  }
+
+  // 6. Staff Performance
+  if (sChart) {
+    try {
+      const sLabels = analyticsData.staffPerformance.map(s => s.name || 'غير محدد');
+      const sData = analyticsData.staffPerformance.map(s => s.rev);
+      
+      charts.staff = new ApexCharts(sChart, {
+        series: [{ name: 'إجمالي المبيعات', data: sData }],
+        chart: { type: 'bar', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        plotOptions: { bar: { horizontal: false, borderRadius: 6, distributed: true } },
+        colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+        dataLabels: { enabled: false },
+        xaxis: { categories: sLabels.length ? sLabels : ['لا يوجد بيانات'] },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        legend: { show: false },
+        tooltip: { theme: 'dark' }
+      });
+      charts.staff.render();
+    } catch(e) { console.error('staffChart error', e); }
+  }
 };
 
 onMounted(() => {
   if (activeTab.value === 'analytics') {
     updateAnalytics();
-    setTimeout(initCharts, 800);
+    nextTick(() => {
+      setTimeout(initCharts, 300);
+    });
   }
 });
 
 watch(activeTab, (val) => {
   if (val === 'analytics') {
     updateAnalytics();
-    setTimeout(initCharts, 300);
+    nextTick(() => {
+      setTimeout(initCharts, 300);
+    });
   }
 });
 </script>

@@ -77,7 +77,7 @@ function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('[System] Page loaded, checking for updates...');
-    autoUpdater.checkForUpdatesAndNotify().catch(err => console.error('Update check failed:', err));
+    autoUpdater.checkForUpdates().catch(err => console.error('Update check failed:', err));
   });
 
   mainWindow.once('ready-to-show', () => {

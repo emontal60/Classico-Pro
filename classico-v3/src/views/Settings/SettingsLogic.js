@@ -27,27 +27,134 @@ export function useSettingsLogic() {
 
   // Analytics State
   const analyticsFilter = reactive({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Last 30 days
-    to: new Date().toISOString().split('T')[0]
+    from: '', 
+    to: ''
   });
 
   const analyticsData = reactive({
+    kpis: { revenue: 0, expenses: 0, netProfit: 0 },
     busyHours: Array(24).fill(0),
     topItems: [],
-    monthlyProfits: []
+    monthlyProfits: [],
+    incomeVsExpenses: [],
+    ratioData: { ps: 0, lounge: 0 },
+    staffPerformance: [],
+    debtAnalysis: { topDebtors: [], totalCollected: 0, totalRemaining: 0 }
   });
 
   const updateAnalytics = () => {
-    const from = new Date(analyticsFilter.from);
-    const to = new Date(analyticsFilter.to);
-    to.setHours(23, 59, 59);
+    let from, to;
+    if (analyticsFilter.from) from = new Date(analyticsFilter.from);
+    if (analyticsFilter.to) {
+      to = new Date(analyticsFilter.to);
+      to.setHours(23, 59, 59);
+    }
 
     const isMatch = (dateStr) => {
+      if (!analyticsFilter.from && !analyticsFilter.to) return true;
+      if (!dateStr) return false;
       const d = new Date(dateStr);
-      return d >= from && d <= to;
+      if (isNaN(d)) return false;
+      if (from && to) return d >= from && d <= to;
+      if (from) return d >= from;
+      if (to) return d <= to;
+      return true;
     };
 
-    // 1. Busy Hours
+    // KPIs & Daily/Staff Loggers
+    let totalRev = 0, totalExp = 0, psRev = 0, loungeRev = 0;
+    const dailyMap = {};
+    const logDaily = (dateStr, amt, type) => {
+      if (!dateStr) return;
+      const d = new Date(dateStr);
+      if (isNaN(d)) return;
+      const key = d.toISOString().split('T')[0];
+      if (!dailyMap[key]) dailyMap[key] = { rev: 0, exp: 0 };
+      if (type === 'rev') dailyMap[key].rev += (amt || 0);
+      else dailyMap[key].exp += (amt || 0);
+    };
+
+    const staffMap = {};
+    const logStaff = (username, amt) => {
+      if (!username) return;
+      staffMap[username] = (staffMap[username] || 0) + (amt || 0);
+    };
+
+    // 1. Process History
+    (store.history || []).filter(h => isMatch(h.timestamp)).forEach(h => {
+      totalRev += (h.totalCost || 0);
+      psRev += (h.timeCost || h.totalCost || 0);
+      if (h.ordersCost) loungeRev += h.ordersCost;
+      logDaily(h.timestamp, h.totalCost, 'rev');
+      logStaff(h.processedBy, h.totalCost);
+    });
+
+    // 2. Process Lounge
+    (store.loungeHistory || []).filter(l => isMatch(l.timestamp)).forEach(l => {
+      totalRev += (l.total || 0);
+      loungeRev += (l.total || 0);
+      logDaily(l.timestamp, l.total, 'rev');
+      logStaff(l.processedBy, l.total);
+    });
+
+    // 3. Process Customers Debt Collection
+    (store.archivedCustomers || []).filter(c => isMatch(c.archivedAt)).forEach(c => {
+      totalRev += (c.settledAmount || 0);
+      logDaily(c.archivedAt, c.settledAmount, 'rev');
+      logStaff(c.archivedBy, c.settledAmount);
+    });
+
+    // 4. Process Expenses & Salaries
+    (store.archivedExpenses || []).filter(e => isMatch(e.timestamp || e.archivedAt)).forEach(e => {
+      totalExp += (e.amount || 0);
+      logDaily(e.timestamp || e.archivedAt, e.amount, 'exp');
+    });
+    (store.archivedSalaries || []).filter(s => isMatch(s.timestamp)).forEach(s => {
+      totalExp += (s.amount || 0);
+      logDaily(s.timestamp, s.amount, 'exp');
+    });
+
+    // Update KPIs & Ratio
+    analyticsData.kpis = { revenue: totalRev, expenses: totalExp, netProfit: totalRev - totalExp };
+    analyticsData.ratioData = { ps: psRev, lounge: loungeRev };
+
+    // Update Income vs Expenses (Last 14 active days)
+    analyticsData.incomeVsExpenses = Object.entries(dailyMap)
+      .map(([date, data]) => ({ date, rev: data.rev, exp: data.exp }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-14);
+
+    // Update Staff Performance
+    analyticsData.staffPerformance = Object.entries(staffMap)
+      .map(([name, rev]) => ({ name, rev }))
+      .sort((a, b) => b.rev - a.rev);
+
+    // Update Debt Analysis
+    let activeDebt = 0;
+    const debtors = [];
+    (store.customers || []).forEach(c => {
+      const balance = c.ledger.reduce((sum, l) => l.type === 'debt' ? sum + l.amount : sum - l.amount, 0);
+      if (balance > 0) {
+        activeDebt += balance;
+        debtors.push({ name: c.name, debt: balance });
+      }
+    });
+    
+    let collectedDebt = 0;
+    (store.customers || []).forEach(c => {
+      collectedDebt += c.ledger.filter(l => l.type === 'payment').reduce((sum, l) => sum + l.amount, 0);
+    });
+    (store.archivedCustomers || []).forEach(c => {
+      collectedDebt += (c.settledAmount || 0);
+    });
+
+    analyticsData.debtAnalysis = {
+      topDebtors: debtors.sort((a, b) => b.debt - a.debt).slice(0, 5),
+      totalCollected: collectedDebt,
+      totalRemaining: activeDebt
+    };
+
+    // [KEEP] Old Busy Hours
     const hours = Array(24).fill(0);
     (store.history || []).filter(h => isMatch(h.timestamp)).forEach(h => {
       const date = new Date(h.timestamp);
@@ -55,44 +162,40 @@ export function useSettingsLogic() {
     });
     analyticsData.busyHours = hours;
 
-    // 2. Top Selling Items
+    // [KEEP] Old Top Selling Items
     const itemsMap = {};
     const allOrders = [
       ...(store.history || []).filter(h => isMatch(h.timestamp)).flatMap(h => h.orders || []),
       ...(store.loungeHistory || []).filter(l => isMatch(l.timestamp)).flatMap(l => l.orders || [])
     ];
-    
-    allOrders.forEach(o => {
-      itemsMap[o.name] = (itemsMap[o.name] || 0) + (o.qty || 1);
-    });
-    
+    allOrders.forEach(o => { itemsMap[o.name] = (itemsMap[o.name] || 0) + Number(o.qty || 1); });
     analyticsData.topItems = Object.entries(itemsMap)
       .map(([name, qty]) => ({ name, qty }))
       .sort((a, b) => b.qty - a.qty)
       .slice(0, 7);
 
-    // 3. Monthly Profits (Keep Monthly Trends separate or filter too?)
-    // User asked for "mizet al BI" filter. Monthly profit usually is for all, 
-    // but I'll filter it to show only months within the range.
+    // [KEEP] Monthly Profits (Comparison across months)
     const monthlyMap = {};
-    const process = (dateStr, amount, type) => {
-      if (!isMatch(dateStr)) return;
+    const processMonthly = (dateStr, amount, type) => {
+      if (!dateStr) return;
       const d = new Date(dateStr);
+      if (isNaN(d)) return;
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       if (!monthlyMap[key]) monthlyMap[key] = { revenue: 0, expenses: 0 };
-      if (type === 'rev') monthlyMap[key].revenue += amount;
-      else monthlyMap[key].expenses += amount;
+      if (type === 'rev') monthlyMap[key].revenue += (amount || 0);
+      else monthlyMap[key].expenses += (amount || 0);
     };
 
-    (store.history || []).forEach(h => process(h.timestamp, h.totalCost, 'rev'));
-    (store.loungeHistory || []).forEach(l => process(l.timestamp, l.total, 'rev'));
-    (store.archivedCustomers || []).forEach(c => process(c.archivedAt, c.settledAmount || 0, 'rev'));
-    (store.archivedExpenses || []).forEach(e => process(e.timestamp || e.archivedAt, e.amount, 'exp'));
-    (store.archivedSalaries || []).forEach(s => process(s.timestamp, s.amount, 'exp'));
+    (store.history || []).forEach(h => processMonthly(h.timestamp, h.totalCost, 'rev'));
+    (store.loungeHistory || []).forEach(l => processMonthly(l.timestamp, l.total, 'rev'));
+    (store.archivedCustomers || []).forEach(c => processMonthly(c.archivedAt, c.settledAmount || 0, 'rev'));
+    (store.archivedExpenses || []).forEach(e => processMonthly(e.timestamp || e.archivedAt, e.amount, 'exp'));
+    (store.archivedSalaries || []).forEach(s => processMonthly(s.timestamp, s.amount, 'exp'));
 
     analyticsData.monthlyProfits = Object.entries(monthlyMap)
       .map(([month, data]) => ({ month, profit: data.revenue - data.expenses }))
-      .sort((a, b) => a.month.localeCompare(b.month));
+      .sort((a, b) => a.month.localeCompare(b.month))
+      .slice(-12);
   };
 
   // Cloud Backup & Restore State
