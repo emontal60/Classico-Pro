@@ -45,12 +45,13 @@ echo [2/4] Incrementing version (Automatic)...
 call npm version patch --no-git-tag-version --force
 
 echo.
-echo [3/4] Building the Installer (EXE)...
+echo [3/4] Building and Publishing the Installer (EXE) to GitHub...
 echo [System] This may take a few minutes, please wait...
-call npm run electron:build
+set /p GH_TOKEN=<github-token.txt
+call npm run electron:build -- -p always
 
 echo.
-echo [4/4] Syncing with GitHub...
+echo [4/4] Syncing Source Code with GitHub...
 call :git_logic
 
 echo.
@@ -70,6 +71,8 @@ if not exist ".gitignore" (
     echo dist_electron/ >> .gitignore
     echo classico-v3/dist/ >> .gitignore
 )
+:: Ensure token is ignored
+echo github-token.txt >> .gitignore
 if not exist ".git" (
     git init
     git remote add origin https://github.com/emontal60/Classico-Pro.git
