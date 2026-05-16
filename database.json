@@ -728,6 +728,20 @@
   },
   "classico_activity_log": [
     {
+      "id": 1778952111653.8914,
+      "timestamp": "2026-05-16T17:21:51.653Z",
+      "user": "admin",
+      "action": "إضافة موظف",
+      "details": "تم إضافة بيانات الموظف ثثث"
+    },
+    {
+      "id": 1778951822136.6326,
+      "timestamp": "2026-05-16T17:17:02.136Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
       "id": 1778883235456.5913,
       "timestamp": "2026-05-15T22:13:55.456Z",
       "user": "admin",
@@ -896,7 +910,7 @@
       "details": "تم تنظيف سجل النشاط بالكامل"
     }
   ],
-  "is_activation": false,
+  "is_activation": true,
   "is_reset": false,
-  "last_seen_time": "2026-05-15T22:14:26.249Z"
+  "last_seen_time": "2026-05-16T17:25:55.550Z"
 }

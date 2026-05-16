@@ -6,7 +6,7 @@
         <h2 class="section-title">تسجيل مصروف جديد</h2>
         <div class="form-group">
           <label>الفئة</label>
-          <select v-model="form.category" class="input-field" style="font-size: 1rem; padding: 0.8rem;">
+          <select v-model="form.category" class="input-field" style="font-size: 1rem; padding: 0.8rem; color: white;">
             <option value="بضاعة">📦 بضاعة</option>
             <option value="كهرباء">⚡ كهرباء</option>
             <option value="غاز">🔥 غاز</option>
@@ -24,7 +24,7 @@
           <label>ملاحظات / البيان</label>
           <textarea v-model="form.note" class="input-field" rows="4" 
             placeholder="اكتب تفاصيل المصروف هنا..." 
-            style="line-height: 1.6; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);"></textarea>
+            style="line-height: 1.6; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); color: white;"></textarea>
         </div>
         <button v-if="store.canAccess('expenses', 'edit')" @click="addExpense" class="btn danger-btn" style="width: 100%; margin-top: 1rem; background: #ef4444 !important;">تسجيل المصروف 💸</button>
       </div>

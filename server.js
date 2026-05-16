@@ -260,7 +260,7 @@ app.get('/api/data', async (req, res) => {
         
         const localPath = getDataPath();
         const foundExisting = fs.existsSync(localPath);
-        if (foundExisting) console.log(`[Server] 📂 Database found at: ${localPath}`);
+        if (foundExisting) console.log(`[Server] (OK) Database found at: ${localPath}`);
 
         // --- AUTO-MIGRATION ---
         // If we found NO data in AppData but we HAVE data in the project root, COPY IT!
@@ -280,13 +280,13 @@ app.get('/api/data', async (req, res) => {
             }
         }
 
-        console.log(`[Server] 📂 Fetching data from: ${localPath}`);
+        console.log(`[Server] (--) Fetching data from: ${localPath}`);
         let data = null;
 
         if (foundExisting && fs.existsSync(localPath)) {
             try {
                 data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-                console.log(`[Server] ✅ Data loaded successfully (${fs.statSync(localPath).size} bytes)`);
+                console.log(`[Server] (OK) Data loaded successfully (${fs.statSync(localPath).size} bytes)`);
             } catch (err) {
                 console.error("Failed to read local database.json:", err);
             }
@@ -821,7 +821,9 @@ app.post('/api/admin/approve', async (req, res) => {
         }
 
         const maxDevices = parseInt(sub.max_devices) || 1;
-        let days = (plan_type === 'yearly') ? 365 : 30;
+        let days = 30; // Default monthly
+        if (plan_type === 'yearly') days = 365;
+        else if (plan_type === 'trial') days = 7;
         const expiry = new Date();
         expiry.setDate(expiry.getDate() + days);
 
@@ -996,6 +998,6 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Classico Server running at http://localhost:${PORT}`);
-    console.log(`📂 Working Directory: ${__dirname}`);
+    console.log(`[System] Classico Server running at http://localhost:${PORT}`);
+    console.log(`[System] Working Directory: ${__dirname}`);
 });

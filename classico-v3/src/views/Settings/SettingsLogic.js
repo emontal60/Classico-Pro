@@ -342,7 +342,7 @@ export function useSettingsLogic() {
     return (user.baseSalary || 0) - selectedStaffTotalWithdrawals.value;
   });
 
-  const staffForm = reactive({ username: '', password: '', baseSalary: 0, salaryCycle: 'monthly', role: 'staff' });
+  const staffForm = reactive({ username: '', password: '', baseSalary: null, salaryCycle: 'monthly', role: 'staff' });
 
   const filteredStaff = computed(() => {
     const users = Object.values(store.users || {});
@@ -364,7 +364,7 @@ export function useSettingsLogic() {
 
   const cancelStaffEdit = () => {
     editingStaffMode.value = false;
-    staffForm.username = ''; staffForm.password = ''; staffForm.baseSalary = 0; staffForm.salaryCycle = 'monthly'; staffForm.role = 'staff';
+    staffForm.username = ''; staffForm.password = ''; staffForm.baseSalary = null; staffForm.salaryCycle = 'monthly'; staffForm.role = 'staff';
   };
 
   const saveStaff = () => {
@@ -628,13 +628,21 @@ export function useSettingsLogic() {
           });
           if (confirmed) {
             // Mapping keys from classico_ format to store properties
+            // Normalize Users (Ensure it's an object, even if stored as array)
+            let restoredUsers = data.classico_users || data.users || {};
+            if (Array.isArray(restoredUsers)) {
+                const userObj = {};
+                restoredUsers.forEach(u => { if (u.username) userObj[u.username] = u; });
+                restoredUsers = userObj;
+            }
+
             const mappedData = {
                 devices: data.classico_devices || data.devices || [],
                 menu: data.classico_menu || data.menu || [],
                 history: data.classico_history || data.history || [],
                 customers: data.classico_customers || data.customers || [],
                 archivedCustomers: data.classico_archived_customers || data.archivedCustomers || [],
-                users: data.classico_users || data.users || {},
+                users: restoredUsers,
                 archivedSalaries: data.classico_archived_salaries || data.archivedSalaries || [],
                 loungeInvoices: data.classico_lounge_invoices || data.loungeInvoices || [],
                 loungeHistory: data.classico_lounge_history || data.loungeHistory || [],
@@ -695,6 +703,14 @@ export function useSettingsLogic() {
         }
 
         // Mapping and Cleaning keys
+        // Normalize Users (Cloud)
+        let cloudUsers = data.classico_users || data.users || {};
+        if (Array.isArray(cloudUsers)) {
+            const userObj = {};
+            cloudUsers.forEach(u => { if (u.username) userObj[u.username] = u; });
+            cloudUsers = userObj;
+        }
+
         const mappedData = {
             devices: (data.classico_devices || data.devices || []).map(d => ({
                 ...d,
@@ -708,7 +724,7 @@ export function useSettingsLogic() {
             history: data.classico_history || data.history || [],
             customers: data.classico_customers || data.customers || [],
             archivedCustomers: data.classico_archived_customers || data.archivedCustomers || [],
-            users: data.classico_users || data.users || {},
+            users: cloudUsers,
             archivedSalaries: data.classico_archived_salaries || data.archivedSalaries || [],
             loungeInvoices: data.classico_lounge_invoices || data.loungeInvoices || [],
             loungeHistory: data.classico_lounge_history || data.loungeHistory || [],

@@ -149,7 +149,7 @@
               <div class="form-row-modern">
                 <div class="form-group-modern">
                   <label>الراتب الأساسي</label>
-                  <input type="number" v-model="staffForm.baseSalary" placeholder="0.00">
+                  <input type="number" v-model="staffForm.baseSalary" placeholder="ادخل الراتب الاساسى">
                 </div>
                 <div class="form-group-modern">
                   <label>دورة الراتب</label>

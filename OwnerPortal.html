@@ -244,12 +244,22 @@
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
         const API_BASE = 'http://localhost:3000/api/admin';
+        let isLocalMode = false;
 
-        supabaseClient.auth.onAuthStateChange((event, session) => {
+        async function checkLocalServer() {
+            try {
+                const res = await fetch(`${API_BASE}/all-keys`, { method: 'HEAD' }).catch(() => null);
+                isLocalMode = !!res && res.ok;
+                console.log(`[System] Running in ${isLocalMode ? 'LOCAL' : 'CLOUD'} mode`);
+            } catch (e) { isLocalMode = false; }
+        }
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (session) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('dashboard').style.display = 'block';
                 document.getElementById('display-email').innerText = session.user.email;
+                await checkLocalServer();
                 refreshData();
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
@@ -272,10 +282,19 @@
                 const { data: subs } = await supabaseClient.from('subscriptions').select('*').order('created_at', {ascending: false});
                 const { data: logs } = await supabaseClient.from('subscription_logs').select('*').order('created_at', {ascending: false}).limit(50);
                 
-                // Fetch All Multi-Device Keys from Local Server
-                const resKeys = await fetch(`${API_BASE}/all-keys`);
-                const keyData = await resKeys.json();
-                const allKeys = keyData.keys || [];
+                let allKeys = [];
+                if (isLocalMode) {
+                    try {
+                        const resKeys = await fetch(`${API_BASE}/all-keys`);
+                        const keyData = await resKeys.json();
+                        allKeys = keyData.keys || [];
+                    } catch (e) { console.warn("Local Keys Fetch Failed, falling back to Cloud"); isLocalMode = false; }
+                }
+
+                if (!isLocalMode) {
+                    const { data: keys } = await supabaseClient.from('subscription_keys').select('*');
+                    allKeys = keys || [];
+                }
 
                 renderTables(subs || [], logs || [], allKeys);
             } catch (err) { console.error(err); }
@@ -411,79 +430,130 @@
         async function approve(mid, plan) {
             confirmAction('تفعيل الجهاز', `هل أنت متأكد من تفعيل اشتراك ${mid}؟ سيتم توليد الأكواد الإضافية تلقائياً.`, async () => {
                 try {
-                    const res = await fetch(`${API_BASE}/approve`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ machine_id: mid, plan_type: plan })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.success) {
-                        showToast("✅ تم تفعيل الاشتراك وتوليد المفاتيح بنجاح", "success");
-                        refreshData();
-                    } else {
-                        showToast(`❌ فشل التفعيل: ${data.error || 'خطأ غير معروف'}`, "danger");
-                        console.error("Approve Error Details:", data);
+                    if (isLocalMode) {
+                        const res = await fetch(`${API_BASE}/approve`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ machine_id: mid, plan_type: plan })
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            showToast("✅ تم تفعيل الاشتراك (Local Mode)", "success");
+                            refreshData();
+                            return;
+                        }
                     }
+
+                    // Cloud Mode Implementation
+                    console.log("[Cloud] Approving subscription directly via Supabase...");
+                    let days = 30; 
+                    if (plan === 'yearly') days = 365;
+                    else if (plan === 'trial') days = 7;
+                    const expiry = new Date();
+                    expiry.setDate(expiry.getDate() + days);
+
+                    // 1. Update status
+                    const { data: subData, error: subErr } = await supabaseClient.from('subscriptions')
+                        .update({ status: 'active', activated_at: new Date().toISOString(), expires_at: expiry.toISOString() })
+                        .eq('machine_id', mid).select();
+
+                    if (subErr) throw subErr;
+
+                    // 2. Log it
+                    await supabaseClient.from('subscription_logs').insert({
+                        machine_id: mid, plan_type: plan, status: 'active', action: 'approved', expires_at: expiry.toISOString()
+                    });
+
+                    // 3. Generate Keys if multi-device
+                    const sub = subData[0];
+                    const maxDevices = parseInt(sub.max_devices) || 1;
+                    if (maxDevices > 1) {
+                        const { data: existingKeys } = await supabaseClient.from('subscription_keys').select('id').eq('owner_machine_id', mid);
+                        const keysToGen = (maxDevices - 1) - (existingKeys?.length || 0);
+                        
+                        for (let i = 0; i < keysToGen; i++) {
+                            const randomKey = 'CLASS-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+                            await supabaseClient.from('subscription_keys').insert({
+                                owner_machine_id: mid, serial_key: randomKey, status: 'unused', expires_at: expiry.toISOString()
+                            });
+                        }
+                    }
+
+                    showToast("✅ تم تفعيل الاشتراك وتوليد الأكواد سحابياً", "success");
+                    refreshData();
                 } catch (err) {
-                    showToast("⚠️ خطأ في الاتصال بالسيرفر المحلي", "danger");
+                    console.error(err);
+                    showToast(`❌ فشل التفعيل: ${err.message}`, "danger");
                 }
             });
         }
 
         async function unlinkKey(id) {
             confirmAction('فك ارتباط الجهاز', 'هل أنت متأكد من فك ارتباط هذا الجهاز؟ سيصبح الكود متاحاً للاستخدام مرة أخرى.', async () => {
-                const res = await fetch(`${API_BASE}/unlink-key`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key_id: id })
-                });
-                if (res.ok) {
-                    showToast("🔓 تم فك ارتباط الجهاز بنجاح", "success");
+                try {
+                    if (isLocalMode) {
+                        const res = await fetch(`${API_BASE}/unlink-key`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ key_id: id })
+                        });
+                        if (res.ok) {
+                            showToast("🔓 تم فك الارتباط (Local)", "success");
+                            refreshData();
+                            return;
+                        }
+                    }
+
+                    const { error } = await supabaseClient.from('subscription_keys').update({ status: 'unused', used_by: null }).eq('id', id);
+                    if (error) throw error;
+                    showToast("🔓 تم فك الارتباط سحابياً", "success");
                     refreshData();
-                }
+                } catch (err) { showToast(`❌ فشل العملية: ${err.message}`, "danger"); }
             });
         }
 
         async function updateKeyName(id, name) {
             try {
-                const res = await fetch(`${API_BASE}/update-key-name`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key_id: id, device_name: name })
-                });
-                if (res.ok) showToast("✅ تم حفظ اسم الفرع", "success");
+                if (isLocalMode) {
+                    await fetch(`${API_BASE}/update-key-name`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key_id: id, device_name: name })
+                    });
+                } else {
+                    await supabaseClient.from('subscription_keys').update({ device_name: name }).eq('id', id);
+                }
+                showToast("✅ تم حفظ اسم الفرع", "success");
             } catch (err) { showToast("❌ فشل حفظ الاسم", "danger"); }
         }
 
         async function reject(mid) {
-            confirmAction('حذف الطلب', 'هل أنت متأكد من حذف هذا السجل نهائياً؟ سيتم تسجيل الإجراء في السجل.', async () => {
+            confirmAction('حذف الطلب', 'هل أنت متأكد من حذف هذا السجل نهائياً؟', async () => {
                 try {
-                    // Optimistic UI: Hide the row immediately using event context
-                    const btn = event.target.closest('button') || event.target;
-                    const row = btn.closest('tr');
-                    if (row) {
-                        row.style.display = 'none';
+                    if (isLocalMode) {
+                        const res = await fetch(`${API_BASE}/reject`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ machine_id: mid })
+                        });
+                        if (res.ok) {
+                            showToast("🗑️ تم الحذف (Local)", "success");
+                            refreshData();
+                            return;
+                        }
                     }
 
-                    const res = await fetch(`${API_BASE}/reject`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ machine_id: mid })
+                    // Cloud Mode Delete
+                    const { data: subData } = await supabaseClient.from('subscriptions').select('plan_type').eq('machine_id', mid);
+                    await supabaseClient.from('subscriptions').delete().eq('machine_id', mid);
+                    await supabaseClient.from('subscription_keys').delete().eq('owner_machine_id', mid);
+                    await supabaseClient.from('subscription_logs').insert({
+                        machine_id: mid, plan_type: subData?.[0]?.plan_type || 'unknown', status: 'deleted', action: 'rejected'
                     });
-                    
-                    if (res.ok) {
-                        showToast("🗑️ تم حذف الطلب بنجاح", "success");
-                        // Delay refresh slightly to ensure DB propagation
-                        setTimeout(refreshData, 300);
-                    } else {
-                        const data = await res.json();
-                        showToast(`❌ فشل الحذف: ${data.error || 'خطأ غير معروف'}`, "danger");
-                        refreshData(); // Revert on failure
-                    }
-                } catch (e) {
-                    showToast("⚠️ خطأ في الاتصال بالسيرفر", "danger");
-                    refreshData(); // Revert on failure
-                }
+
+                    showToast("🗑️ تم الحذف سحابياً", "success");
+                    refreshData();
+                } catch (err) { showToast(`❌ فشل الحذف: ${err.message}`, "danger"); }
             });
         }
 
