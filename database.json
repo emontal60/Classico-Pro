@@ -3,9 +3,27 @@
     {
       "id": 1,
       "name": "PlayStation 1",
-      "status": "stopped",
+      "status": "running",
       "hourPrice": 50,
-      "orders": []
+      "orders": [
+        {
+          "itemId": 2,
+          "name": "سموذي فراولة",
+          "price": 45,
+          "qty": 2,
+          "total": 90
+        },
+        {
+          "itemId": 3,
+          "name": "سموذي توت أزرق",
+          "price": 45,
+          "qty": 1,
+          "total": 45
+        }
+      ],
+      "startTime": "2026-05-16T18:55:23.240Z",
+      "prepaidSeconds": 0,
+      "usedTimeSeconds": 0
     },
     {
       "id": 2,
@@ -910,7 +928,7 @@
       "details": "تم تنظيف سجل النشاط بالكامل"
     }
   ],
-  "is_activation": true,
+  "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-05-16T17:36:57.050Z"
+  "last_seen_time": "2026-05-16T19:01:51.966Z"
 }

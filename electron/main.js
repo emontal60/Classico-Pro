@@ -125,3 +125,20 @@ autoUpdater.on('update-downloaded', () => {
 ipcMain.on('restart_app', () => {
   autoUpdater.quitAndInstall();
 });
+
+ipcMain.on('print-html', (event, html) => {
+  let printWin = new BrowserWindow({ 
+    show: false, 
+    webPreferences: { nodeIntegration: false } 
+  });
+  printWin.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
+  printWin.webContents.on('did-finish-load', () => {
+    printWin.webContents.print({ 
+      silent: false, 
+      printBackground: true,
+      deviceName: '' // Default printer
+    });
+    // Wait for the dialog to finish before closing the hidden window
+    setTimeout(() => { if (!printWin.isDestroyed()) printWin.close(); }, 30000);
+  });
+});

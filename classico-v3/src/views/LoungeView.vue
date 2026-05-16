@@ -448,8 +448,8 @@ const addOrderItem = () => {
 
   store.updateLoungeInvoice(inv);
   
-  // Quick Bon Print
-  printOrderBon(inv.name, { name: selectedMenuItem.value.name, qty: itemQty.value });
+  // Quick Bon Print (Disabled as per user request)
+  // printOrderBon(inv.name, { name: selectedMenuItem.value.name, qty: itemQty.value });
 
   itemQty.value = 1;
   itemSearchQuery.value = '';

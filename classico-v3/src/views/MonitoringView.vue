@@ -551,8 +551,8 @@ const addOrderItem = () => {
 
   store.updateDevice(dev);
   
-  // Quick Bon Print
-  printOrderBon(dev.name, { name: selectedMenuItem.value.name, qty: itemQty.value });
+  // Quick Bon Print (Disabled as per user request)
+  // printOrderBon(dev.name, { name: selectedMenuItem.value.name, qty: itemQty.value });
 
   itemQty.value = 1;
   itemSearchQuery.value = '';

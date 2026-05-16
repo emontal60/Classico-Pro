@@ -1,37 +1,16 @@
 /**
  * printSystem.js - Professional Thermal Printing Engine for Classico V3
  * Optimized for 58mm and 80mm thermal printers.
- * Uses a hidden iframe for "Zero-Click" feel (no popup blockers).
+ * Uses a popup window to ensure proper print preview support in Electron.
  */
 
 import { useAppStore } from '../stores/appStore';
-
-let printFrame = null;
-
-const getPrintFrame = () => {
-  if (printFrame) return printFrame;
-  printFrame = document.createElement('iframe');
-  printFrame.id = 'classico-print-frame';
-  printFrame.style.position = 'fixed';
-  printFrame.style.right = '0';
-  printFrame.style.bottom = '0';
-  printFrame.style.width = '0';
-  printFrame.style.height = '0';
-  printFrame.style.border = '0';
-  document.body.appendChild(printFrame);
-  return printFrame;
-};
 
 export const printUnifiedInvoice = (data, isQuick = false) => {
   const store = useAppStore();
   const appName = store.appSettings?.appName || 'Classico';
   const appLogo = store.appSettings?.appLogo || '/logo1.png';
 
-  const frame = getPrintFrame();
-  const doc = frame.contentWindow.document;
-
-  const title = appName;
-  
   // Format orders table rows
   const ordersHtml = (data.orders || []).map(o => `
     <div class="invoice-row">
@@ -45,18 +24,20 @@ export const printUnifiedInvoice = (data, isQuick = false) => {
     <html dir="rtl" lang="ar">
     <head>
       <meta charset="UTF-8">
+      <title>طباعة فاتورة - ${appName}</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         
         * { box-sizing: border-box; }
         body {
-          font-family: 'Cairo', 'Arial', sans-serif;
+          font-family: 'Cairo', 'Segoe UI', 'Arial', sans-serif;
           margin: 0;
-          padding: 2mm 4mm; /* Added horizontal padding to prevent cut-offs */
+          padding: 2mm 5mm; 
           background: #fff;
           color: #000;
-          width: 80mm; /* Standard Thermal Width */
-          font-size: 13px;
+          width: 100%;
+          max-width: 80mm; 
+          font-size: 14px;
         }
         .header { text-align: center; margin-bottom: 8px; }
         .logo { max-width: 100px; margin-bottom: 3px; }
@@ -90,7 +71,7 @@ export const printUnifiedInvoice = (data, isQuick = false) => {
         .developer-note { text-align: center; margin-top: 8px; font-size: 9px; opacity: 0.7; font-weight: normal; }
 
         @media print {
-          body { width: 100%; padding: 2mm 4mm; margin: 0; }
+          body { width: 80mm; padding: 2mm; margin: 0; }
           @page { margin: 0; size: auto; }
         }
       </style>
@@ -98,7 +79,7 @@ export const printUnifiedInvoice = (data, isQuick = false) => {
     <body>
       <div class="header">
         <img src="${appLogo}" class="logo" onerror="this.style.display='none'">
-        <div class="main-title">${title}</div>
+        <div class="main-title">${appName}</div>
       </div>
 
       <div class="line-bold"></div>
@@ -158,24 +139,28 @@ export const printUnifiedInvoice = (data, isQuick = false) => {
       <script>
         window.onload = () => {
           window.print();
+          setTimeout(() => { window.close(); }, 1000);
         };
       </script>
     </body>
     </html>
   `;
 
-  doc.open();
-  doc.write(html);
-  doc.close();
+  const printWin = window.open('', '_blank', 'width=600,height=800');
+  printWin.document.open();
+  printWin.document.write(html);
+  printWin.document.close();
+
+  // 🚀 Native Electron Print (for better system integration)
+  if (window.electronAPI && window.electronAPI.send) {
+    window.electronAPI.send('print-html', html);
+  }
 };
 
 /**
  * Quick Print Order Bon (Kitchen/Bar Ticket)
  */
 export const printOrderBon = (deviceName, orderItem) => {
-  const frame = getPrintFrame();
-  const doc = frame.contentWindow.document;
-
   const html = `
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
@@ -195,12 +180,22 @@ export const printOrderBon = (deviceName, orderItem) => {
       <div class="device">${deviceName}</div>
       <div class="order">${orderItem.qty}x ${orderItem.name}</div>
       <div class="time">${new Date().toLocaleTimeString('ar-EG')}</div>
-      <script>window.onload = () => { window.print(); };</script>
+      <script>
+        window.onload = () => { 
+          window.print(); 
+          setTimeout(() => { window.close(); }, 1000);
+        };
+      </script>
     </body>
     </html>
   `;
 
-  doc.open();
-  doc.write(html);
-  doc.close();
+  const printWin = window.open('', '_blank', 'width=400,height=500');
+  printWin.document.open();
+  printWin.document.write(html);
+  printWin.document.close();
+
+  if (window.electronAPI && window.electronAPI.send) {
+    window.electronAPI.send('print-html', html);
+  }
 };
