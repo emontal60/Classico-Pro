@@ -34,7 +34,7 @@ onMounted(() => {
   }, 1000);
 
   // Listen for Electron Updates
-  if (window.electronAPI) {
+  if (window.electronAPI && typeof window.electronAPI.receive === 'function') {
     window.electronAPI.receive('update_available', () => {
       ui.updateInfo.available = true;
       ui.updateInfo.progress = 0;
