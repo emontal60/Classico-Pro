@@ -89,20 +89,25 @@
     <Transition name="update">
       <div v-if="ui.updateInfo.available || ui.updateInfo.downloaded" class="update-bar-v3">
         <div class="update-content">
-          <span class="update-icon">{{ ui.updateInfo.downloaded ? '✅' : '🚀' }}</span>
-          <div class="update-text">
+          <span class="update-icon" :class="{'spinning': ui.updateInfo.available && !ui.updateInfo.downloaded}">{{ ui.updateInfo.downloaded ? '✅' : '⚙️' }}</span>
+          <div class="update-text" style="width: 100%;">
             <template v-if="ui.updateInfo.downloaded">
-              <span class="title">تم تحميل التحديث الجديد!</span>
-              <span class="desc">يرجى إعادة تشغيل البرنامج لتطبيق التغييرات.</span>
+              <span class="title">تم تجهيز التحديث بنجاح!</span>
+              <span class="desc">اضغط للتثبيت وإعادة التشغيل فوراً.</span>
             </template>
             <template v-else>
-              <span class="title">يوجد تحديث جديد متاح!</span>
-              <span class="desc">جاري التحميل في الخلفية...</span>
+              <div style="display: flex; justify-content: space-between;">
+                <span class="title" style="color: #00e5ff;">جاري تحميل التحديث...</span>
+                <span class="title">{{ ui.updateInfo.progress || 0 }}%</span>
+              </div>
+              <div class="update-progress-container">
+                <div class="update-progress-fill" :style="{ width: (ui.updateInfo.progress || 0) + '%' }"></div>
+              </div>
             </template>
           </div>
           <div class="update-actions">
-            <button v-if="ui.updateInfo.downloaded" @click="restartApp" class="btn-update-now">تحديث وإعادة تشغيل 🔄</button>
-            <button @click="dismissUpdate" class="btn-update-close">إغلاق</button>
+            <button v-if="ui.updateInfo.downloaded" @click="restartApp" class="btn-update-now">تثبيت التحديث 🚀</button>
+            <button @click="dismissUpdate" class="btn-update-close">إخفاء</button>
           </div>
         </div>
       </div>
@@ -498,6 +503,29 @@ watch(() => ui.dialog.show, (newVal) => {
   padding: 10px 15px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.update-progress-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.update-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00e5ff, #3b82f6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+.spinning {
+  animation: spinIcon 2s linear infinite;
+  display: inline-block;
+}
+@keyframes spinIcon {
+  100% { transform: rotate(360deg); }
 }
 
 .update-enter-active { animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }

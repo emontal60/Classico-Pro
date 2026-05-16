@@ -13,6 +13,11 @@ backups/
 # Sensitive data
 .env
 *.local
+github-token.txt
+
+# Development files & Tools
+*.bat
+System-Tools/
 
 # Logs
 *.log
@@ -21,6 +26,4 @@ npm-debug.log*
 # System files
 .DS_Store
 Thumbs.db
-github-token.txt 
-github-token.txt 
 github-token.txt 

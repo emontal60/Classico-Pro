@@ -1,6 +1,6 @@
 {
   "name": "classico-local-server",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Local server for Classico App persistence",
   "main": "electron/main.js",
   "scripts": {
@@ -42,7 +42,8 @@
       {
         "provider": "github",
         "owner": "emontal60",
-        "repo": "Classico-Pro"
+        "repo": "Classico-Pro",
+        "releaseType": "release"
       }
     ]
   },

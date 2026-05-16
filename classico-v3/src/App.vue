@@ -37,13 +37,18 @@ onMounted(() => {
   if (window.electronAPI) {
     window.electronAPI.receive('update_available', () => {
       ui.updateInfo.available = true;
-      ui.showToast('🚀 يوجد تحديث جديد متاح! جاري التحميل...', 'info');
+      ui.updateInfo.progress = 0;
+    });
+
+    window.electronAPI.receive('download_progress', (percent) => {
+      ui.updateInfo.progress = Math.round(percent);
     });
 
     window.electronAPI.receive('update_downloaded', () => {
       ui.updateInfo.available = false;
       ui.updateInfo.downloaded = true;
-      ui.showToast('✅ تم تحميل التحديث! جاهز للتثبيت.', 'success', 10000);
+      ui.updateInfo.progress = 100;
+      ui.showToast('✅ التحديث جاهز!', 'success');
     });
   }
 });

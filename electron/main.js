@@ -118,6 +118,12 @@ autoUpdater.on('update-available', () => {
   if (mainWindow) mainWindow.webContents.send('update_available');
 });
 
+autoUpdater.on('download-progress', (progressObj) => {
+  if (mainWindow) {
+    mainWindow.webContents.send('download_progress', progressObj.percent);
+  }
+});
+
 autoUpdater.on('update-downloaded', () => {
   if (mainWindow) mainWindow.webContents.send('update_downloaded');
 });
