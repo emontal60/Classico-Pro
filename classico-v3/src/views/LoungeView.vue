@@ -45,9 +45,13 @@
         </div>
 
         <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
-          <div class="form-group" style="width: 80px;">
+          <div class="form-group" style="width: 110px;">
             <label>الكمية</label>
-            <input type="number" v-model="itemQty" min="1" :disabled="!selectedInvoice || !store.canAccess('lounge', 'edit')">
+            <div class="qty-control">
+              <button class="qty-btn" @click="itemQty > 1 ? itemQty-- : null" :disabled="!selectedInvoice || !store.canAccess('lounge', 'edit')">-</button>
+              <input type="number" class="qty-input" v-model="itemQty" min="1" :disabled="!selectedInvoice || !store.canAccess('lounge', 'edit')">
+              <button class="qty-btn" @click="itemQty++" :disabled="!selectedInvoice || !store.canAccess('lounge', 'edit')">+</button>
+            </div>
           </div>
           <button @click="addOrderItem" class="btn primary-btn" style="flex: 1;" :disabled="!selectedInvoice || !selectedMenuItem || !store.canAccess('lounge', 'edit')">إضافة</button>
         </div>
@@ -586,5 +590,56 @@ if (typeof window !== 'undefined') {
 }
 .success-btn {
   background: var(--accent-success) !important;
+}
+
+/* Custom Quantity Control */
+.qty-control {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 38px;
+}
+.qty-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-cyan);
+  border: none;
+  width: 32px;
+  height: 100%;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+.qty-btn:hover:not(:disabled) {
+  background: rgba(0, 229, 255, 0.2);
+}
+.qty-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.qty-input {
+  width: 40px !important;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 0 !important;
+  height: 100%;
+}
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.qty-input[type=number] {
+  -moz-appearance: textfield;
 }
 </style>

@@ -19,6 +19,13 @@
           "price": 45,
           "qty": 1,
           "total": 45
+        },
+        {
+          "itemId": 4,
+          "name": "سموذي بطيخ",
+          "price": 45,
+          "qty": 1,
+          "total": 45
         }
       ],
       "startTime": "2026-05-16T18:55:23.240Z",
@@ -691,7 +698,14 @@
     }
   ],
   "classico_history": [],
-  "classico_customers": [],
+  "classico_customers": [
+    {
+      "id": 1778964883254,
+      "clientId": 1778624812677,
+      "name": "ابراهيم",
+      "ledger": []
+    }
+  ],
   "classico_archived_customers": [],
   "classico_clients_dir": [
     {
@@ -929,6 +943,5 @@
     }
   ],
   "is_activation": false,
-  "is_reset": false,
-  "last_seen_time": "2026-05-16T19:03:52.675Z"
+  "is_reset": false
 }

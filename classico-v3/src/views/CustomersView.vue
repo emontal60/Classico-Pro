@@ -97,7 +97,11 @@
             <h4 style="text-align: center; margin-bottom: 1rem;">إضافة طلب للعميل (دين)</h4>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               <button @click="addOrderDebt" class="btn danger-btn" style="padding: 0.8rem 1.2rem; background: #ef4444 !important;">إضافة طلب</button>
-              <input type="number" v-model="itemQty" min="1" class="input-field" style="width: 60px; text-align: center; background: rgba(0,0,0,0.3);">
+              <div class="qty-control" style="height: 42px;">
+                <button class="qty-btn" @click="itemQty > 1 ? itemQty-- : null">-</button>
+                <input type="number" class="qty-input" v-model="itemQty" min="1">
+                <button class="qty-btn" @click="itemQty++">+</button>
+              </div>
               <div class="searchable-select" style="flex: 1;">
                 <input type="text" v-model="itemQuery" @focus="showItemsList = true" placeholder="بحث عن صنف..." class="input-field" style="background: rgba(0,0,0,0.3);">
                 <div v-if="showItemsList && filteredItems.length" class="options-list glass-panel">
@@ -549,5 +553,51 @@ const formatDateTime = (iso) => {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
   outline: none;
+}
+
+/* Custom Quantity Control */
+.qty-control {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.qty-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-cyan);
+  border: none;
+  width: 32px;
+  height: 100%;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+.qty-btn:hover {
+  background: rgba(0, 229, 255, 0.2);
+}
+.qty-input {
+  width: 40px !important;
+  text-align: center;
+  border: none !important;
+  background: transparent !important;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 0 !important;
+  height: 100%;
+}
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.qty-input[type=number] {
+  -moz-appearance: textfield;
 }
 </style>
