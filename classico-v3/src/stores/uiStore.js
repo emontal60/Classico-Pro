@@ -22,6 +22,11 @@ export const useUIStore = defineStore('ui', {
       show: false,
       message: '',
       plan: ''
+    },
+    updateInfo: {
+      available: false,
+      downloaded: false,
+      progress: 0
     }
   }),
 

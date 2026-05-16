@@ -32,6 +32,20 @@ onMounted(() => {
   setTimeout(() => {
     ui.splashShow = false;
   }, 1000);
+
+  // Listen for Electron Updates
+  if (window.electronAPI) {
+    window.electronAPI.receive('update_available', () => {
+      ui.updateInfo.available = true;
+      ui.showToast('🚀 يوجد تحديث جديد متاح! جاري التحميل...', 'info');
+    });
+
+    window.electronAPI.receive('update_downloaded', () => {
+      ui.updateInfo.available = false;
+      ui.updateInfo.downloaded = true;
+      ui.showToast('✅ تم تحميل التحديث! جاهز للتثبيت.', 'success', 10000);
+    });
+  }
 });
 </script>
 

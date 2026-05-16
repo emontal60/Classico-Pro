@@ -75,12 +75,15 @@ function createWindow() {
   // But since we rely on the local server.js, we always load from localhost:3000
   mainWindow.loadURL('http://localhost:3000');
 
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('[System] Page loaded, checking for updates...');
+    autoUpdater.checkForUpdatesAndNotify().catch(err => console.error('Update check failed:', err));
+  });
+
   mainWindow.once('ready-to-show', () => {
-    mainWindow.maximize(); // Open the window maximized
+    mainWindow.maximize(); 
     mainWindow.show();
-    mainWindow.focus(); // Bring to front
-    // Check for updates on startup
-    autoUpdater.checkForUpdatesAndNotify();
+    mainWindow.focus(); 
   });
 
   mainWindow.on('closed', () => {

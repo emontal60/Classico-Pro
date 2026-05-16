@@ -84,6 +84,29 @@
         </div>
       </div>
     </Transition>
+    
+    <!-- 🔄 Update Notification Bar -->
+    <Transition name="update">
+      <div v-if="ui.updateInfo.available || ui.updateInfo.downloaded" class="update-bar-v3">
+        <div class="update-content">
+          <span class="update-icon">{{ ui.updateInfo.downloaded ? '✅' : '🚀' }}</span>
+          <div class="update-text">
+            <template v-if="ui.updateInfo.downloaded">
+              <span class="title">تم تحميل التحديث الجديد!</span>
+              <span class="desc">يرجى إعادة تشغيل البرنامج لتطبيق التغييرات.</span>
+            </template>
+            <template v-else>
+              <span class="title">يوجد تحديث جديد متاح!</span>
+              <span class="desc">جاري التحميل في الخلفية...</span>
+            </template>
+          </div>
+          <div class="update-actions">
+            <button v-if="ui.updateInfo.downloaded" @click="restartApp" class="btn-update-now">تحديث وإعادة تشغيل 🔄</button>
+            <button @click="dismissUpdate" class="btn-update-close">إغلاق</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
   </div>
 </template>
@@ -94,6 +117,17 @@ import { watch, nextTick, ref } from 'vue';
 
 const ui = useUIStore();
 const dialogInput = ref(null);
+
+const restartApp = () => {
+  if (window.electronAPI) {
+    window.electronAPI.send('restart_app');
+  }
+};
+
+const dismissUpdate = () => {
+  ui.updateInfo.available = false;
+  ui.updateInfo.downloaded = false;
+};
 
 watch(() => ui.dialog.show, (newVal) => {
   if (newVal && ui.dialog.showInput) {
@@ -403,4 +437,69 @@ watch(() => ui.dialog.show, (newVal) => {
   50% { opacity: 1; }
   100% { transform: translateY(-100px); opacity: 0; }
 }
+
+/* Update Bar Styles */
+.update-bar-v3 {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #00e5ff;
+  border-radius: 16px;
+  padding: 15px 25px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 10px 40px rgba(0, 229, 255, 0.3);
+  pointer-events: auto;
+  z-index: 10001;
+}
+
+.update-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.update-icon { font-size: 2rem; }
+
+.update-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.update-text .title { color: white; font-weight: 800; font-size: 1.1rem; }
+.update-text .desc { color: #94a3b8; font-size: 0.85rem; }
+
+.update-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-update-now {
+  background: #00e5ff;
+  color: black;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-update-now:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0, 229, 255, 0.5); }
+
+.btn-update-close {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.update-enter-active { animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.update-leave-active { animation: slideUp 0.3s reverse ease-in; }
 </style>
