@@ -1,15 +1,37 @@
 <template>
   <div class="dashboard-wrapper">
-    <main class="main-area glass-panel" style="width: 100%; position: relative; overflow: hidden;">
-      <!-- Watermark Logo -->
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; width: 400px; z-index: 0;">
-        <img src="../assets/images/logo1.png" style="width: 100%; filter: grayscale(1) invert(1);">
-      </div>
+    <main class="main-area glass-panel page-watermark" style="width: 100%; position: relative; overflow-y: auto;">
+
 
       <div style="position: relative; z-index: 1;">
-        <!-- Unified System Header -->
-        <div class="archive-header">
-          <h1 class="premium-title-main">📂 الأرشيف</h1>
+        <!-- Unified System Header with Multi-Branch Toggle -->
+        <div class="archive-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+          <h1 class="premium-title-main" style="margin: 0;">📂 الأرشيف</h1>
+          
+          <!-- Sleek Glassmorphism Control Switch (Only for Multi-Device Subscribers) -->
+          <div v-if="store.subscriptionData?.max_devices > 1" class="multi-branch-panel glass-panel" style="display: flex; align-items: center; gap: 1rem; padding: 8px 16px; border-radius: 12px; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(0, 229, 255, 0.15);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">🌐 رؤية الفروع المتعددة:</span>
+              <label class="premium-switch">
+                <input 
+                  type="checkbox" 
+                  :checked="store.multiBranchActive" 
+                  @change="e => store.setMultiBranchActive(e.target.checked)"
+                >
+                <span class="premium-slider"></span>
+              </label>
+            </div>
+
+            <!-- Branch Select Dropdown (Only visible when Multi-Branch is Active) -->
+            <div v-if="store.multiBranchActive" class="branch-select-container animate-fade-in" style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.85rem; color: #00e5ff; font-weight: bold;">📍 الفرع:</span>
+              <select v-model="store.activeBranchFilter" class="premium-input-mini" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 229, 255, 0.2); color: #fff; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; outline: none; cursor: pointer;">
+                <option value="all">كل الفروع (شامل) 🌍</option>
+                <option value="local">الفرع الحالي فقط (محلي) 🏠</option>
+                <option v-for="b in store.multiBranchData" :key="b.machine_id" :value="b.machine_id">{{ b.name }} 🖥️</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <!-- Integrated Bar: Tabs and Dynamic Summary Card -->
@@ -51,7 +73,7 @@
           <!-- 1. Devices Archive Tab -->
           <div v-if="activeTab === 'devices'" class="tab-content">
             <div class="archive-header-row">
-              <button v-if="store.canAccess('archive_devices', 'edit')" @click="clearArchive('history')" class="btn-clear-modern">🗑️ تفريغ أرشيف الأجهزة</button>
+              <button v-if="store.canAccess('archive_devices', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('history')" class="btn-clear-modern">🗑️ تفريغ أرشيف الأجهزة</button>
             </div>
             <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
               <table>
@@ -63,6 +85,7 @@
                     <th style="text-align: center;">قيمة الوقت</th>
                     <th style="text-align: center;">الطلبات</th>
                     <th style="text-align: center;">الإجمالي</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center;">الفرع</th>
                     <th style="text-align: center;">المسؤول</th>
                     <th style="text-align: center;">إجراء</th>
                   </tr>
@@ -76,13 +99,14 @@
                     <td style="text-align: center;">{{ h.deviceName }}</td>
                     <td style="text-align: center;">{{ formatDuration(h.usedTimeSeconds) }}</td>
                     <td style="text-align: center;">{{ formatCurrency(h.timeCost) }} ج</td>
-                    <td style="text-align: center;">{{ formatCurrency(h.ordersCost) }} ج</td>
+                    <td style="text-align: center;">{{ formatCurrency(h.ordersCost) }} </td >
                     <td style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ formatCurrency(h.totalCost) }} ج</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ h.branchName || 'الفرع الرئيسي' }}</td>
                     <td style="text-align: center; color: var(--text-muted);">{{ h.processedBy || '---' }}</td>
                     <td style="text-align: center;">
                       <div style="display: flex; gap: 0.5rem; justify-content: center;">
                         <button @click="viewInvoice(h)" class="btn secondary-btn" style="padding: 0.3rem 0.7rem; font-size: 0.85rem; background: #3b82f6 !important;">عرض</button>
-                        <button v-if="store.canAccess('archive_devices', 'edit')" @click="deleteRecord('history', h)" class="btn danger-btn" style="padding: 0.3rem 0.7rem; font-size: 0.85rem; background: #ef4444 !important;">حذف</button>
+                        <button v-if="store.canAccess('archive_devices', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="deleteRecord('history', h)" class="btn danger-btn" style="padding: 0.3rem 0.7rem; font-size: 0.85rem; background: #ef4444 !important;">حذف</button>
                       </div>
                     </td>
                   </tr>
@@ -94,7 +118,7 @@
           <!-- 2. Lounge Archive Tab -->
           <div v-if="activeTab === 'lounge'" class="tab-content">
             <div class="archive-header-row">
-              <button v-if="store.canAccess('archive_lounge', 'edit')" @click="clearArchive('loungeHistory')" class="btn-clear-modern">🗑️ تفريغ أرشيف الصالة</button>
+              <button v-if="store.canAccess('archive_lounge', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('loungeHistory')" class="btn-clear-modern">🗑️ تفريغ أرشيف الصالة</button>
             </div>
             <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
               <table>
@@ -103,6 +127,7 @@
                     <th style="text-align: right;">الوقت</th>
                     <th style="text-align: center;">الاسم / الطلب</th>
                     <th style="text-align: center;">الإجمالي</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center;">الفرع</th>
                     <th style="text-align: center;">المسؤول</th>
                     <th style="text-align: center;">إجراء</th>
                   </tr>
@@ -115,11 +140,12 @@
                     </td>
                     <td style="text-align: center;">{{ l.name }}</td>
                     <td style="text-align: center; color: #fbbf24; font-weight: bold;">{{ formatCurrency(l.total) }} ج</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ l.branchName || 'الفرع الرئيسي' }}</td>
                     <td style="text-align: center; color: var(--text-muted);">{{ l.processedBy || '---' }}</td>
                     <td style="text-align: center;">
                       <div style="display: flex; gap: 0.5rem; justify-content: center;">
                         <button @click="viewLoungeInvoice(l)" class="btn secondary-btn" style="background: #3b82f6 !important;">عرض</button>
-                        <button v-if="store.canAccess('archive_lounge', 'edit')" @click="deleteRecord('loungeHistory', l)" class="btn danger-btn" style="background: #ef4444 !important;">حذف</button>
+                        <button v-if="store.canAccess('archive_lounge', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="deleteRecord('loungeHistory', l)" class="btn danger-btn" style="background: #ef4444 !important;">حذف</button>
                       </div>
                     </td>
                   </tr>
@@ -131,7 +157,7 @@
           <!-- 3. Customers Archive Tab -->
           <div v-if="activeTab === 'customers'" class="tab-content">
             <div class="archive-header-row">
-              <button v-if="store.canAccess('archive_customers', 'edit')" @click="clearArchive('archivedCustomers')" class="btn-clear-modern">🗑️ تفريغ أرشيف العملاء</button>
+              <button v-if="store.canAccess('archive_customers', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('archivedCustomers')" class="btn-clear-modern">🗑️ تفريغ أرشيف العملاء</button>
             </div>
             <div class="table-container">
               <table>
@@ -140,6 +166,7 @@
                     <th>تاريخ الأرشفة</th>
                     <th>اسم العميل</th>
                     <th>المبلغ المسدد عند الإغلاق</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1">الفرع</th>
                     <th>بواسطة</th>
                     <th>إجراء</th>
                   </tr>
@@ -149,11 +176,12 @@
                     <td>{{ formatDate(c.archivedAt) }}</td>
                     <td>{{ c.name }}</td>
                     <td style="color: var(--accent-success); font-weight: bold;">{{ formatCurrency(c.settledAmount || 0) }} ج</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="color: var(--accent-cyan); font-weight: bold;">{{ c.branchName || 'الفرع الرئيسي' }}</td>
                     <td>{{ c.archivedBy || '---' }}</td>
                     <td>
                       <div style="display: flex; gap: 0.5rem; justify-content: center;">
                         <button @click="viewCustomerArchive(c)" class="btn secondary-btn" style="background: #3b82f6 !important;">عرض السجل</button>
-                        <button v-if="store.canAccess('archive_customers', 'edit')" @click="deleteRecord('archivedCustomers', c)" class="btn danger-btn" style="background: #ef4444 !important;">حذف</button>
+                        <button v-if="store.canAccess('archive_customers', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="deleteRecord('archivedCustomers', c)" class="btn danger-btn" style="background: #ef4444 !important;">حذف</button>
                       </div>
                     </td>
                   </tr>
@@ -165,7 +193,7 @@
           <!-- 4. Expenses Archive Tab -->
           <div v-if="activeTab === 'expenses'" class="tab-content">
             <div class="archive-header-row">
-              <button v-if="store.canAccess('archive_expenses', 'edit')" @click="clearArchive('archivedExpenses')" class="btn-clear-modern">🗑️ تفريغ أرشيف المصروفات</button>
+              <button v-if="store.canAccess('archive_expenses', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('archivedExpenses')" class="btn-clear-modern">🗑️ تفريغ أرشيف المصروفات</button>
             </div>
             <div class="table-container">
               <table>
@@ -175,6 +203,7 @@
                     <th style="text-align: center;">الفئة</th>
                     <th style="text-align: center;">الملاحظات</th>
                     <th style="text-align: center;">المبلغ</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center;">الفرع</th>
                     <th style="text-align: center;">المسؤول</th>
                     <th v-if="store.canAccess('archive_expenses', 'edit')" style="text-align: center;">إجراء</th>
                   </tr>
@@ -190,8 +219,9 @@
                     </td>
                     <td style="text-align: center;">{{ e.note || '------' }}</td>
                     <td style="text-align: center; color: #ef4444; font-weight: bold;">{{ formatCurrency(e.amount) }} ج</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ e.branchName || 'الفرع الرئيسي' }}</td>
                     <td style="text-align: center;">{{ e.processedBy || '---' }}</td>
-                    <td v-if="store.canAccess('archive_expenses', 'edit')" style="text-align: center;">
+                    <td v-if="store.canAccess('archive_expenses', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" style="text-align: center;">
                       <button @click="deleteRecord('archivedExpenses', e)" class="btn danger-btn" style="padding: 0.3rem 0.7rem; font-size: 0.85rem; background: #ef4444 !important;">حذف</button>
                     </td>
                   </tr>
@@ -203,7 +233,7 @@
           <!-- 5. Salaries Archive Tab -->
           <div v-if="activeTab === 'salaries' && store.canAccess('archive_salaries', 'none')" class="tab-content">
             <div class="archive-header-row">
-              <button v-if="store.canAccess('archive_salaries', 'edit')" @click="clearArchive('archivedSalaries')" class="btn-clear-modern">🗑️ تفريغ أرشيف المرتبات</button>
+              <button v-if="store.canAccess('archive_salaries', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('archivedSalaries')" class="btn-clear-modern">🗑️ تفريغ أرشيف المرتبات</button>
             </div>
             <div class="table-container">
               <table>
@@ -214,6 +244,7 @@
                     <th>النوع</th>
                     <th>المبلغ</th>
                     <th>ملاحظات</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1">الفرع</th>
                     <th>بواسطة</th>
                     <th>إجراء</th>
                   </tr>
@@ -229,9 +260,10 @@
                     </td>
                     <td class="highlight">{{ formatCurrency(s.amount) }} ج</td>
                     <td>{{ s.note || '---' }}</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="color: var(--accent-cyan); font-weight: bold;">{{ s.branchName || 'الفرع الرئيسي' }}</td>
                     <td>{{ s.processedBy || '---' }}</td>
                     <td>
-                      <button v-if="store.canAccess('archive_salaries', 'edit')" @click="deleteRecord('archivedSalaries', s)" class="btn-icon" style="color: #ef4444;">✖</button>
+                      <button v-if="store.canAccess('archive_salaries', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="deleteRecord('archivedSalaries', s)" class="btn-icon" style="color: #ef4444;">✖</button>
                     </td>
                   </tr>
                 </tbody>
@@ -242,7 +274,7 @@
           <!-- 6. Global Archive Tab -->
           <div v-if="activeTab === 'global'" class="tab-content">
             <div class="archive-header-row">
-              <button v-if="store.canAccess('archive_global', 'edit')" @click="clearAllArchives" class="btn-clear-modern">🗑️ تفريغ الأرشيف الشامل</button>
+              <button v-if="store.canAccess('archive_global', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearAllArchives" class="btn-clear-modern">🗑️ تفريغ الأرشيف الشامل</button>
             </div>
 
             <div class="filters-bar" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
@@ -291,6 +323,7 @@
                     <th style="text-align: center;">القسم</th>
                     <th style="text-align: center;">البيان</th>
                     <th style="text-align: center;">المبلغ</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center;">الفرع</th>
                     <th style="text-align: center;">المسؤول</th>
                     <th style="text-align: right;">ملاحظات</th>
                   </tr>
@@ -306,6 +339,7 @@
                     </td>
                     <td style="text-align: center;">{{ row.name }}</td>
                     <td :class="['highlight', { 'danger-text': row.amount < 0 }]" style="text-align: center; font-weight: bold;">{{ formatCurrency(row.amount) }} ج</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ row.branchName || 'الفرع الرئيسي' }}</td>
                     <td style="text-align: center; color: var(--text-muted);">{{ row.processedBy || '---' }}</td>
                     <td style="text-align: right; font-size: 0.85rem; color: var(--text-muted);">{{ row.note }}</td>
                   </tr>
@@ -409,10 +443,58 @@ import { ref, computed, reactive, onMounted, watch } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useUIStore } from '../stores/uiStore';
 import { printUnifiedInvoice } from '../utils/printSystem';
+import watermarkLogo from '../assets/images/logoapp.png';
 
 const store = useAppStore();
 const ui = useUIStore();
 const isAdmin = computed(() => store.session?.role === 'manager' || store.session?.role === 'admin');
+
+// Base Multi-Branch Data Resolvers
+const activeBranchesList = computed(() => {
+  if (!store.multiBranchActive || !store.multiBranchData || store.multiBranchData.length === 0) {
+    return [];
+  }
+  return store.multiBranchData;
+});
+
+// Helper to filter and aggregate lists based on toggle & branch selection
+function resolveMultiBranchList(localList, key) {
+  if (!store.multiBranchActive || activeBranchesList.value.length === 0) {
+    return localList;
+  }
+  if (store.activeBranchFilter === 'local') {
+    return localList;
+  }
+  if (store.activeBranchFilter === 'all') {
+    let list = [];
+    activeBranchesList.value.forEach(b => {
+      const items = b[key] || [];
+      items.forEach(item => {
+        list.push({ ...item, branchName: b.name });
+      });
+    });
+    return list;
+  }
+  const targetBranch = activeBranchesList.value.find(b => b.machine_id === store.activeBranchFilter);
+  if (targetBranch) {
+    const items = targetBranch[key] || [];
+    return items.map(item => ({ ...item, branchName: targetBranch.name }));
+  }
+  return localList;
+}
+
+// Dynamically mapped databases
+const historyList = computed(() => resolveMultiBranchList(store.history, 'history'));
+const loungeHistoryList = computed(() => resolveMultiBranchList(store.loungeHistory, 'loungeHistory'));
+const archivedCustomersList = computed(() => resolveMultiBranchList(store.archivedCustomers, 'archivedCustomers'));
+const archivedExpensesList = computed(() => resolveMultiBranchList(store.archivedExpenses, 'archivedExpenses'));
+const archivedSalariesList = computed(() => resolveMultiBranchList(store.archivedSalaries, 'archivedSalaries'));
+
+onMounted(async () => {
+  if (store.multiBranchActive) {
+    await store.fetchMultiBranchData();
+  }
+});
 
 // Tab Persistence
 const savedTab = localStorage.getItem('classico_archive_active_tab') || 'devices';
@@ -437,18 +519,18 @@ const globalFilters = reactive({
 
 const monitoringGroups = computed(() => {
   const groups = new Set();
-  (store.history || []).forEach(h => {
+  (historyList.value || []).forEach(h => {
     if (h.dept) groups.add(h.dept);
   });
   return Array.from(groups);
 });
 
 // Sorting Logic
-const sortedHistory = computed(() => [...store.history].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
-const sortedLounge = computed(() => [...store.loungeHistory].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
-const sortedCustomers = computed(() => [...store.archivedCustomers].sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt)));
-const sortedExpenses = computed(() => [...store.archivedExpenses].sort((a, b) => new Date(b.timestamp || b.archivedAt) - new Date(a.timestamp || a.archivedAt)));
-const sortedSalaries = computed(() => [...store.archivedSalaries].filter(s => !s.isAdjustment).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+const sortedHistory = computed(() => [...historyList.value].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+const sortedLounge = computed(() => [...loungeHistoryList.value].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+const sortedCustomers = computed(() => [...archivedCustomersList.value].sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt)));
+const sortedExpenses = computed(() => [...archivedExpensesList.value].sort((a, b) => new Date(b.timestamp || b.archivedAt) - new Date(a.timestamp || a.archivedAt)));
+const sortedSalaries = computed(() => [...archivedSalariesList.value].filter(s => !s.isAdjustment).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
 
 // Summary Totals
 const totalPSRevenue = computed(() => sortedHistory.value.reduce((sum, h) => sum + h.totalCost, 0));
@@ -478,44 +560,49 @@ const globalData = computed(() => {
   let data = [];
   
   // Devices
-  store.history.forEach(h => {
+  historyList.value.forEach(h => {
     data.push({
       ts: h.timestamp, dept: '🎮 أجهزة', subDept: h.dept, name: h.name || h.deviceName, amount: h.totalCost,
-      note: `مدة الاستخدام: ${formatDuration(h.usedTimeSeconds)}`, color: '#00e5ff', processedBy: h.processedBy
+      note: `مدة الاستخدام: ${formatDuration(h.usedTimeSeconds)}`, color: '#00e5ff', processedBy: h.processedBy,
+      branchName: h.branchName
     });
   });
 
   // Lounge
-  store.loungeHistory.forEach(l => {
+  loungeHistoryList.value.forEach(l => {
     data.push({
       ts: l.timestamp, dept: '☕ صالة', name: l.name, amount: l.total,
-      note: l.orders.map(o => `${o.qty}x ${o.name}`).join(', '), color: '#10b981', processedBy: l.processedBy
+      note: l.orders.map(o => `${o.qty}x ${o.name}`).join(', '), color: '#10b981', processedBy: l.processedBy,
+      branchName: l.branchName
     });
   });
 
   // Customers
-  store.archivedCustomers.forEach(c => {
+  archivedCustomersList.value.forEach(c => {
     data.push({
       ts: c.archivedAt, dept: '👥 عملاء', name: c.name, amount: c.settledAmount || 0,
-      note: 'تحصيل مديونية عند أرشفة الحساب', color: '#f59e0b', processedBy: c.archivedBy
+      note: 'تحصيل مديونية عند أرشفة الحساب', color: '#f59e0b', processedBy: c.archivedBy,
+      branchName: c.branchName
     });
   });
 
   // Expenses
-  store.archivedExpenses.forEach(e => {
+  archivedExpensesList.value.forEach(e => {
     data.push({
       ts: e.timestamp || e.archivedAt, dept: '💸 مصروفات', name: e.category, amount: -e.amount,
-      note: e.note || 'مصروف عام', color: '#ef4444', processedBy: e.processedBy
+      note: e.note || 'مصروف عام', color: '#ef4444', processedBy: e.processedBy,
+      branchName: e.branchName
     });
   });
 
   // Salaries (Admin Only)
   if (isAdmin.value) {
-    store.archivedSalaries.filter(s => !s.isAdjustment).forEach(s => {
+    archivedSalariesList.value.filter(s => !s.isAdjustment).forEach(s => {
       data.push({
         ts: s.timestamp, dept: '💰 مرتبات', name: s.username, amount: -s.amount,
         note: (s.type === 'salary_payment' ? 'صرف مرتب' : 'مسحوبات') + (s.note ? ` - ${s.note}` : ''),
-        color: '#8b5cf6', processedBy: s.processedBy
+        color: '#8b5cf6', processedBy: s.processedBy,
+        branchName: s.branchName
       });
     });
   }
@@ -929,5 +1016,61 @@ const formatDuration = (sec) => {
 .premium-input::-webkit-calendar-picker-indicator {
   filter: invert(1) sepia(100%) saturate(500%) hue-rotate(150deg);
   cursor: pointer;
+}
+
+/* Sleek iOS-like Toggle Switch for Multi-Branch Controls */
+.premium-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+.premium-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.premium-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255,255,255,0.1);
+  transition: .3s ease;
+  border-radius: 34px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.premium-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #94a3b8;
+  transition: .3s ease;
+  border-radius: 50%;
+}
+.premium-switch input:checked + .premium-slider {
+  background-color: rgba(0, 229, 255, 0.2);
+  border-color: rgba(0, 229, 255, 0.4);
+}
+.premium-switch input:checked + .premium-slider:before {
+  transform: translateX(22px);
+  background-color: #00e5ff;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+.premium-input-mini:focus {
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

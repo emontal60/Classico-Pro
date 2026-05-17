@@ -3,9 +3,12 @@
     {
       "id": 1,
       "name": "PlayStation 1",
-      "status": "stopped",
+      "status": "running",
       "hourPrice": 50,
-      "orders": []
+      "orders": [],
+      "startTime": "2026-05-17T21:29:04.447Z",
+      "prepaidSeconds": 0,
+      "usedTimeSeconds": 0
     },
     {
       "id": 2,
@@ -673,8 +676,123 @@
     }
   ],
   "classico_history": [],
-  "classico_customers": [],
-  "classico_archived_customers": [],
+  "classico_customers": [
+    {
+      "id": 1779053290561,
+      "clientId": 1778624784052,
+      "name": "ايمن",
+      "ledger": [
+        {
+          "id": 1779053294789,
+          "type": "debt",
+          "amount": 45,
+          "note": "طلب صنف: سموذي فراولة (1x)",
+          "timestamp": "2026-05-17T21:28:14.789Z"
+        },
+        {
+          "id": 1779053297656,
+          "type": "debt",
+          "amount": 45,
+          "note": "طلب صنف: سموذي بطيخ (1x)",
+          "timestamp": "2026-05-17T21:28:17.656Z"
+        },
+        {
+          "id": 1779053300658,
+          "type": "payment",
+          "amount": 20,
+          "note": "تسديد مبلغ نقدًا",
+          "timestamp": "2026-05-17T21:28:20.658Z"
+        },
+        {
+          "id": 1779053326390,
+          "type": "payment",
+          "amount": 30,
+          "note": "تسديد مبلغ نقدًا",
+          "timestamp": "2026-05-17T21:28:46.390Z"
+        }
+      ]
+    }
+  ],
+  "classico_archived_customers": [
+    {
+      "id": 1779053300661.6218,
+      "clientId": 1778624784052,
+      "name": "ايمن",
+      "ledger": [
+        {
+          "id": 1779053294789,
+          "type": "debt",
+          "amount": 45,
+          "note": "طلب صنف: سموذي فراولة (1x)",
+          "timestamp": "2026-05-17T21:28:14.789Z"
+        },
+        {
+          "id": 1779053297656,
+          "type": "debt",
+          "amount": 45,
+          "note": "طلب صنف: سموذي بطيخ (1x)",
+          "timestamp": "2026-05-17T21:28:17.656Z"
+        },
+        {
+          "id": 1779053300658,
+          "type": "payment",
+          "amount": 20,
+          "note": "تسديد مبلغ نقدًا",
+          "timestamp": "2026-05-17T21:28:20.658Z"
+        },
+        {
+          "id": 1779053326390,
+          "type": "payment",
+          "amount": 30,
+          "note": "تسديد مبلغ نقدًا",
+          "timestamp": "2026-05-17T21:28:46.390Z"
+        }
+      ],
+      "originalCustomerId": 1779053290561,
+      "settledAmount": 20,
+      "archivedAt": "2026-05-17T21:28:20.661Z",
+      "archivedBy": "admin"
+    },
+    {
+      "id": 1779053326402.0244,
+      "clientId": 1778624784052,
+      "name": "ايمن",
+      "ledger": [
+        {
+          "id": 1779053294789,
+          "type": "debt",
+          "amount": 45,
+          "note": "طلب صنف: سموذي فراولة (1x)",
+          "timestamp": "2026-05-17T21:28:14.789Z"
+        },
+        {
+          "id": 1779053297656,
+          "type": "debt",
+          "amount": 45,
+          "note": "طلب صنف: سموذي بطيخ (1x)",
+          "timestamp": "2026-05-17T21:28:17.656Z"
+        },
+        {
+          "id": 1779053300658,
+          "type": "payment",
+          "amount": 20,
+          "note": "تسديد مبلغ نقدًا",
+          "timestamp": "2026-05-17T21:28:20.658Z"
+        },
+        {
+          "id": 1779053326390,
+          "type": "payment",
+          "amount": 30,
+          "note": "تسديد مبلغ نقدًا",
+          "timestamp": "2026-05-17T21:28:46.390Z"
+        }
+      ],
+      "originalCustomerId": 1779053290561,
+      "settledAmount": 30,
+      "archivedAt": "2026-05-17T21:28:46.402Z",
+      "archivedBy": "admin"
+    }
+  ],
   "classico_clients_dir": [
     {
       "id": 1778624784052,
@@ -691,17 +809,72 @@
   ],
   "classico_users": {
     "admin": {
-      "username": "admin",
-      "password": "admin",
       "role": "manager",
+      "password": "admin",
+      "username": "admin",
       "permissions": {}
     }
   },
   "classico_archived_salaries": [],
   "classico_lounge_invoices": [],
-  "classico_lounge_history": [],
-  "classico_expenses": [],
-  "classico_archived_expenses": [],
+  "classico_lounge_history": [
+    {
+      "name": "فاتورة #101",
+      "startTime": "2026-05-17T21:14:21.355Z",
+      "endTime": "2026-05-17T21:27:50.418Z",
+      "orders": [
+        {
+          "itemId": 2,
+          "name": "سموذي فراولة",
+          "price": 45,
+          "qty": 1,
+          "total": 45
+        }
+      ],
+      "total": 45,
+      "paymentType": "cash",
+      "processedBy": "admin",
+      "timestamp": "2026-05-17T21:27:50.419Z"
+    }
+  ],
+  "classico_expenses": [
+    {
+      "id": 1779053319930,
+      "timestamp": "2026-05-17T21:28:39.930Z",
+      "category": "نثرية",
+      "amount": 234,
+      "note": "",
+      "processedBy": "admin",
+      "reason": "نثرية",
+      "user": "admin"
+    }
+  ],
+  "classico_archived_expenses": [
+    {
+      "id": 1779051723003,
+      "timestamp": "2026-05-17T21:02:03.003Z",
+      "category": "كهرباء",
+      "amount": 898,
+      "note": "33متلابهتاايلاايلا",
+      "processedBy": "admin",
+      "reason": "كهرباء - 33متلابهتاايلاايلا",
+      "user": "admin",
+      "archivedAt": "2026-05-17T21:02:03.003Z",
+      "archivedBy": "admin"
+    },
+    {
+      "id": 1779053319930,
+      "timestamp": "2026-05-17T21:28:39.930Z",
+      "category": "نثرية",
+      "amount": 234,
+      "note": "",
+      "processedBy": "admin",
+      "reason": "نثرية",
+      "user": "admin",
+      "archivedAt": "2026-05-17T21:28:39.930Z",
+      "archivedBy": "admin"
+    }
+  ],
   "classico_subscription": {
     "success": true,
     "status": "active",
@@ -713,7 +886,7 @@
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-14T21:02:02.659+00:00.399121979e3eed3b7cb4a5232b2099923d8533e196cd039d594fc77ec3b6c673"
   },
-  "classico_last_journal_closure": "2026-05-16T22:44:45.394Z",
+  "classico_last_journal_closure": "2026-05-17T21:28:33.267Z",
   "classico_app_settings": {
     "appName": "Classico",
     "userId": "USR-A0IQK5",
@@ -727,6 +900,34 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1779057477881.6514,
+      "timestamp": "2026-05-17T22:37:57.881Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1779053313267.5862,
+      "timestamp": "2026-05-17T21:28:33.267Z",
+      "user": "admin",
+      "action": "تقفيل اليومية",
+      "details": "تم تقفيل اليومية بنجاح. صافي الربح: 65 ج"
+    },
+    {
+      "id": 1779053270435.9233,
+      "timestamp": "2026-05-17T21:27:50.435Z",
+      "user": "admin",
+      "action": "حذف فاتورة صالة",
+      "details": "تم حذف فاتورة صالة باسم فاتورة #101 بقيمة undefined ج"
+    },
+    {
+      "id": 1779051740348.874,
+      "timestamp": "2026-05-17T21:02:20.348Z",
+      "user": "admin",
+      "action": "تقفيل اليومية",
+      "details": "تم تقفيل اليومية بنجاح. صافي الربح: -898 ج"
+    },
     {
       "id": 1778971497846.8162,
       "timestamp": "2026-05-16T22:44:57.846Z",
@@ -925,5 +1126,6 @@
     }
   ],
   "is_activation": false,
-  "is_reset": false
+  "is_reset": false,
+  "last_seen_time": "2026-05-17T22:49:17.910Z"
 }

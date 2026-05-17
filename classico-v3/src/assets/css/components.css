@@ -200,11 +200,12 @@ select:disabled {
     transform: translate(-50%, -50%);
     width: 60%;
     height: 60%;
-    background-image: url('../images/logo2.png');
+    background-image: url('../images/logoapp.png');
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    opacity: 0.1;
+    opacity: 0.05;
+    filter: grayscale(1) invert(1);
     z-index: 0;
     pointer-events: none;
 }
@@ -858,4 +859,33 @@ th {
 
 .total-amount-row-premium.compact .value {
     font-size: 1.7rem;
+}
+
+/* Page Level Watermark */
+.page-watermark {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.page-watermark::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 450px;
+    height: 450px;
+    background-image: url('../images/logoapp.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+    filter: grayscale(1) invert(1);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Hide nested table watermarks when page-level watermark is active */
+.page-watermark .table-container::before {
+    display: none !important;
 }

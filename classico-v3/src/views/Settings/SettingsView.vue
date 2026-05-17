@@ -1,10 +1,35 @@
 <template>
   <div class="dashboard-wrapper">
-    <main class="main-area glass-panel" style="width: 100%; position: relative; overflow: hidden;">
+    <main class="main-area glass-panel page-watermark" style="width: 100%; position: relative; overflow-y: auto;">
       
       <!-- Page Header -->
-      <div class="settings-header-premium">
-        <h2 class="premium-title-main">⚙️ اعدادات النظام والتقارير والموظفين</h2>
+      <div class="settings-header-premium" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <h2 class="premium-title-main" style="margin: 0;">⚙️ اعدادات النظام والتقارير والموظفين</h2>
+        
+        <!-- Multi-Branch Controls (Only for multi-device subscription owners) -->
+        <div v-if="store.subscriptionData?.max_devices > 1" class="multi-branch-panel glass-panel" style="display: flex; align-items: center; gap: 1rem; padding: 8px 16px; border-radius: 12px; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(0, 229, 255, 0.15);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.85rem; color: #94a3b8; font-weight: bold;">🌐 رؤية الفروع المتعددة:</span>
+            <label class="premium-switch">
+              <input 
+                type="checkbox" 
+                :checked="store.multiBranchActive" 
+                @change="e => store.setMultiBranchActive(e.target.checked)"
+              >
+              <span class="premium-slider"></span>
+            </label>
+          </div>
+
+          <!-- Branch Select Dropdown (Only visible when Multi-Branch is Active) -->
+          <div v-if="store.multiBranchActive" class="branch-select-container animate-fade-in" style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.85rem; color: #00e5ff; font-weight: bold;">📍 الفرع:</span>
+            <select v-model="store.activeBranchFilter" class="premium-input-mini" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(0, 229, 255, 0.2); color: #fff; padding: 4px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; outline: none; cursor: pointer;">
+              <option value="all">كل الفروع (شامل) 🌍</option>
+              <option value="local">الفرع الحالي فقط (محلي) 🏠</option>
+              <option v-for="b in store.multiBranchData" :key="b.machine_id" :value="b.machine_id">{{ b.name }} 🖥️</option>
+            </select>
+          </div>
+        </div>
         
         <!-- Navigation Tabs Grouped -->
         <nav class="settings-tabs-rebuilt">
@@ -113,11 +138,12 @@
                       <span class="current-due-neon">{{ user.currentBalance || 0 }} ج</span>
                     </td>
                     <td style="text-align: center;">
-                      <div v-if="store.canAccess('settings_staff', 'edit')" class="actions-group-mini">
+                      <div v-if="store.canAccess('settings_staff', 'edit') && !isReadOnlyMode" class="actions-group-mini">
                         <button @click="editStaff(user)" class="btn-edit-user" title="تعديل">✏️</button>
                         <button @click="openPermissionsModal(user.username)" class="btn-perms-trigger" title="الصلاحيات">🛡️ الصلاحيات</button>
                         <button v-if="user.username !== 'admin'" @click="deleteStaff(user.username)" class="btn-delete-user" title="حذف">🗑️</button>
                       </div>
+                      <span v-else-if="isReadOnlyMode" style="color: var(--text-muted); font-size: 0.85rem;">🔒 مقفل</span>
                     </td>
                   </tr>
                 </tbody>
@@ -127,7 +153,14 @@
 
           <!-- Right: Add/Edit Staff Form -->
           <div class="staff-form-section">
-            <div class="glass-card-form" :class="{ 'edit-mode-active': editingStaffMode }">
+            <div v-if="isReadOnlyMode" class="glass-card-form" style="border: 1px dashed rgba(0, 229, 255, 0.2); background: rgba(0, 0, 0, 0.4); text-align: center; padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; min-height: 350px;">
+              <div style="font-size: 3rem; animation: pulse 2s infinite;">🔒</div>
+              <h3 style="color: var(--accent-cyan); font-weight: bold; margin: 0;">وضع الاطلاع فقط نشط</h3>
+              <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; margin: 0; max-width: 250px;">
+                أنت تقوم حالياً باستعراض بيانات الموظفين لفرع آخر. تمت حماية البيانات المحلية وقفل عمليات الإضافة أو التعديل.
+              </p>
+            </div>
+            <div v-else class="glass-card-form" :class="{ 'edit-mode-active': editingStaffMode }">
               <h3 class="form-title" :class="{ 'title-edit': editingStaffMode }">
                 <span class="icon">👤</span> 
                 {{ editingStaffMode ? 'تعديل بيانات موظف' : 'إضافة/تعديل موظف' }}
@@ -226,7 +259,7 @@
                   <tbody>
                     <tr v-for="t in selectedStaffTransactions" :key="t.id" class="row-v3">
                       <td style="text-align: center;">
-                        <button v-if="store.canAccess('settings_staff', 'edit')" @click="deleteTransaction(t.id)" class="btn-x-v3" title="حذف">✕</button>
+                        <button v-if="store.canAccess('settings_staff', 'edit') && !isReadOnlyMode" @click="deleteTransaction(t.id)" class="btn-x-v3" title="حذف">✕</button>
                       </td>
                       <td style="text-align: right;">
                         <div class="time-v3">
@@ -253,7 +286,14 @@
 
           <!-- Right: Transaction Form -->
           <div class="form-area">
-            <div class="form-card-v3">
+            <div v-if="isReadOnlyMode" class="form-card-v3" style="border: 1px dashed rgba(0, 229, 255, 0.2); background: rgba(0, 0, 0, 0.4); text-align: center; padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; min-height: 250px;">
+              <div style="font-size: 3rem; animation: pulse 2s infinite;">🔒</div>
+              <h3 style="color: var(--accent-cyan); font-weight: bold; margin: 0;">وضع الاطلاع فقط نشط</h3>
+              <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6; margin: 0; max-width: 250px;">
+                لا يمكن تسجيل مسحوبات أو تسوية رواتب أثناء الاطلاع على الفروع المتعددة. تمت حماية البيانات المحلية.
+              </p>
+            </div>
+            <div v-else class="form-card-v3">
               <h3 class="form-header-v3">
                 <span class="icon">💰</span> تسجيل عملية مالية
               </h3>
@@ -291,7 +331,8 @@
            <div class="journal-integrated-dashboard">
               <div class="journal-status-bar glass-panel">
                  <div class="status-left">
-                    <button v-if="store.canAccess('settings_journal', 'edit')" @click="closeShift" class="btn-close-shift-neon">⚙️ تقفيل اليومية (الوردية)</button>
+                    <button v-if="store.canAccess('settings_journal', 'edit') && !isReadOnlyMode" @click="closeShift" class="btn-close-shift-neon">⚙️ تقفيل اليومية (الوردية)</button>
+                     <button v-else-if="isReadOnlyMode" class="btn-close-shift-neon" style="opacity: 0.6; cursor: not-allowed; border-color: rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: var(--text-muted);" disabled>🔒 تقفيل الوردية مقفل (مشاهدة)</button>
                  </div>
                  <div class="status-right">
                     <div class="shift-title">📓 اليومية الحالية</div>
@@ -341,10 +382,11 @@
                              <th style="text-align: center;">داخل (+)</th>
                              <th style="text-align: center;">خارج (-)</th>
                              <th style="text-align: center;">المسؤول</th>
+                              <th v-if="store.multiBranchActive" style="text-align: center;">الفرع</th>
                           </tr>
                        </thead>
                        <tbody>
-                          <tr v-for="(entry, index) in store.getShiftDetailedData()" :key="index" class="journal-row">
+                          <tr v-for="(entry, index) in getShiftDetailedData()" :key="index" class="journal-row">
                              <td class="time-cell">
                                 <div class="time-wrap">
                                    <span>{{ formatTime(entry.ts) }}</span>
@@ -369,6 +411,11 @@
                                 {{ entry.out > 0 ? '-' + formatCurrency(entry.out) + ' ج' : '---' }}
                              </td>
                              <td style="text-align: center;" class="user-cell">{{ entry.processedBy || '---' }}</td>
+                              <td v-if="store.multiBranchActive" style="text-align: center;">
+                                 <div class="branch-badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);">
+                                    📍 {{ entry.branchName || 'محلي' }}
+                                 </div>
+                              </td>
                           </tr>
                        </tbody>
                     </table>
@@ -489,6 +536,7 @@
                              <th style="text-align: center;">الوارد (+)</th>
                              <th style="text-align: center;">المنصرف (-)</th>
                              <th style="text-align: center;">الرصيد التراكمي</th>
+                              <th v-if="store.multiBranchActive" style="text-align: center;">الفرع</th>
                           </tr>
                        </thead>
                        <tbody>
@@ -513,6 +561,11 @@
                              </td>
                              <td style="text-align: center;" class="balance-val-v3">
                                 {{ formatCurrency(row.runningBalance) }} ج
+                              </td>
+                              <td v-if="store.multiBranchActive" style="text-align: center;">
+                                 <div class="branch-badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+                                    📍 {{ row.branchName || 'محلي' }}
+                                 </div>
                              </td>
                           </tr>
                        </tbody>
@@ -527,7 +580,7 @@
           <div class="section-header-premium">
             <h2 class="premium-title-main">📜 سجل النشاط التفصيلي</h2>
             <div style="display: flex; gap: 1rem; align-items: center;">
-              <button @click="clearActivityLog" class="btn danger-btn-action" style="background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important; padding: 0.5rem 1rem;">
+              <button v-if="!isReadOnlyMode" @click="clearActivityLog" class="btn danger-btn-action" style="background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border: 1px solid rgba(239, 68, 68, 0.3) !important; padding: 0.5rem 1rem;">
                 🗑️ تنظيف السجل
               </button>
               <div class="search-wrapper">
@@ -542,6 +595,7 @@
                 <tr>
                   <th style="width: 200px; text-align: right;">التاريخ والوقت</th>
                   <th style="width: 150px; text-align: center;">المستخدم</th>
+                  <th v-if="store.multiBranchActive" style="width: 150px; text-align: center;">الفرع</th>
                   <th style="width: 150px; text-align: center;">الإجراء</th>
                   <th style="text-align: right;">التفاصيل</th>
                 </tr>
@@ -557,6 +611,11 @@
                       <span class="user-name-text" style="font-size: 0.9rem;">{{ log.user }}</span>
                     </span>
                   </td>
+                  <td v-if="store.multiBranchActive" style="text-align: center;">
+                    <div class="branch-badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+                      📍 {{ log.branchName || 'محلي' }}
+                    </div>
+                  </td>
                   <td style="text-align: center;">
                     <span class="category-badge" :style="{ borderColor: log.action.includes('حذف') || log.action.includes('خروج') ? '#ef4444' : '#00e5ff', color: log.action.includes('حذف') || log.action.includes('خروج') ? '#ef4444' : '#00e5ff' }">
                       {{ log.action }}
@@ -565,7 +624,7 @@
                   <td style="text-align: right; font-size: 0.95rem; color: var(--text-main);">{{ log.details }}</td>
                 </tr>
                 <tr v-if="!filteredActivityLog.length">
-                  <td colspan="4" style="text-align: center; padding: 5rem; color: var(--text-muted);">لا يوجد سجل نشاط مطابق للبحث 🔍</td>
+                  <td :colspan="store.multiBranchActive ? 5 : 4" style="text-align: center; padding: 5rem; color: var(--text-muted);">لا يوجد سجل نشاط مطابق للبحث 🔍</td>
                 </tr>
               </tbody>
             </table>
@@ -610,6 +669,15 @@
                 <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(245,158,11,0.3);">{{ formatCurrency(analyticsData.kpis.netProfit) }} ج</div>
               </div>
             </div>
+          </div>
+
+          <!-- Branch Comparison Chart (Visible only when All Branches is selected) -->
+          <div v-if="store.multiBranchActive && store.activeBranchFilter === 'all'" class="analytics-card glass-panel fadeScale" style="padding: 1.5rem; margin-bottom: 2rem; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 16px;">
+            <h3 style="margin-bottom: 1.5rem; color: #00e5ff; display: flex; align-items: center; gap: 10px;">
+              <span>🌐 مقارنة الفروع في المبيعات وصافي الأرباح</span>
+              <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; margin-right: auto;">(الفترة الزمنية المحددة)</span>
+            </h3>
+            <div id="branchComparisonChart"></div>
           </div>
 
           <!-- Row 1: Busy Hours & Top Items -->
@@ -741,9 +809,17 @@
 
         <!-- 5. System Tab -->
         <div v-if="activeTab === 'system'" class="system-management-layout">
-
-           <!-- 🌟 Innovative Page Visibility Control (Admin Only) -->
-           <div v-if="isAdmin" class="system-card-v3 info" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+           <div v-if="isReadOnlyMode" class="system-card-v3 danger" style="grid-column: 1 / -1; border: 1px dashed rgba(255, 76, 76, 0.3); background: rgba(0, 0, 0, 0.4); text-align: center; padding: 3rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; min-height: 350px;">
+              <div style="font-size: 4rem; animation: pulse 2s infinite;">🔒</div>
+              <h3 style="color: var(--accent-red); font-weight: bold; margin: 0;">منطقة إعدادات النظام مقفلة</h3>
+              <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin: 0; max-width: 400px;">
+                أنت تقوم حالياً باستعراض فرع آخر (اطلاع فقط). إعدادات الهوية، التحكم في ظهور الصفحات، النسخ الاحتياطي، والأرشفة وإعادة الضبط هي عمليات محلية بالكامل وتم تأمينها وقفلها لمنع أي تداخل في البيانات.
+              </p>
+           </div>
+           
+           
+              <!-- 🌟 Innovative Page Visibility Control (Admin Only) -->
+              <div v-if="isAdmin && !isReadOnlyMode" class="system-card-v3 info" style="grid-column: 1 / -1; margin-bottom: 2rem;">
                <h3 class="sys-title-v3"><span>👁️</span> مركز التحكم في ظهور الصفحات</h3>
                <p class="sys-desc-v3">بصفتك مديراً للنظام، يمكنك إخفاء أو إظهار أي قسم من البرنامج بالكامل لجميع المستخدمين بضغطة واحدة.</p>
                
@@ -793,7 +869,7 @@
            </div>
 
            <!-- Maintenance Section -->
-           <div class="system-card-v3 success">
+           <div v-if="!isReadOnlyMode" class="system-card-v3 success">
                <h3 class="sys-title-v3"><span>🧹</span> صيانة النظام والتنظيف</h3>
                <p class="sys-desc-v3">
                   يقوم النظام بتنظيف تلقائي عند التشغيل. يمكنك الضغط هنا لإجبار النظام على إعادة المزامنة وحذف أي بيانات عالقة في البرنامج لتسريع الأداء.
@@ -808,7 +884,7 @@
            </div>
 
            <!-- Smart Archiving Section -->
-           <div v-if="store.canAccess('settings_system', 'edit')" class="system-card-v3 info">
+           <div v-if="store.canAccess('settings_system', 'edit') && !isReadOnlyMode" class="system-card-v3 info">
               <h3 class="sys-title-v3"><span>🗄️</span> أرشفة البيانات الذكية (Auto-Maintenance)</h3>
               <p class="sys-desc-v3">
                  للحفاظ على سرعة البرنامج كالبرق، يمكنك نقل السجلات القديمة جداً إلى ملفات أرشيف منفصلة. هذا الإجراء يحافظ على خفة قاعدة البيانات دون حذف أي معلومة.
@@ -826,7 +902,7 @@
            </div>
 
            <!-- Data Backup Section -->
-           <div v-if="store.canAccess('settings_system', 'edit')" class="system-card-v3 info">
+           <div v-if="store.canAccess('settings_system', 'edit') && !isReadOnlyMode" class="system-card-v3 info">
               <h3 class="sys-title-v3"><span>💾</span> إدارة النسخ الاحتياطي</h3>
               <p class="sys-desc-v3">
                  يُنصح دائماً بتحميل نسخة احتياطية من بياناتك بانتظام للحفاظ عليها من الفقدان. يمكنك استعادة بياناتك في أي وقت من ملف خارجي.
@@ -842,7 +918,7 @@
            </div>
 
            <!-- Factory Reset Section -->
-           <div v-if="store.canAccess('settings_system', 'edit')" class="system-card-v3 danger">
+           <div v-if="store.canAccess('settings_system', 'edit') && !isReadOnlyMode" class="system-card-v3 danger">
               <h3 class="sys-title-v3"><span>⚠️</span> منطقة الخطر: إعادة ضبط المصنع</h3>
               <p class="sys-desc-v3">
                  إعادة النظام للحالة الأولى ومسح كافة البيانات بشكل نهائي. هذا الإجراء لا يمكن التراجع عنه ويؤدي لحذف الموظفين، التقارير، والمنيو.
@@ -1101,10 +1177,11 @@
                      <th style="text-align: center;">داخل (+)</th>
                      <th style="text-align: center;">خارج (-)</th>
                      <th style="text-align: center;">المسؤول</th>
+                              <th v-if="store.multiBranchActive" style="text-align: center;">الفرع</th>
                   </tr>
                </thead>
                <tbody>
-                  <tr v-for="(entry, index) in store.getShiftDetailedData()" :key="index" class="journal-row">
+                  <tr v-for="(entry, index) in getShiftDetailedData()" :key="index" class="journal-row">
                      <td class="time-cell">
                         <div class="time-wrap">
                            <span>{{ formatTime(entry.ts) }}</span>
@@ -1129,6 +1206,11 @@
                         {{ entry.out > 0 ? '-' + formatCurrency(entry.out) + ' ج' : '---' }}
                      </td>
                      <td style="text-align: center;" class="user-cell">{{ entry.processedBy || '---' }}</td>
+                              <td v-if="store.multiBranchActive" style="text-align: center;">
+                                 <div class="branch-badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.25); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);">
+                                    📍 {{ entry.branchName || 'محلي' }}
+                                 </div>
+                              </td>
                   </tr>
                </tbody>
             </table>
@@ -1152,6 +1234,7 @@ import ApexCharts from 'apexcharts';
 
 const {
   store, isAdmin, activeTab, staffSearch, editingStaffMode, shiftStats,
+  isReadOnlyMode, getShiftDetailedData,
   totalShiftSalaries, reportFilter, getReportStats,
   showDetailedReportTable, detailedReportRows, applyReportFilter, showAllReports, viewDetailedReport,
   showExportModal, exportToExcel, exportToPDF, selectedStaffUsername, salaryOp, selectedStaffTransactions,
@@ -1168,7 +1251,7 @@ const {
   analyticsData, updateAnalytics, analyticsFilter
 } = useSettingsLogic();
 
-const charts = { hours: null, items: null, profit: null, income: null, ratio: null, staff: null };
+const charts = { hours: null, items: null, profit: null, income: null, ratio: null, staff: null, branchComparison: null };
 const itemsChartType = ref('donut');
 
 const renderItemsChart = () => {
@@ -1239,6 +1322,7 @@ const initCharts = () => {
     if (charts.income) charts.income.destroy();
     if (charts.ratio) charts.ratio.destroy();
     if (charts.staff) charts.staff.destroy();
+    if (charts.branchComparison) charts.branchComparison.destroy();
   } catch (e) {}
 
   // 1. Busy Hours
@@ -1350,6 +1434,38 @@ const initCharts = () => {
       charts.staff.render();
     } catch(e) { console.error('staffChart error', e); }
   }
+
+  // 7. Branch Comparison Chart (Sales & Profits)
+  const bcChart = document.querySelector("#branchComparisonChart");
+  if (bcChart) {
+    try {
+      const bLabels = (analyticsData.branchComparison || []).map(b => b.name);
+      const bSales = (analyticsData.branchComparison || []).map(b => b.revenue);
+      const bProfits = (analyticsData.branchComparison || []).map(b => b.profit);
+
+      charts.branchComparison = new ApexCharts(bcChart, {
+        series: [
+          { name: 'إجمالي المبيعات 💸', data: bSales },
+          { name: 'صافي الأرباح 📈', data: bProfits }
+        ],
+        chart: { type: 'bar', height: 350, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        colors: ['#00e5ff', '#10b981'],
+        stroke: { show: true, width: 2, colors: ['transparent'] },
+        plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 8 } },
+        dataLabels: { enabled: false },
+        xaxis: { categories: bLabels.length ? bLabels : ['---'] },
+        yaxis: {
+          labels: {
+            formatter: (value) => { return Math.round(value).toLocaleString() + ' ج'; }
+          }
+        },
+        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        tooltip: { theme: 'dark' },
+        legend: { position: 'top' }
+      });
+      charts.branchComparison.render();
+    } catch(e) { console.error('branchComparisonChart error', e); }
+  }
 };
 
 onMounted(() => {
@@ -1363,6 +1479,15 @@ onMounted(() => {
 
 watch(activeTab, (val) => {
   if (val === 'analytics') {
+    updateAnalytics();
+    nextTick(() => {
+      setTimeout(initCharts, 300);
+    });
+  }
+});
+
+watch([() => store.multiBranchActive, () => store.activeBranchFilter], () => {
+  if (activeTab.value === 'analytics') {
     updateAnalytics();
     nextTick(() => {
       setTimeout(initCharts, 300);

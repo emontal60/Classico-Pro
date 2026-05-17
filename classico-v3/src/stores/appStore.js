@@ -42,7 +42,10 @@ export const useAppStore = defineStore('app', {
     isLoading: true,
     notifiedExpiry: false,
     error: null,
-    activityLog: []
+    activityLog: [],
+    multiBranchActive: localStorage.getItem('classico_multi_branch_active') === 'true',
+    multiBranchData: [],
+    activeBranchFilter: 'all'
   }),
 
   getters: {
@@ -69,28 +72,73 @@ export const useAppStore = defineStore('app', {
 
       // 1. Devices History
       state.history.filter(h => new Date(h.timestamp) > lastClosure).forEach(h => {
-        entries.push({ ts: h.timestamp, name: `جهاز: ${h.name || h.deviceName}`, dept: 'أجهزة', in: h.timeCost || 0, out: 0, processedBy: h.processedBy });
+        const isDebt = h.paymentType === 'debt';
+        entries.push({ 
+          ts: h.timestamp, 
+          name: `جهاز: ${h.name || h.deviceName}${isDebt ? ' (آجل 🤝)' : ''}`, 
+          dept: 'أجهزة', 
+          in: h.timeCost || 0, 
+          out: 0, 
+          processedBy: h.processedBy,
+          isDebt
+        });
       });
 
       // 2. Lounge History
       state.loungeHistory.filter(l => new Date(l.timestamp) > lastClosure).forEach(l => {
-        entries.push({ ts: l.timestamp, name: `صالة: ${l.name}`, dept: 'صالة', in: l.total || 0, out: 0, processedBy: l.processedBy });
-      });
-
-      // 3. Customer Payments
-      state.archivedCustomers.forEach(c => {
-        (c.ledger || []).filter(l => l.type === 'payment' && new Date(l.timestamp) > lastClosure).forEach(l => {
-          entries.push({ ts: l.timestamp, name: `تحصيل مديونية: ${c.name}`, dept: 'مديونية', in: l.amount || 0, out: 0, processedBy: l.user });
+        const isDebt = l.paymentType === 'debt';
+        entries.push({ 
+          ts: l.timestamp, 
+          name: `صالة: ${l.name}${isDebt ? ' (آجل 🤝)' : ''}`, 
+          dept: 'صالة', 
+          in: l.total || 0, 
+          out: 0, 
+          processedBy: l.processedBy,
+          isDebt
         });
       });
 
+      // 3. Customer Payments (Deduplicated across active and archived customers to prevent double-counting)
+      const seenPaymentKeys = new Set();
+      
+      const processCustomerLedger = (c) => {
+        (c.ledger || []).forEach(l => {
+          if (l.type === 'payment') {
+            const paymentKey = l.id || l.timestamp;
+            if (paymentKey && !seenPaymentKeys.has(paymentKey)) {
+              seenPaymentKeys.add(paymentKey);
+              if (new Date(l.timestamp) > lastClosure) {
+                entries.push({ 
+                  ts: l.timestamp, 
+                  name: `تحصيل مديونية: ${c.name}`, 
+                  dept: 'مديونية', 
+                  in: l.amount || 0, 
+                  out: 0, 
+                  processedBy: l.user || 'System' 
+                });
+              }
+            }
+          }
+        });
+      };
+      
+      (state.customers || []).forEach(processCustomerLedger);
+      (state.archivedCustomers || []).forEach(processCustomerLedger);
+
       // 4. Expenses
       state.archivedExpenses.filter(e => new Date(e.timestamp) > lastClosure).forEach(e => {
-        entries.push({ ts: e.timestamp, name: e.reason, dept: 'مصروفات', in: 0, out: e.amount || 0, processedBy: e.user });
+        entries.push({ 
+          ts: e.timestamp, 
+          name: e.reason || `${e.category}${e.note ? ' - ' + e.note : ''}`, 
+          dept: 'مصروفات', 
+          in: 0, 
+          out: e.amount || 0, 
+          processedBy: e.user || e.processedBy || e.archivedBy || 'System' 
+        });
       });
 
-      // 5. Salaries
-      state.archivedSalaries.filter(s => new Date(s.timestamp) > lastClosure).forEach(s => {
+      // 5. Salaries (Exclude adjustments as they don't affect cash drawer)
+      state.archivedSalaries.filter(s => new Date(s.timestamp) > lastClosure && !s.isAdjustment).forEach(s => {
         entries.push({ ts: s.timestamp, name: `موظف: ${s.username} (${s.note || ''})`, dept: 'موظف', in: 0, out: s.amount || 0, processedBy: s.processedBy || s.username });
       });
 
@@ -100,17 +148,44 @@ export const useAppStore = defineStore('app', {
     getShiftTotals: (state) => () => {
       const data = state.getShiftDetailedData();
       let psRevenue = 0, loungeRevenue = 0, customerCollections = 0, expenseSum = 0, salarySum = 0;
+      let psDebt = 0, loungeDebt = 0;
 
       data.forEach(e => {
-        if (e.dept === 'أجهزة') psRevenue += e.in;
-        else if (e.dept === 'صالة') loungeRevenue += e.in;
-        else if (e.dept === 'مديونية') customerCollections += e.in;
-        else if (e.dept === 'مصروفات') expenseSum += e.out;
-        else if (e.dept === 'موظف') salarySum += e.out;
+        if (e.dept === 'أجهزة') {
+          if (e.isDebt) psDebt += e.in;
+          else psRevenue += e.in;
+        }
+        else if (e.dept === 'صالة') {
+          if (e.isDebt) loungeDebt += e.in;
+          else loungeRevenue += e.in;
+        }
+        else if (e.dept === 'مديونية') {
+          customerCollections += e.in;
+        }
+        else if (e.dept === 'مصروفات') {
+          expenseSum += e.out;
+        }
+        else if (e.dept === 'موظف') {
+          salarySum += e.out;
+        }
       });
 
-      const netProfit = (psRevenue + loungeRevenue + customerCollections) - expenseSum;
-      return { psRevenue, loungeRevenue, customerCollections, expenseSum, salarySum, netProfit };
+      // Expected Cash in Drawer = Cash from Devices + Cash from Lounge + Collected Debt - Expenses
+      // To prevent double-counting, expectedCash counts only the actual cash transactions!
+      const expectedCash = (psRevenue + loungeRevenue + customerCollections) - expenseSum;
+
+      return { 
+        psRevenue: psRevenue + psDebt, // backward compatibility
+        loungeRevenue: loungeRevenue + loungeDebt, // backward compatibility
+        customerCollections, 
+        expenseSum, 
+        salarySum, 
+        netProfit: expectedCash, // Bind netProfit to expectedCash for backward compatibility so the closed shift receipt displays the correct expected cash in the drawer!
+        expectedCash,
+        psDebt,
+        loungeDebt,
+        totalSales: psRevenue + psDebt + loungeRevenue + loungeDebt
+      };
     }
   },
 
@@ -127,6 +202,9 @@ export const useAppStore = defineStore('app', {
         if (this.machineId) {
           await this.checkSubscription();
           this.startSubscriptionPolling();
+          if (this.multiBranchActive) {
+            await this.fetchMultiBranchData();
+          }
         }
 
         if (!this.users || Object.keys(this.users).length === 0 || !this.users['admin']) {
@@ -394,6 +472,10 @@ export const useAppStore = defineStore('app', {
       const totals = this.getShiftTotals();
       this.lastJournalClosure = new Date().toISOString();
       this.addActivity('تقفيل اليومية', `تم تقفيل اليومية بنجاح. صافي الربح: ${totals.netProfit} ج`);
+      
+      // Automatically clear and reset current active expenses
+      this.expenses = [];
+      
       this.saveToDatabase();
     },
 
@@ -573,6 +655,28 @@ export const useAppStore = defineStore('app', {
         this.checkSubscription();
       }, 60000);
 
+    },
+
+    setMultiBranchActive(active) {
+      this.multiBranchActive = active;
+      localStorage.setItem('classico_multi_branch_active', active ? 'true' : 'false');
+      if (active) {
+        this.fetchMultiBranchData();
+      } else {
+        this.multiBranchData = [];
+      }
+    },
+
+    async fetchMultiBranchData() {
+      if (!this.multiBranchActive || !this.subscriptionData || this.subscriptionData.max_devices <= 1) return;
+      try {
+        const res = await axios.get(`${API_BASE}/admin/multi-branch-data`);
+        if (res.data && res.data.success) {
+          this.multiBranchData = res.data.branches || [];
+        }
+      } catch (err) {
+        console.warn("Failed to fetch multi-branch data:", err.message);
+      }
     },
 
     // --- Missing Methods for SettingsLogic.js ---

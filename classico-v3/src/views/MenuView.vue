@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-wrapper">
-    <main class="main-area glass-panel" style="width: 100%;">
+    <main class="main-area glass-panel page-watermark" style="width: 100%;">
       <!-- Premium Header -->
       <div class="section-header-premium">
         <h2 class="premium-title-main">📋 قائمة الأسعار والخدمات</h2>

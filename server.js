@@ -253,13 +253,32 @@ function ensureDirectory(filePath) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
+// Helper to get owner machine ID for a given machine ID
+async function getOwnerMachineId(mid) {
+    try {
+        // 1. Check if directly in subscriptions (i.e. this machine is the owner)
+        const subResults = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${mid}&status=eq.active&select=*`);
+        if (subResults && subResults.length > 0) {
+            return mid; // Owner
+        }
+        // 2. Otherwise, check if activated as a sub-device
+        const keyResults = await SupabaseService.request('GET', `/rest/v1/subscription_keys?used_by=eq.${mid}&status=eq.used&select=owner_machine_id`);
+        if (keyResults && keyResults.length > 0) {
+            return keyResults[0].owner_machine_id;
+        }
+    } catch (e) {
+        console.error("[getOwnerMachineId] Error:", e.message);
+    }
+    return null;
+}
+
 // 3. Core Sync API
 app.get('/api/data', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
         
         const localPath = getDataPath();
-        const foundExisting = fs.existsSync(localPath);
+        let foundExisting = fs.existsSync(localPath);
         if (foundExisting) console.log(`[Server] (OK) Database found at: ${localPath}`);
 
         // --- AUTO-MIGRATION ---
@@ -314,6 +333,25 @@ app.get('/api/data', async (req, res) => {
             }
         }
 
+        // --- UNIFIED USER/STAFF SYNC (Shared Accounts) ---
+        try {
+            const ownerMid = await getOwnerMachineId(mid);
+            if (ownerMid) {
+                const sharedUsersRes = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.shared_users_${ownerMid}&select=data`);
+                if (sharedUsersRes && sharedUsersRes.length > 0 && sharedUsersRes[0].data) {
+                    const sharedUsers = sharedUsersRes[0].data.classico_users;
+                    if (sharedUsers && Object.keys(sharedUsers).length > 0) {
+                        data.classico_users = sharedUsers;
+                        // Cache it locally for offline resilience
+                        fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+                        console.log(`[Users Sync] Centralized users updated successfully from shared_users_${ownerMid}`);
+                    }
+                }
+            }
+        } catch (uErr) {
+            console.warn("[Users Sync] Failed to fetch shared users list:", uErr.message);
+        }
+
         res.json(data);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -340,6 +378,29 @@ app.post('/api/save', async (req, res) => {
         // 3. Perform Cloud Sync in the background (Non-blocking)
         (async () => {
             try {
+                // Sync shared users list first (Centralized Employee accounts)
+                try {
+                    const ownerMid = await getOwnerMachineId(mid);
+                    if (ownerMid && data.classico_users) {
+                        const sharedUsersRes = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.shared_users_${ownerMid}&select=machine_id`);
+                        if (sharedUsersRes && sharedUsersRes.length > 0) {
+                            await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.shared_users_${ownerMid}`, {
+                                data: { classico_users: data.classico_users },
+                                updated_at: new Date().toISOString()
+                            });
+                        } else {
+                            await SupabaseService.request('POST', '/rest/v1/cloud_backups', {
+                                machine_id: `shared_users_${ownerMid}`,
+                                data: { classico_users: data.classico_users },
+                                updated_at: new Date().toISOString()
+                            });
+                        }
+                        console.log(`[Users Sync] Centralized users saved successfully under shared_users_${ownerMid}`);
+                    }
+                } catch (uErr) {
+                    console.error("[Users Sync] Failed to sync users to cloud:", uErr.message);
+                }
+
                 // Safety check: Don't overwrite cloud data with empty local data unless it's a deliberate reset
                 const isDataEmpty = !data || !data.classico_menu || data.classico_menu.length === 0;
                 const isDeliberateReset = data && data.is_reset === true;
@@ -576,10 +637,122 @@ app.get('/api/system/subscription-history', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase().trim();
         console.log(`[History] Fetching for ${mid}`);
-        // Optimization: Filter by machine_id in the database query
-        const logs = await SupabaseService.request('GET', `/rest/v1/subscription_logs?machine_id=eq.${mid}&select=*&limit=50&order=created_at.desc`);
-        res.json(logs || []);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+        try {
+            const logs = await SupabaseService.request('GET', `/rest/v1/subscription_logs?machine_id=eq.${mid}&select=*&limit=50&order=created_at.desc`);
+            res.json(logs || []);
+        } catch (dbErr) {
+            console.error(`[Subscription History] Supabase query failed for ${mid}:`, dbErr);
+            // Graceful fallback to avoid throwing 500 errors in browser console
+            res.json([]);
+        }
+    } catch (e) { 
+        console.error("[Subscription History] Global error:", e);
+        res.json([]); 
+    }
+});
+
+app.get('/api/admin/multi-branch-data', async (req, res) => {
+    try {
+        const mid = (await getMid()).toUpperCase().trim();
+        const ownerMid = await getOwnerMachineId(mid);
+        if (!ownerMid) {
+            return res.status(400).json({ error: "Device is not part of an active multi-device subscription" });
+        }
+
+        // 1. Resolve all linked machines
+        // Owner subscription details
+        const subResults = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${ownerMid}&status=eq.active&select=*`);
+        if (!subResults || subResults.length === 0) {
+            return res.status(400).json({ error: "Subscription is not active" });
+        }
+        const sub = subResults[0];
+
+        // Fetch sub-devices keys
+        const keys = await SupabaseService.request('GET', `/rest/v1/subscription_keys?owner_machine_id=eq.${ownerMid}&status=eq.used&select=*`);
+
+        // Compile list of branch nodes to load
+        // Node structure: { machine_id, name }
+        const branchNodes = [];
+        const maxDevicesAllowed = sub.max_devices || 1;
+
+        // Add owner node (always primary/main)
+        branchNodes.push({ machine_id: ownerMid, name: "الفرع الرئيسي" });
+
+        // Add sub-devices (Only up to the allowed subscription limit)
+        if (keys && keys.length > 0) {
+            keys.forEach(k => {
+                if (k.used_by && branchNodes.length < maxDevicesAllowed) {
+                    branchNodes.push({
+                        machine_id: k.used_by.toUpperCase().trim(),
+                        name: k.device_name || "جهاز فرعي"
+                    });
+                }
+            });
+        }
+
+        // 2. Fetch the backup data for each node in parallel
+        const branchesData = [];
+        await Promise.all(branchNodes.map(async (node) => {
+            try {
+                // If it is the current machine, we can load local database to guarantee real-time accuracy!
+                let dbData = null;
+                if (node.machine_id === mid) {
+                    const localPath = getDataPath();
+                    if (fs.existsSync(localPath)) {
+                        dbData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+                    }
+                }
+
+                // If not current machine or local read failed, load from Supabase backup
+                if (!dbData) {
+                    const backupRes = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${node.machine_id}&select=data`);
+                    if (backupRes && backupRes.length > 0 && backupRes[0].data) {
+                        dbData = backupRes[0].data;
+                    }
+                }
+
+                // Resolve premium naming for branches (always compile node data, even if backup dbData is null/not yet synced)
+                let resolvedName = node.name;
+                if (dbData) {
+                    if (node.machine_id === ownerMid) {
+                        const customAppName = dbData.classico_app_settings?.appName || 'Classico';
+                        resolvedName = `${customAppName} (الفرع الرئيسي)`;
+                    } else {
+                        resolvedName = node.name || dbData.classico_app_settings?.appName || "جهاز فرعي";
+                    }
+                } else {
+                    if (node.machine_id === ownerMid) {
+                        resolvedName = `Classico (الفرع الرئيسي)`;
+                    } else {
+                        resolvedName = node.name || "جهاز فرعي";
+                    }
+                }
+
+                branchesData.push({
+                    machine_id: node.machine_id,
+                    name: resolvedName,
+                    history: (dbData && dbData.classico_history) || [],
+                    loungeHistory: (dbData && dbData.classico_lounge_history) || [],
+                    archivedExpenses: (dbData && dbData.classico_archived_expenses) || [],
+                    archivedSalaries: (dbData && dbData.classico_archived_salaries) || [],
+                    users: (dbData && dbData.classico_users) || {},
+                    appSettings: (dbData && dbData.classico_app_settings) || {},
+                    activityLog: (dbData && dbData.classico_activity_log) || []
+                });
+            } catch (err) {
+                console.error(`Failed to load backup data for branch ${node.name} (${node.machine_id}):`, err.message);
+            }
+        }));
+
+        res.json({
+            success: true,
+            max_devices: sub.max_devices || 1,
+            branches: branchesData
+        });
+    } catch (e) {
+        console.error("[Multi-Branch API] Global error:", e);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.get('/api/logo', (req, res) => {
@@ -595,10 +768,18 @@ app.get('/portal', (req, res) => { res.sendFile(path.join(__dirname, 'OwnerPorta
 app.get('/api/system/cloud-backup-info', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase().trim();
-        const results = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=updated_at`);
-        if (results && results.length > 0) res.json({ updated_at: results[0].updated_at });
-        else res.json(null);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+        try {
+            const results = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=updated_at`);
+            if (results && results.length > 0) res.json({ updated_at: results[0].updated_at });
+            else res.json(null);
+        } catch (dbErr) {
+            console.error(`[Cloud Backup Info] Supabase query failed for ${mid}:`, dbErr);
+            res.json(null);
+        }
+    } catch (e) { 
+        console.error("[Cloud Backup Info] Global error:", e);
+        res.json(null); 
+    }
 });
 
 app.get('/api/system/cloud-restore', async (req, res) => {

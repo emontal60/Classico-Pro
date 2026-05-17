@@ -8,6 +8,54 @@ export function useSettingsLogic() {
   const ui = useUIStore();
   const isAdmin = computed(() => store.session?.role === 'manager' || store.session?.role === 'admin');
 
+  // Base Multi-Branch Data Resolvers
+  const activeBranchesList = computed(() => {
+    if (!store.multiBranchActive || !store.multiBranchData || store.multiBranchData.length === 0) {
+      return [];
+    }
+    return store.multiBranchData;
+  });
+
+  // Helper to filter and aggregate lists based on toggle & branch selection
+  function resolveMultiBranchList(localList, key) {
+    if (!store.multiBranchActive || activeBranchesList.value.length === 0) {
+      return localList || [];
+    }
+    if (store.activeBranchFilter === 'local') {
+      return localList || [];
+    }
+    if (store.activeBranchFilter === 'all') {
+      let list = [];
+      activeBranchesList.value.forEach(b => {
+        const items = b[key] || [];
+        items.forEach(item => {
+          list.push({ ...item, branchName: b.name });
+        });
+      });
+      return list;
+    }
+    const targetBranch = activeBranchesList.value.find(b => b.machine_id === store.activeBranchFilter);
+    if (targetBranch) {
+      const items = targetBranch[key] || [];
+      return items.map(item => ({ ...item, branchName: targetBranch.name }));
+    }
+    return localList || [];
+  }
+
+  // Dynamically mapped databases
+  const historyList = computed(() => resolveMultiBranchList(store.history, 'history'));
+  const loungeHistoryList = computed(() => resolveMultiBranchList(store.loungeHistory, 'loungeHistory'));
+  const archivedCustomersList = computed(() => resolveMultiBranchList(store.archivedCustomers, 'archivedCustomers'));
+  const archivedExpensesList = computed(() => resolveMultiBranchList(store.archivedExpenses, 'archivedExpenses'));
+  const archivedSalariesList = computed(() => resolveMultiBranchList(store.archivedSalaries, 'archivedSalaries'));
+  const customersList = computed(() => resolveMultiBranchList(store.customers, 'customers'));
+  const activityLogList = computed(() => resolveMultiBranchList(store.activityLog, 'activityLog'));
+
+  // Safety Gate: Read-only mode active when viewing/aggregating remote branches
+  const isReadOnlyMode = computed(() => {
+    return store.multiBranchActive && store.activeBranchFilter !== 'local';
+  });
+
   // Persist Active Tab
   const savedTab = localStorage.getItem('classico_settings_tab');
   const activeTab = ref(savedTab || 'journal');
@@ -39,7 +87,8 @@ export function useSettingsLogic() {
     incomeVsExpenses: [],
     ratioData: { ps: 0, lounge: 0 },
     staffPerformance: [],
-    debtAnalysis: { topDebtors: [], totalCollected: 0, totalRemaining: 0 }
+    debtAnalysis: { topDebtors: [], totalCollected: 0, totalRemaining: 0 },
+    branchComparison: []
   });
 
   const updateAnalytics = () => {
@@ -80,36 +129,62 @@ export function useSettingsLogic() {
       staffMap[username] = (staffMap[username] || 0) + (amt || 0);
     };
 
-    // 1. Process History
-    (store.history || []).filter(h => isMatch(h.timestamp)).forEach(h => {
-      totalRev += (h.totalCost || 0);
+    // 1. Process History (Accrual mapping, Cash-basis counting to prevent double counting)
+    (historyList.value || []).filter(h => isMatch(h.timestamp)).forEach(h => {
+      const isCash = h.paymentType !== 'debt';
       psRev += (h.timeCost || h.totalCost || 0);
       if (h.ordersCost) loungeRev += h.ordersCost;
-      logDaily(h.timestamp, h.totalCost, 'rev');
-      logStaff(h.processedBy, h.totalCost);
+      
+      if (isCash) {
+        totalRev += (h.totalCost || 0);
+        logDaily(h.timestamp, h.totalCost, 'rev');
+        logStaff(h.processedBy, h.totalCost);
+      }
     });
 
-    // 2. Process Lounge
-    (store.loungeHistory || []).filter(l => isMatch(l.timestamp)).forEach(l => {
-      totalRev += (l.total || 0);
+    // 2. Process Lounge (Accrual mapping, Cash-basis counting to prevent double counting)
+    (loungeHistoryList.value || []).filter(l => isMatch(l.timestamp)).forEach(l => {
+      const isCash = l.paymentType !== 'debt';
       loungeRev += (l.total || 0);
-      logDaily(l.timestamp, l.total, 'rev');
-      logStaff(l.processedBy, l.total);
+      
+      if (isCash) {
+        totalRev += (l.total || 0);
+        logDaily(l.timestamp, l.total, 'rev');
+        logStaff(l.processedBy, l.total);
+      }
     });
 
-    // 3. Process Customers Debt Collection
-    (store.archivedCustomers || []).filter(c => isMatch(c.archivedAt)).forEach(c => {
-      totalRev += (c.settledAmount || 0);
-      logDaily(c.archivedAt, c.settledAmount, 'rev');
-      logStaff(c.archivedBy, c.settledAmount);
-    });
+    // 3. Process Customers Debt Collection (Deduplicated payments across both active and archived customers)
+    const seenPaymentKeys = new Set();
+    
+    const sumDashboardCustomerLedger = (c) => {
+      (c.ledger || []).forEach(l => {
+        if (l.type === 'payment') {
+          const paymentKey = l.id || l.timestamp;
+          if (paymentKey && !seenPaymentKeys.has(paymentKey)) {
+            seenPaymentKeys.add(paymentKey);
+            
+            const timestamp = l.timestamp || c.archivedAt || new Date().toISOString();
+            if (isMatch(timestamp)) {
+              const amount = l.amount || 0;
+              totalRev += amount;
+              logDaily(timestamp, amount, 'rev');
+              logStaff(l.user || c.archivedBy || 'System', amount);
+            }
+          }
+        }
+      });
+    };
+    
+    (customersList.value || []).forEach(sumDashboardCustomerLedger);
+    (archivedCustomersList.value || []).forEach(sumDashboardCustomerLedger);
 
     // 4. Process Expenses & Salaries
-    (store.archivedExpenses || []).filter(e => isMatch(e.timestamp || e.archivedAt)).forEach(e => {
+    (archivedExpensesList.value || []).filter(e => isMatch(e.timestamp || e.archivedAt)).forEach(e => {
       totalExp += (e.amount || 0);
       logDaily(e.timestamp || e.archivedAt, e.amount, 'exp');
     });
-    (store.archivedSalaries || []).filter(s => isMatch(s.timestamp)).forEach(s => {
+    (archivedSalariesList.value || []).filter(s => isMatch(s.timestamp)).forEach(s => {
       totalExp += (s.amount || 0);
       logDaily(s.timestamp, s.amount, 'exp');
     });
@@ -132,7 +207,7 @@ export function useSettingsLogic() {
     // Update Debt Analysis
     let activeDebt = 0;
     const debtors = [];
-    (store.customers || []).forEach(c => {
+    (customersList.value || []).forEach(c => {
       const balance = c.ledger.reduce((sum, l) => l.type === 'debt' ? sum + l.amount : sum - l.amount, 0);
       if (balance > 0) {
         activeDebt += balance;
@@ -141,10 +216,10 @@ export function useSettingsLogic() {
     });
     
     let collectedDebt = 0;
-    (store.customers || []).forEach(c => {
+    (customersList.value || []).forEach(c => {
       collectedDebt += c.ledger.filter(l => l.type === 'payment').reduce((sum, l) => sum + l.amount, 0);
     });
-    (store.archivedCustomers || []).forEach(c => {
+    (archivedCustomersList.value || []).forEach(c => {
       collectedDebt += (c.settledAmount || 0);
     });
 
@@ -156,7 +231,7 @@ export function useSettingsLogic() {
 
     // [KEEP] Old Busy Hours
     const hours = Array(24).fill(0);
-    (store.history || []).filter(h => isMatch(h.timestamp)).forEach(h => {
+    (historyList.value || []).filter(h => isMatch(h.timestamp)).forEach(h => {
       const date = new Date(h.timestamp);
       if (!isNaN(date)) hours[date.getHours()]++;
     });
@@ -165,8 +240,8 @@ export function useSettingsLogic() {
     // [KEEP] Old Top Selling Items
     const itemsMap = {};
     const allOrders = [
-      ...(store.history || []).filter(h => isMatch(h.timestamp)).flatMap(h => h.orders || []),
-      ...(store.loungeHistory || []).filter(l => isMatch(l.timestamp)).flatMap(l => l.orders || [])
+      ...(historyList.value || []).filter(h => isMatch(h.timestamp)).flatMap(h => h.orders || []),
+      ...(loungeHistoryList.value || []).filter(l => isMatch(l.timestamp)).flatMap(l => l.orders || [])
     ];
     allOrders.forEach(o => { itemsMap[o.name] = (itemsMap[o.name] || 0) + Number(o.qty || 1); });
     analyticsData.topItems = Object.entries(itemsMap)
@@ -186,16 +261,71 @@ export function useSettingsLogic() {
       else monthlyMap[key].expenses += (amount || 0);
     };
 
-    (store.history || []).forEach(h => processMonthly(h.timestamp, h.totalCost, 'rev'));
-    (store.loungeHistory || []).forEach(l => processMonthly(l.timestamp, l.total, 'rev'));
-    (store.archivedCustomers || []).forEach(c => processMonthly(c.archivedAt, c.settledAmount || 0, 'rev'));
-    (store.archivedExpenses || []).forEach(e => processMonthly(e.timestamp || e.archivedAt, e.amount, 'exp'));
-    (store.archivedSalaries || []).forEach(s => processMonthly(s.timestamp, s.amount, 'exp'));
+    (historyList.value || []).forEach(h => processMonthly(h.timestamp, h.totalCost, 'rev'));
+    (loungeHistoryList.value || []).forEach(l => processMonthly(l.timestamp, l.total, 'rev'));
+    (archivedCustomersList.value || []).forEach(c => processMonthly(c.archivedAt, c.settledAmount || 0, 'rev'));
+    (archivedExpensesList.value || []).forEach(e => processMonthly(e.timestamp || e.archivedAt, e.amount, 'exp'));
+    (archivedSalariesList.value || []).forEach(s => processMonthly(s.timestamp, s.amount, 'exp'));
 
     analyticsData.monthlyProfits = Object.entries(monthlyMap)
       .map(([month, data]) => ({ month, profit: data.revenue - data.expenses }))
       .sort((a, b) => a.month.localeCompare(b.month))
       .slice(-12);
+
+    // 5. Compile Branch Comparison (Sales & Profits) if active branch filter is "all"
+    const compData = [];
+    if (store.multiBranchActive && store.activeBranchFilter === 'all' && activeBranchesList.value.length > 0) {
+      activeBranchesList.value.forEach(b => {
+        let rev = 0;
+        let exp = 0;
+
+        // Process History
+        (b.history || []).filter(h => isMatch(h.timestamp)).forEach(h => {
+          const isCash = h.paymentType !== 'debt';
+          if (isCash) rev += (h.totalCost || 0);
+        });
+
+        // Process Lounge
+        (b.loungeHistory || []).filter(l => isMatch(l.timestamp)).forEach(l => {
+          const isCash = l.paymentType !== 'debt';
+          if (isCash) rev += (l.total || 0);
+        });
+
+        // Process Customers Debt Payments
+        const seenKeys = new Set();
+        const sumDebt = (c) => {
+          (c.ledger || []).forEach(l => {
+            if (l.type === 'payment') {
+              const key = l.id || l.timestamp;
+              if (key && !seenKeys.has(key)) {
+                seenKeys.add(key);
+                const ts = l.timestamp || c.archivedAt || new Date().toISOString();
+                if (isMatch(ts)) {
+                  rev += (l.amount || 0);
+                }
+              }
+            }
+          });
+        };
+        (b.customers || []).forEach(sumDebt);
+        (b.archivedCustomers || []).forEach(sumDebt);
+
+        // Process Expenses & Salaries
+        (b.archivedExpenses || []).filter(e => isMatch(e.timestamp || e.archivedAt)).forEach(e => {
+          exp += (e.amount || 0);
+        });
+        (b.archivedSalaries || []).filter(s => isMatch(s.timestamp)).forEach(s => {
+          exp += (s.amount || 0);
+        });
+
+        compData.push({
+          name: b.name || 'فرع فرعي',
+          revenue: rev,
+          profit: rev - exp
+        });
+      });
+    }
+    analyticsData.branchComparison = compData;
   };
 
   // Cloud Backup & Restore State
@@ -236,23 +366,142 @@ export function useSettingsLogic() {
     }
   ];
 
-  const shiftStats = computed(() => store.getShiftTotals());
+  const shiftStats = computed(() => {
+    const lastClosure = new Date(store.lastJournalClosure);
+    
+    const psRevenue = historyList.value.filter(h => new Date(h.timestamp) > lastClosure).reduce((sum, h) => sum + h.totalCost, 0);
+    const loungeRevenue = loungeHistoryList.value.filter(l => new Date(l.timestamp) > lastClosure).reduce((sum, l) => sum + l.total, 0);
+    
+    const expenseSum = archivedExpensesList.value.filter(e => new Date(e.timestamp || e.archivedAt) > lastClosure).reduce((sum, e) => sum + e.amount, 0);
+    
+    // Customer Debt Collections
+    const seenPaymentKeys = new Set();
+    let customerCollections = 0;
+    const processCustomerLedger = (c) => {
+      (c.ledger || []).forEach(l => {
+        if (l.type === 'payment') {
+          const paymentKey = l.id || l.timestamp;
+          if (paymentKey && !seenPaymentKeys.has(paymentKey)) {
+            seenPaymentKeys.add(paymentKey);
+            if (new Date(l.timestamp) > lastClosure) {
+              customerCollections += l.amount;
+            }
+          }
+        }
+      });
+    };
+    customersList.value.forEach(processCustomerLedger);
+    archivedCustomersList.value.forEach(processCustomerLedger);
+    
+    const netProfit = psRevenue + loungeRevenue + customerCollections - expenseSum;
+    
+    return { psRevenue, loungeRevenue, expenseSum, customerCollections, netProfit };
+  });
+
+  const getShiftDetailedData = () => {
+    const lastClosure = new Date(store.lastJournalClosure);
+    const entries = [];
+
+    // 1. Devices History
+    historyList.value.filter(h => new Date(h.timestamp) > lastClosure).forEach(h => {
+      const isDebt = h.paymentType === 'debt';
+      entries.push({ 
+        ts: h.timestamp, 
+        name: `جهاز: ${h.name || h.deviceName}${isDebt ? ' (آجل 🤝)' : ''}`, 
+        dept: 'أجهزة', 
+        in: h.timeCost || 0, 
+        out: 0, 
+        processedBy: h.processedBy,
+        isDebt,
+        branchName: h.branchName
+      });
+    });
+
+    // 2. Lounge History
+    loungeHistoryList.value.filter(l => new Date(l.timestamp) > lastClosure).forEach(l => {
+      const isDebt = l.paymentType === 'debt';
+      entries.push({ 
+        ts: l.timestamp, 
+        name: `صالة: ${l.name}${isDebt ? ' (آجل 🤝)' : ''}`, 
+        dept: 'صالة', 
+        in: l.total || 0, 
+        out: 0, 
+        processedBy: l.processedBy,
+        isDebt,
+        branchName: l.branchName
+      });
+    });
+
+    // 3. Customer Payments
+    const seenPaymentKeys = new Set();
+    const processCustomerLedger = (c) => {
+      (c.ledger || []).forEach(l => {
+        if (l.type === 'payment') {
+          const paymentKey = l.id || l.timestamp;
+          if (paymentKey && !seenPaymentKeys.has(paymentKey)) {
+            seenPaymentKeys.add(paymentKey);
+            if (new Date(l.timestamp) > lastClosure) {
+              entries.push({
+                ts: l.timestamp,
+                name: `سداد مديونية: ${c.name}`,
+                dept: 'مديونية',
+                in: l.amount,
+                out: 0,
+                processedBy: l.user || c.archivedBy || 'System',
+                branchName: c.branchName
+              });
+            }
+          }
+        }
+      });
+    };
+    customersList.value.forEach(processCustomerLedger);
+    archivedCustomersList.value.forEach(processCustomerLedger);
+
+    // 4. Expenses
+    archivedExpensesList.value.filter(e => new Date(e.timestamp || e.archivedAt) > lastClosure).forEach(e => {
+      entries.push({
+        ts: e.timestamp || e.archivedAt,
+        name: `مصروف: ${e.category}${e.note ? ' - ' + e.note : ''}`,
+        dept: 'مصروفات',
+        in: 0,
+        out: e.amount,
+        processedBy: e.processedBy || 'System',
+        branchName: e.branchName
+      });
+    });
+
+    // 5. Salaries
+    archivedSalariesList.value.filter(s => new Date(s.timestamp) > lastClosure && !s.isAdjustment).forEach(s => {
+      entries.push({
+        ts: s.timestamp,
+        name: `مرتب/مسحوبات: ${s.username}${s.note ? ' - ' + s.note : ''}`,
+        dept: 'مرتبات',
+        in: 0,
+        out: s.amount,
+        processedBy: s.processedBy || 'System',
+        branchName: s.branchName
+      });
+    });
+
+    return entries.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  };
 
   const totalShiftSalaries = computed(() => {
     const lastClosure = new Date(store.lastJournalClosure);
-    return store.archivedSalaries
+    return archivedSalariesList.value
       .filter(s => new Date(s.timestamp) > lastClosure && !s.isAdjustment)
       .reduce((sum, s) => sum + s.amount, 0);
   });
 
   const totalHistoricalIncome = computed(() => {
-    const ps = store.history.reduce((sum, h) => sum + h.totalCost, 0);
-    const lounge = store.loungeHistory.reduce((sum, l) => sum + l.total, 0);
+    const ps = historyList.value.reduce((sum, h) => sum + h.totalCost, 0);
+    const lounge = loungeHistoryList.value.reduce((sum, l) => sum + l.total, 0);
     return ps + lounge;
   });
 
   const totalHistoricalExpenses = computed(() => {
-    return store.archivedExpenses.reduce((sum, e) => sum + e.amount, 0);
+    return archivedExpensesList.value.reduce((sum, e) => sum + e.amount, 0);
   });
 
   // --- Reports Logic ---
@@ -266,7 +515,7 @@ export function useSettingsLogic() {
 
   const monitoringGroups = computed(() => {
     const groups = new Set();
-    (store.history || []).forEach(h => {
+    (historyList.value || []).forEach(h => {
       if (h.dept) groups.add(h.dept);
     });
     return Array.from(groups);
@@ -285,36 +534,68 @@ export function useSettingsLogic() {
       return true;
     };
 
-    const psRevenue = (store.history || [])
+    const psHistory = (historyList.value || [])
       .filter(h => {
         const matchesMain = isWithin(h.timestamp) && (!reportFilter.dept || reportFilter.dept === 'أجهزة');
         const matchesSub = !reportFilter.subDept || h.dept === reportFilter.subDept;
         const matchesUser = !reportFilter.user || h.processedBy === reportFilter.user;
         return matchesMain && matchesSub && matchesUser;
+      });
+    const psRevenue = psHistory.reduce((sum, h) => sum + (h.totalCost || 0), 0);
+    const psCash = psHistory.filter(h => h.paymentType !== 'debt').reduce((sum, h) => sum + (h.totalCost || 0), 0);
+    const psDebt = psRevenue - psCash;
+
+    const loungeHistoryFiltered = (loungeHistoryList.value || [])
+      .filter(l => isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'صالة') && (!reportFilter.user || l.createdBy === reportFilter.user));
+    const loungeRevenue = loungeHistoryFiltered.reduce((sum, l) => sum + (l.total || 0), 0);
+    const loungeCash = loungeHistoryFiltered.filter(l => l.paymentType !== 'debt').reduce((sum, l) => sum + (l.total || 0), 0);
+    const loungeDebt = loungeRevenue - loungeCash;
+
+    const seenPaymentKeys = new Set();
+    let collectedDebt = 0;
+    const sumCustomerLedger = (c) => {
+      (c.ledger || []).forEach(l => {
+        if (l.type === 'payment') {
+          const paymentKey = l.id || l.timestamp;
+          if (paymentKey && !seenPaymentKeys.has(paymentKey)) {
+            seenPaymentKeys.add(paymentKey);
+            if (isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مديونية') && (!reportFilter.user || l.user === reportFilter.user)) {
+              collectedDebt += (l.amount || 0);
+            }
+          }
+        }
+      });
+    };
+    (customersList.value || []).forEach(sumCustomerLedger);
+    (archivedCustomersList.value || []).forEach(sumCustomerLedger);
+
+    const expenses = (archivedExpensesList.value || [])
+      .filter(e => {
+        const expUser = e.user || e.processedBy || e.archivedBy;
+        return isWithin(e.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مصروفات') && (!reportFilter.user || expUser === reportFilter.user);
       })
-      .reduce((sum, h) => sum + (h.totalCost || 0), 0);
-
-    const loungeRevenue = (store.loungeHistory || [])
-      .filter(l => isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'صالة') && (!reportFilter.user || l.createdBy === reportFilter.user))
-      .reduce((sum, l) => sum + (l.total || 0), 0);
-
-    const collectedDebt = (store.archivedCustomers || []).reduce((sum, c) => {
-      return sum + (c.ledger || [])
-        .filter(l => l.type === 'payment' && isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مديونية') && (!reportFilter.user || l.user === reportFilter.user))
-        .reduce((acc, l) => acc + (l.amount || 0), 0);
-    }, 0);
-
-    const expenses = (store.archivedExpenses || [])
-      .filter(e => isWithin(e.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مصروفات') && (!reportFilter.user || e.user === reportFilter.user))
       .reduce((sum, e) => sum + (e.amount || 0), 0);
 
-    const salaries = (store.archivedSalaries || [])
+    const salaries = (archivedSalariesList.value || [])
       .filter(s => isWithin(s.timestamp) && (!reportFilter.dept || reportFilter.dept === 'موظف') && (!reportFilter.user || s.username === reportFilter.user))
       .reduce((sum, s) => sum + (s.amount || 0), 0);
 
-    const net = (psRevenue + loungeRevenue + collectedDebt) - (expenses + salaries);
+    // Expected actual Cash balance in Drawer (physical cashflow) = Cash Sales + Collections - Expenses - Salaries
+    const expectedCash = (psCash + loungeCash + collectedDebt) - (expenses + salaries);
 
-    return { psRevenue, loungeRevenue, collectedDebt, expenses, salaries, net };
+    return { 
+      psRevenue, 
+      loungeRevenue, 
+      collectedDebt, 
+      expenses, 
+      salaries, 
+      net: expectedCash, // Bind net to expectedCash to prevent double-counting and display accurate cash reconciliation
+      psCash,
+      psDebt,
+      loungeCash,
+      loungeDebt,
+      expectedCash
+    };
   });
 
   const showDetailedReportTable = ref(false);
@@ -333,7 +614,7 @@ export function useSettingsLogic() {
     };
 
     let rows = [];
-    (store.history || []).forEach(h => {
+    (historyList.value || []).forEach(h => {
       const matchesMain = isWithin(h.timestamp) && (!reportFilter.dept || reportFilter.dept === 'أجهزة');
       const matchesSub = !reportFilter.subDept || h.dept === reportFilter.subDept;
       const matchesUser = !reportFilter.user || h.processedBy === reportFilter.user;
@@ -350,24 +631,35 @@ export function useSettingsLogic() {
         });
       }
     });
-    (store.loungeHistory || []).forEach(l => {
+    (loungeHistoryList.value || []).forEach(l => {
       if (isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'صالة') && (!reportFilter.user || l.processedBy === reportFilter.user)) {
         rows.push({ ts: l.timestamp, name: `صالة: ${l.name}`, dept: 'صالة ☕', type: 'lounge', in: l.total || 0, out: 0, user: l.processedBy });
       }
     });
-    (store.archivedCustomers || []).forEach(c => {
+    const seenRowPaymentKeys = new Set();
+    const collectCustomerPayments = (c) => {
       (c.ledger || []).forEach(l => {
-        if (l.type === 'payment' && isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مديونية') && (!reportFilter.user || l.user === reportFilter.user)) {
-          rows.push({ ts: l.timestamp, name: `تحصيل مديونية: ${c.name}`, dept: 'مديونية 🤝', type: 'debt', in: l.amount || 0, out: 0, user: l.user });
+        if (l.type === 'payment') {
+          const paymentKey = l.id || l.timestamp;
+          if (paymentKey && !seenRowPaymentKeys.has(paymentKey)) {
+            seenRowPaymentKeys.add(paymentKey);
+            if (isWithin(l.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مديونية') && (!reportFilter.user || l.user === reportFilter.user)) {
+              rows.push({ ts: l.timestamp, name: `تحصيل مديونية: ${c.name}`, dept: 'مديونية 🤝', type: 'debt', in: l.amount || 0, out: 0, user: l.user });
+            }
+          }
         }
       });
-    });
-    (store.archivedExpenses || []).forEach(e => {
-      if (isWithin(e.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مصروفات') && (!reportFilter.user || e.user === reportFilter.user)) {
-        rows.push({ ts: e.timestamp, name: e.reason || 'مصروفات', dept: 'مصروف 📉', type: 'expense', in: 0, out: e.amount || 0, user: e.user });
+    };
+    (customersList.value || []).forEach(collectCustomerPayments);
+    (archivedCustomersList.value || []).forEach(collectCustomerPayments);
+    (archivedExpensesList.value || []).forEach(e => {
+      const expUser = e.user || e.processedBy || e.archivedBy || '';
+      const expName = e.reason || (e.category ? `${e.category}${e.note ? ' - ' + e.note : ''}` : '') || 'مصروفات';
+      if (isWithin(e.timestamp) && (!reportFilter.dept || reportFilter.dept === 'مصروفات') && (!reportFilter.user || expUser === reportFilter.user)) {
+        rows.push({ ts: e.timestamp, name: expName, dept: 'مصروف 📉', type: 'expense', in: 0, out: e.amount || 0, user: expUser });
       }
     });
-    (store.archivedSalaries || []).forEach(s => {
+    (archivedSalariesList.value || []).forEach(s => {
       if (isWithin(s.timestamp) && (!reportFilter.dept || reportFilter.dept === 'موظف') && (!reportFilter.user || s.username === reportFilter.user)) {
         rows.push({ ts: s.timestamp, name: `موظف: ${s.username} (${s.note || ''})`, dept: 'موظف 👤', type: 'staff', in: 0, out: s.amount || 0, user: s.username });
       }
@@ -428,7 +720,7 @@ export function useSettingsLogic() {
 
   const selectedStaffTransactions = computed(() => {
     if (!selectedStaffUsername.value) return [];
-    return (store.archivedSalaries || [])
+    return (archivedSalariesList.value || [])
       .filter(t => t.username === selectedStaffUsername.value)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   });
@@ -905,6 +1197,18 @@ export function useSettingsLogic() {
     if (isAdmin.value) {
       runAutoMaintenance();
     }
+    if (store.multiBranchActive) {
+      store.fetchMultiBranchData().then(() => {
+        updateAnalytics();
+      });
+    }
+  });
+
+  watch([() => store.multiBranchActive, () => store.activeBranchFilter], async () => {
+    if (store.multiBranchActive) {
+      await store.fetchMultiBranchData();
+    }
+    updateAnalytics();
   });
 
   const identityForm = reactive({
@@ -960,7 +1264,7 @@ export function useSettingsLogic() {
 
   const filteredActivityLog = computed(() => {
     const query = activitySearchQuery.value.toLowerCase();
-    return (store.activityLog || []).filter(log => 
+    return (activityLogList.value || []).filter(log => 
       log.user.toLowerCase().includes(query) ||
       log.action.toLowerCase().includes(query) ||
       log.details.toLowerCase().includes(query)
@@ -969,9 +1273,11 @@ export function useSettingsLogic() {
 
   return {
     store, isAdmin, activeTab, staffSearch, editingStaffMode, showDetailedJournal, shiftStats,
+    isReadOnlyMode,
     totalShiftSalaries, totalHistoricalIncome, totalHistoricalExpenses, reportFilter, getReportStats,
     showDetailedReportTable, detailedReportRows, applyReportFilter, showAllReports, viewDetailedReport,
     showExportModal, exportToExcel, exportToPDF, selectedStaffUsername, salaryOp, selectedStaffTransactions,
+    getShiftDetailedData,
     selectedStaffTotalWithdrawals, selectedStaffNetRemaining, staffForm, filteredStaff,
     formatCurrency, formatDate, formatTime, editStaff, cancelStaffEdit, saveStaff, handleSalaryOp,
     deleteStaff, deleteTransaction, closeShift, backupData, restoreData, handleFactoryReset,

@@ -135,10 +135,6 @@
 
         <!-- Ledger Table -->
         <div class="table-container" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; position: relative;">
-          <!-- Watermark Logo -->
-          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; width: 300px;">
-            <img src="../assets/images/logo1.png" style="width: 100%; filter: grayscale(1) invert(1);">
-          </div>
 
           <table style="position: relative; z-index: 1;">
             <thead style="background: rgba(30, 41, 59, 0.8);">
@@ -207,6 +203,7 @@
 import { ref, computed, reactive } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useUIStore } from '../stores/uiStore';
+import watermarkLogo from '../assets/images/logoapp.png';
 
 const store = useAppStore();
 const ui = useUIStore();

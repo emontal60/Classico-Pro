@@ -121,6 +121,8 @@ const fetchMyKeys = async () => {
   try {
     const res = await axios.get('http://localhost:3000/api/admin/my-keys');
     myKeys.value = res.data.keys || [];
+    // Keep the global branch select dropdown lists fresh too
+    store.fetchMultiBranchData().catch(err => console.error("Failed to sync global branch data:", err));
   } catch (err) {
     console.error("Failed to fetch keys:", err);
   } finally {
@@ -135,6 +137,8 @@ const saveKeyName = async (key) => {
       device_name: key.device_name
     });
     ui.showToast('تم حفظ اسم الجهاز بنجاح! ✅', 'success');
+    // Update the global multi-branch filters immediately with the new name
+    await store.fetchMultiBranchData();
   } catch (err) {
     ui.showToast('فشل حفظ الاسم', 'error');
   }

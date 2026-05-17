@@ -81,7 +81,7 @@
 
     <!-- Main Area -->
     <main class="main-area glass-panel">
-      <div class="table-container" style="max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color);">
+      <div class="table-container" style="flex: 1; overflow-y: auto; border: 1px solid var(--border-color); margin-bottom: 1rem;">
         <table class="devices-table">
           <thead style="position: sticky; top: 0; z-index: 10; background: var(--bg-panel);">
             <tr>
@@ -111,8 +111,10 @@
           </tbody>
         </table>
       </div>
-      <div class="main-actions">
-        <button v-if="store.canAccess('lounge', 'edit')" @click="createNewInvoice" class="btn primary-btn" style="background: #3b82f6;">+ فاتورة صالة جديدة</button>
+      <div class="main-actions-modern" style="margin-top: auto;">
+        <button v-if="store.canAccess('lounge', 'edit')" @click="createNewInvoice" class="btn secondary-btn" style="background: #3b82f6 !important;">
+          <span class="icon">☕</span> + فاتورة صالة جديدة
+        </button>
       </div>
     </main>
 

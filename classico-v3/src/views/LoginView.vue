@@ -5,7 +5,7 @@
         <span style="font-size: 1.4rem;">↻</span>
       </div>
       
-      <img src="../assets/images/logo1.png" alt="Logo" class="login-logo">
+      <img :src="store.appSettings?.appLogo || defaultLogoUrl" alt="Logo" class="login-logo">
       <h1 class="login-title">Classico Login</h1>
 
       <div class="login-form">
@@ -35,6 +35,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/appStore';
 import { useUIStore } from '../stores/uiStore';
+import defaultLogoUrl from '../assets/images/logo1.png';
 
 const store = useAppStore();
 const ui = useUIStore();

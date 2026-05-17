@@ -86,6 +86,7 @@ CREATE POLICY "Allow new registration" ON subscriptions FOR INSERT WITH CHECK (s
 
 -- Allow server/anon to update status to active
 DROP POLICY IF EXISTS "Allow anonymous updates for pending requests" ON subscriptions;
+DROP POLICY IF EXISTS "Allow server to activate subscriptions" ON subscriptions;
 CREATE POLICY "Allow server to activate subscriptions" ON subscriptions 
 FOR UPDATE USING (true) WITH CHECK (true);
 
@@ -103,6 +104,10 @@ CREATE POLICY "Enable backup management" ON cloud_backups FOR ALL USING (true) W
 CREATE POLICY "Owner backup access" ON cloud_backups FOR ALL TO authenticated
 USING (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com')
 WITH CHECK (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com');
+
+-- 6b. Granular Policies for Subscription Logs
+DROP POLICY IF EXISTS "Enable logs read/write for all" ON subscription_logs;
+CREATE POLICY "Enable logs read/write for all" ON subscription_logs FOR ALL USING (true) WITH CHECK (true);
 
 -- 7. Table for Multi-Device License Keys
 CREATE TABLE IF NOT EXISTS subscription_keys (

@@ -48,11 +48,17 @@
         </div>
       </div>
 
-      <div class="table-container" style="margin-top: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; position: relative; overflow: hidden;">
-        <!-- Watermark Logo -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; width: 300px;">
-          <img src="../assets/images/logo1.png" style="width: 100%; filter: grayscale(1) invert(1);">
-        </div>
+      <!-- Actions Bar (Above table, below search bar) -->
+      <div v-if="store.canAccess('expenses', 'edit') && filteredExpenses.length" 
+           style="display: flex; justify-content: flex-start; padding: 0 0.5rem; margin-top: -1rem; margin-bottom: 0.8rem;">
+        <button @click="clearAllExpenses" 
+                class="btn-clear-all-premium" 
+                title="حذف جميع سجل المصروفات الحالية بالكامل">
+          🗑️ حذف كل سجل المصروفات الحالية
+        </button>
+      </div>
+
+      <div class="table-container" style="background: rgba(0,0,0,0.2); border-radius: 8px; position: relative; overflow: hidden;">
 
         <table style="position: relative; z-index: 1;">
           <thead style="background: rgba(30, 41, 59, 0.8);">
@@ -77,12 +83,17 @@
                   {{ e.category }}
                 </span>
               </td>
-              <td style="max-width: 300px; text-align: center;">{{ e.note || '------' }}</td>
+              <td style="max-width: 150px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative;" class="note-cell" :title="e.note || ''">
+                {{ e.note || '------' }}
+                <div v-if="e.note" class="custom-tooltip">
+                  {{ e.note }}
+                </div>
+              </td>
               <td style="text-align: center; color: #ef4444; font-weight: bold; font-size: 1.1rem;">
                 {{ formatCurrency(e.amount) }} ج
               </td>
               <td style="text-align: center; color: var(--text-muted);">{{ e.processedBy }}</td>
-              <td style="text-align: center;">
+              <td style="text-align: center;" :title="e.note ? 'البيان: ' + e.note : ''">
                 <button v-if="store.canAccess('expenses', 'edit')" @click="deleteExpense(e)" class="btn danger-btn-action">
                   🗑️ حذف
                 </button>
@@ -104,6 +115,7 @@
 import { ref, computed, reactive } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useUIStore } from '../stores/uiStore';
+import watermarkLogo from '../assets/images/logoapp.png';
 
 const store = useAppStore();
 const ui = useUIStore();
@@ -139,7 +151,10 @@ const addExpense = () => {
     category: form.category,
     amount: form.amount,
     note: form.note.trim(),
-    processedBy: store.session.username
+    processedBy: store.session.username,
+    // Add legacy fields for full shift report / settings compatibility
+    reason: `${form.category}${form.note.trim() ? ' - ' + form.note.trim() : ''}`,
+    user: store.session.username
   };
 
   const newExpenses = [...store.expenses];
@@ -165,6 +180,21 @@ const deleteExpense = async (e) => {
     store.deleteExpense(e.id);
     store.deleteFromArchivedExpenses(e.id);
     ui.showToast('تم حذف المصروف بنجاح (من السجل والأرشيف)');
+  }
+};
+
+const clearAllExpenses = async () => {
+  const confirmed = await ui.confirm({
+    title: 'حذف جميع المصروفات الحالية',
+    message: 'هل أنت متأكد من رغبتك في حذف جميع سجل المصروفات الحالية بالكامل؟ سيتم مسحها من السجل ومن الأرشيف أيضاً.',
+    type: 'danger'
+  });
+  if (confirmed) {
+    const ids = store.expenses.map(e => e.id);
+    store.setExpenses([]);
+    const filteredArchived = store.archivedExpenses.filter(e => !ids.includes(e.id));
+    store.setArchivedExpenses(filteredArchived);
+    ui.showToast('تم تصفير وحذف جميع المصروفات الحالية بنجاح 🗑️');
   }
 };
 
@@ -270,5 +300,81 @@ const getCategoryIcon = (cat) => {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
   outline: none;
+}
+
+.btn-clear-all-premium {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #ff4d4d !important;
+  border: 1px solid rgba(239, 68, 68, 0.45) !important;
+  padding: 0.55rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.05);
+}
+.btn-clear-all-premium:hover {
+  background: #ef4444 !important;
+  color: white !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+.btn-clear-all-premium:active {
+  transform: translateY(0);
+}
+
+.note-cell {
+  position: relative;
+  cursor: help;
+}
+
+.custom-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  width: 220px;
+  background-color: rgba(15, 23, 42, 0.98);
+  color: #fff;
+  text-align: right;
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 229, 255, 0.2);
+  white-space: normal;
+  word-break: break-word;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 999;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  /* Fade in */
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+}
+
+/* Tooltip arrow */
+.custom-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(15, 23, 42, 0.98) transparent transparent transparent;
+}
+
+/* Show on hover */
+.note-cell:hover .custom-tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>
