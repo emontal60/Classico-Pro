@@ -4,7 +4,10 @@
       
       <!-- Page Header -->
       <div class="settings-header-premium" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <h2 class="premium-title-main" style="margin: 0;">⚙️ اعدادات النظام والتقارير والموظفين</h2>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <h2 class="premium-title-main" style="margin: 0;">⚙️ اعدادات النظام والتقارير والموظفين</h2>
+          <span style="font-size: 0.8rem; font-weight: bold; background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2)); border: 1px solid rgba(0, 229, 255, 0.3); color: #00e5ff; padding: 4px 10px; border-radius: 8px; box-shadow: 0 0 10px rgba(6, 182, 212, 0.2); white-space: nowrap; font-family: 'Cairo', sans-serif; direction: ltr; letter-spacing: 1.5px;">{{ appVersion }}</span>
+        </div>
         
         <!-- Multi-Branch Controls (Only for multi-device subscription owners) -->
         <div v-if="store.subscriptionData?.max_devices > 1" class="multi-branch-panel glass-panel" style="display: flex; align-items: center; gap: 1rem; padding: 8px 16px; border-radius: 12px; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(0, 229, 255, 0.15);">
@@ -1238,6 +1241,9 @@ import { ref, watch, onMounted, nextTick } from 'vue';
 import { useSettingsLogic } from './SettingsLogic';
 import SubscriptionTab from './SubscriptionTab.vue';
 import ApexCharts from 'apexcharts';
+import pkg from '../../../package.json';
+
+const appVersion = `v${pkg.version}-Pro`;
 
 const {
   store, isAdmin, activeTab, staffSearch, editingStaffMode, shiftStats,
