@@ -54,8 +54,8 @@ router.beforeEach(async (to, from, next) => {
       // Proceed normally
     } else if (store.subscriptionStatus === 'pending') {
       return next('/waiting');
-    } else if (store.subscriptionStatus === 'expired' || store.subscriptionStatus === 'none') {
-      return next('/subscriptions');
+    } else {
+      return next('/subscriptions'); // Fail-secure: redirect all expired, none, error or other statuses
     }
   }
 

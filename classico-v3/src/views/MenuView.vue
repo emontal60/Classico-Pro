@@ -3,7 +3,7 @@
     <main class="main-area glass-panel page-watermark" style="width: 100%;">
       <!-- Premium Header -->
       <div class="section-header-premium">
-        <h2 class="premium-title-main">📋 قائمة الأسعار والخدمات</h2>
+        <h2 class="premium-title-main">📜 قائمة الأسعار والخدمات</h2>
         
         <div class="header-actions">
           <div class="search-wrapper">
@@ -36,7 +36,7 @@
               </td>
               <td class="id-cell">#{{ item.id }}</td>
               <td style="text-align: right; padding-right: 2rem;">
-                <span class="item-name-styled">☕ {{ item.name }}</span>
+                <span class="item-name-styled">{{ getItemIcon(item.name) }} {{ item.name }}</span>
               </td>
               <td style="text-align: center;">
                 <span class="price-badge">{{ formatCurrency(item.price) }} ج</span>
@@ -183,6 +183,87 @@ const closeModal = () => {
   editingId.value = null;
   form.name = '';
   form.price = 0;
+};
+
+const getItemIcon = (name = '') => {
+  const n = name.toLowerCase();
+  
+  // 1. Waffles (الوافلز) -> Waffle dessert emoji 🧇
+  if (n.includes('وافل') || n.includes('waffle')) {
+    return '🧇';
+  }
+  
+  // 2. Pancakes (بان كيك) -> Pancakes/Dessert emoji 🥞
+  if (n.includes('بان كيك') || n.includes('pancake')) {
+    return '🥞';
+  }
+  
+  // 3. Sandwiches (الساندوتشات) -> Sandwich logo 🥪
+  if (n.includes('ساندوتش') || n.includes('sandwich')) {
+    return '🥪';
+  }
+  
+  // 4. Stroop (الستروب) -> Juice emoji 🍹
+  if (n.includes('ستروب') || n.includes('stroop')) {
+    return '🍹';
+  }
+  
+  // 5. Mojitos (موهيتو) -> Summer refreshing juice 🍹
+  if (n.includes('موهيتو') || n.includes('mojito')) {
+    return '🍹';
+  }
+  
+  // 6. Cans & Pepsi (الكانز والبيبسي) -> Pepsi icon 🥤
+  if (n.includes('بيبسي') || n.includes('pepsi') || n.includes('كولا') || n.includes('cola') || n.includes('سفن') || n.includes('7up') || n.includes('كان') || n.includes('كانز') || n.includes('ريدبول') || n.includes('redbull') || n.includes('شويبس') || n.includes('سبرايت') || n.includes('sprite')) {
+    return '🥤';
+  }
+  
+  // 7. Indomie & Noodles (الأندومي والنودلز والشعيرية) -> Indomie noodle bowl 🍜
+  if (n.includes('اندومي') || n.includes('أندومي') || n.includes('إندومي') || n.includes('indomie') || n.includes('نودلز') || n.includes('noodles') || n.includes('شعريه') || n.includes('شعرية')) {
+    return '🍜';
+  }
+  
+  // 8. Milk & Milkshakes (منتجات الحليب أو اللبن أو الميلك) -> Milk drink logo 🥛
+  if (n.includes('ميلك') || n.includes('milk') || n.includes('لبن') || n.includes('حليب')) {
+    return '🥛';
+  }
+  
+  // 9. Ice & Smoothies (آيس و سموزي) -> Iced/cold drink icon 🧊
+  if (n.includes('ايس') || n.includes('آيس') || n.includes('ice') || n.includes('iced') || n.includes('cold') || n.includes('سموزى') || n.includes('سموذي') || n.includes('smoothie')) {
+    return '🧊';
+  }
+  
+  // 10. Fresh Juices & Fruits (عصائر الفواكه الطبيعية الأخرى) -> Fruit/Juice emoji 🍹
+  if (n.includes('مانجو') || n.includes('mango') || n.includes('فراولة') || n.includes('strawber') || n.includes('جوافة') || n.includes('guava') || n.includes('موز') || n.includes('banana') || n.includes('بلح') || n.includes('dates') || n.includes('عصير') || n.includes('juice') || n.includes('ليمون') || n.includes('lemon') || n.includes('عناب') || n.includes('تمر هندي') || n.includes('فروت سلاد') || n.includes('فواكه') || n.includes('خوخ')) {
+    return '🍹';
+  }
+  
+  // 11. Hot Drinks & Coffees (القهوة والمشروبات الساخنة) -> Hot Beverage ☕
+  if (n.includes('هوت') || n.includes('ساخن') || n.includes('hot') || n.includes('قهوة') || n.includes('coffee') || n.includes('نسكافيه') || n.includes('اسبريسو') || n.includes('espresso') || n.includes('لاتيه') || n.includes('latte') || n.includes('كابتشينو') || n.includes('سخاكنية') || n.includes('سحلب') || n.includes('قرفة') || n.includes('موكا') || n.includes('mocha')) {
+    return '☕';
+  }
+  
+  // 12. Teas & Herbs (الشاي والأعشاب) -> Teapot 🫖
+  if (n.includes('شاي') || n.includes('tea') || n.includes('كركديه') || n.includes('ينسون') || n.includes('نعناع') || n.includes('حلبه') || n.includes('حلبة')) {
+    return '🫖';
+  }
+  
+  // 13. Water (المياه) -> Water drop 💧
+  if (n.includes('ماء') || n.includes('مياه') || n.includes('water')) {
+    return '💧';
+  }
+  
+  // 14. Shisha (الشيشة والمعسل) -> Smoke 💨
+  if (n.includes('شيشة') || n.includes('شيشه') || n.includes('معسل') || n.includes('حجر') || n.includes('لي') || n.includes('تفاحين')) {
+    return '💨';
+  }
+  
+  // 15. Games & Lounge (ألعاب وصالة) -> Gamepad 🎮
+  if (n.includes('لعب') || n.includes('ساعة') || n.includes('ساعه') || n.includes('بلايستيشن') || n.includes('playstation') || n.includes('ps') || n.includes('دراع') || n.includes('جيم') || n.includes('بلياردو') || n.includes('تنس') || n.includes('طاولة')) {
+    return '🎮';
+  }
+  
+  return '🏷️'; // Fallback tag emoji for general/miscellaneous items
 };
 
 const formatCurrency = (val) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0);

@@ -44,7 +44,7 @@
               <span class="icon">☕</span> الصالة
             </button>
             <button v-if="store.canAccess('archive_customers', 'none')" @click="activeTab = 'customers'" :class="['tab-item-mini', { active: activeTab === 'customers' }]">
-              <span class="icon">👥</span> العملاء
+              <span class="icon">📒</span> العملاء
             </button>
             <button v-if="store.canAccess('archive_expenses', 'none')" @click="activeTab = 'expenses'" :class="['tab-item-mini', { active: activeTab === 'expenses' }]">
               <span class="icon">💸</span> المصروفات
@@ -291,7 +291,7 @@
                   <option value="">الكل</option>
                   <option value="🎮 أجهزة">🎮 أرشيف الأجهزة</option>
                   <option value="☕ صالة">☕ أرشيف الصالة</option>
-                  <option value="👥 عملاء">👥 أرشيف العملاء</option>
+                  <option value="📒 عملاء">📒 أرشيف العملاء</option>
                   <option value="💸 مصروفات">💸 أرشيف المصروفات</option>
                   <option value="💰 مرتبات">💰 أرشيف المرتبات</option>
                 </select>
@@ -580,7 +580,7 @@ const globalData = computed(() => {
   // Customers
   archivedCustomersList.value.forEach(c => {
     data.push({
-      ts: c.archivedAt, dept: '👥 عملاء', name: c.name, amount: c.settledAmount || 0,
+      ts: c.archivedAt, dept: '📒 عملاء', name: c.name, amount: c.settledAmount || 0,
       note: 'تحصيل مديونية عند أرشفة الحساب', color: '#f59e0b', processedBy: c.archivedBy,
       branchName: c.branchName
     });

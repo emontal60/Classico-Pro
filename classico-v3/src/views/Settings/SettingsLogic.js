@@ -336,15 +336,15 @@ export function useSettingsLogic() {
   const APP_PAGES = [
     { id: 'monitoring', label: '🎮 شاشة الأجهزة', icon: '🎮' },
     { id: 'lounge', label: '☕ شاشة الصالة', icon: '☕' },
-    { id: 'customers', label: '👥 حسابات العملاء', icon: '👥' },
+    { id: 'customers', label: '📒 حسابات العملاء', icon: '📒' },
     { id: 'expenses', label: '💸 المصروفات', icon: '💸' },
-    { id: 'menu', label: '📋 قائمة الأسعار', icon: '📋' },
+    { id: 'menu', label: '📜 قائمة الأسعار', icon: '📜' },
     {
-      id: 'archive', label: '🗄️ الأرشيف', icon: '🗄️',
+      id: 'archive', label: '📦 الأرشيف', icon: '📦',
       children: [
         { id: 'archive_devices', label: '🎮 أرشيف الأجهزة' },
         { id: 'archive_lounge', label: '☕ أرشيف الصالة' },
-        { id: 'archive_customers', label: '👥 أرشيف العملاء' },
+        { id: 'archive_customers', label: '📒 أرشيف العملاء' },
         { id: 'archive_expenses', label: '💸 أرشيف المصروفات' },
         { id: 'archive_salaries', label: '💰 أرشيف المرتبات' },
         { id: 'archive_global', label: '📋 الأرشيف الشامل' },

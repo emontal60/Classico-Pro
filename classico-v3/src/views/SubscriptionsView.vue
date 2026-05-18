@@ -7,6 +7,11 @@
     <div class="pricing-header">
       <h2 class="ph-title">نظام متكامل لإدارة الكافيهات وصالات الألعاب</h2>
       <p class="ph-subtitle">حل شامل لإدارة البلايستيشن، البوفيه، وتعدد الفروع — آمن ومرتبط بجهازك</p>
+      <div class="ph-hint-container">
+        <a href="#features-section" @click.prevent="scrollToFeatures" class="features-badge-hint">
+          اطلع على كل مزايا البرنامج بالأسفل 👇
+        </a>
+      </div>
     </div>
 
     <div class="pricing-cards-container">
@@ -87,112 +92,195 @@
       </div>
     </div>
 
-    <div class="features-section">
+    <div id="features-section" class="features-section">
       <h3 class="section-title">🚀 مميزات النظام المتكامل</h3>
       <div class="features-grid">
+        <!-- 1. أجهزة وترابيزات غير محدودة -->
         <div class="feature-item">
           <span class="f-icon">♾️</span>
           <div class="f-content">
             <h4>أجهزة وترابيزات غير محدودة</h4>
-            <p>إدارة كاملة لكل الأجهزة والطاولات بدون أي قيود</p>
+            <p>إدارة كاملة لكل الأجهزة والطاولات المسجلة بدون أي قيود تقنية</p>
           </div>
         </div>
+
+        <!-- 2. إدارة البوفيه والطلبات -->
         <div class="feature-item">
           <span class="f-icon">🍔</span>
           <div class="f-content">
-            <h4>إدارة البوفيه الشاملة</h4>
-            <p>إضافة منتجات + إدارة الطلبات + دمج أو فصل الفواتير مع الأجهزة أو الترابيزات</p>
+            <h4>إدارة البوفيه والطلبات السريعة</h4>
+            <p>إضافة المنتجات وتسجيل الطلبات وحساب إجمالياتها بمرونة شديدة</p>
           </div>
         </div>
+
+        <!-- 3. قائمة أسعار مرنة -->
         <div class="feature-item">
           <span class="f-icon">💰</span>
           <div class="f-content">
             <h4>قائمة أسعار مرنة</h4>
-            <p>تخصيص الأسعار حسب الخدمة أو الوقت</p>
+            <p>إمكانية كتابة وتخصيص الأسعار وسعر الساعة لكل جهاز يدوياً حسب رغبتك</p>
           </div>
         </div>
-        <div class="feature-item">
-          <span class="f-icon">👥</span>
+
+        <!-- 4. نظام الوقت مسبق الدفع والإنذار (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">⏳</span>
           <div class="f-content">
-            <h4>حسابات العملاء (آجل)</h4>
-            <p>تسجيل وتتبع مديونيات العملاء بسهولة</p>
+            <h4>نظام الدفع المسبق والإنذار <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>دعم تشغيل الأجهزة بوقت محدد مسبقاً، مع وميض إنذار مرئي وتنبيه عند اقتراب انتهاء الوقت</p>
           </div>
         </div>
-        <div class="feature-item">
-          <span class="f-icon">📦</span>
+
+        <!-- 5. حسابات العملاء (آجل) وإمكانية ترحيل طلبات من الصالة والأجهزة إلى آجل (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">📒</span>
           <div class="f-content">
-            <h4>مخزن بوفيه متطور</h4>
-            <p>تنبيهات عند نقص الكميات وتتبع حركة الأصناف</p>
+            <h4>حسابات العملاء (آجل) وإمكانية ترحيل طلبات من الصالة والأجهزة إلى آجل <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>تسجيل وتتبع ديون الزبائن بدقة، مع إمكانية ترحيل وإرسال فواتير الأجهزة أو البوفيه والصالة مباشرة لحساب العميل الآجل لتسويتها لاحقاً.</p>
           </div>
         </div>
+
+        <!-- 6. نظام الطباعة وبونات البوفيه (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">🖨️</span>
+          <div class="f-content">
+            <h4>الطباعة الحرارية المدمجة <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>إصدار فواتير حرارية منسقة وتلقائية مع إمكانية طباعة بون طلبات البوفيه للمطبخ فوراً</p>
+          </div>
+        </div>
+
+        <!-- 7. النسخ الاحتياطي السحابي والمحلي (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">☁️</span>
+          <div class="f-content">
+            <h4>النسخ الاحتياطي الهجين <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>تأمين أرباحك وبياناتك عبر حفظ نسخ احتياطية محلياً وسحابياً على السحابة بنقرة واحدة</p>
+          </div>
+        </div>
+
+        <!-- 8. مركز التحكم بظهور الصفحات -->
+        <div class="feature-item">
+          <span class="f-icon">👁️</span>
+          <div class="f-content">
+            <h4>مركز التحكم بظهور الصفحات</h4>
+            <p>إمكانية إخفاء أو إظهار أقسام بأكملها من شاشات البرنامج ليناسب نشاطك بدقة</p>
+          </div>
+        </div>
+
+        <!-- 9. دمج وترحيل حساب الصالة للأجهزة والعكس -->
+        <div class="feature-item">
+          <span class="f-icon">🔄</span>
+          <div class="f-content">
+            <h4>دمج وترحيل حساب الصالة للأجهزة والعكس</h4>
+            <p>دمج وترحيل طلبات مشروبات الصالة مباشرة إلى الأجهزة والعكس لتسهيل الحساب وتجنب النسيان بنقرة واحدة.</p>
+          </div>
+        </div>
+
+        <!-- 10. حساب سلف الموظفين والرواتب -->
+        <div class="feature-item">
+          <span class="f-icon">💵</span>
+          <div class="f-content">
+            <h4>سجل مسحوبات الموظفين والرواتب</h4>
+            <p>تسجيل سلف الموظفين والمسحوبات اليومية من الدرج وتصفية رواتبهم بنهاية الوردية</p>
+          </div>
+        </div>
+
+        <!-- 11. تقارير يومية وشاملة -->
         <div class="feature-item">
           <span class="f-icon">📊</span>
           <div class="f-content">
-            <h4>تقارير يومية وشاملة</h4>
-            <p>ملخصات للأرباح، المصروفات، والمبيعات بضغطة زر</p>
+            <h4>تقارير يومية وشاملة للوردية</h4>
+            <p>ملخصات دقيقة لأرباح الأجهزة والصالة، المصروفات والرواتب، وصافي المبالغ بالدرج</p>
           </div>
         </div>
+
+        <!-- 12. أرشيف كامل للفواتير والعمليات -->
         <div class="feature-item">
           <span class="f-icon">📁</span>
           <div class="f-content">
-            <h4>أرشيف كامل للفواتير</h4>
-            <p>الرجوع لأي فاتورة قديمة في أي وقت</p>
+            <h4>أرشيف كامل ومؤمن</h4>
+            <p>إمكانية مراجعة أي فاتورة قديمة أو جلسة لعب سابقة بالتفصيل وتاريخ تشغيلها</p>
           </div>
         </div>
+
+        <!-- 13. إدارة المصروفات -->
         <div class="feature-item">
           <span class="f-icon">📑</span>
           <div class="f-content">
             <h4>إدارة المصروفات</h4>
-            <p>تسجيل كافة المصروفات التشغيلية والرواتب</p>
+            <p>تسجيل كافة المصروفات التشغيلية والرواتب اليومية ومسحوبات الموظفين لمتابعة حركة الأموال بالكامل.</p>
           </div>
         </div>
+
+        <!-- 14. صلاحيات الموظفين الدقيقة -->
         <div class="feature-item">
           <span class="f-icon">🔐</span>
           <div class="f-content">
-            <h4>صلاحيات للموظفين</h4>
-            <p>تحديد ما يمكن لكل موظف رؤيته أو تعديله</p>
+            <h4>صلاحيات الموظفين الدقيقة</h4>
+            <p>التحكم الكامل في تحديد ما يمكن لكل كاشير رؤيته، تعديله، أو إخفائه بالأقسام</p>
           </div>
         </div>
-        <div class="feature-item">
+
+        <!-- 15. ربط السلاسل والفروع المتعددة للاطلاع والمراقبة (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
           <span class="f-icon">🏢</span>
           <div class="f-content">
-            <h4>دعم السلاسل والفروع</h4>
-            <p>إدارة أكثر من فرع من مكان واحد</p>
+            <h4>ربط السلاسل والفروع المتعددة للاطلاع والمراقبة <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>ربط فروعك وأجهزتك المتعددة بحساب مركزي واحد، مما يتيح لك كمشرف تصفية ومراقبة تقارير كل فرع على حدة، ومتابعة إيرادات الأجهزة والصالة وسجل العمليات لحظة بلحظة من مكانك.</p>
           </div>
         </div>
+
+        <!-- 16. واجهة سهلة الاستخدام -->
         <div class="feature-item">
           <span class="f-icon">💡</span>
           <div class="f-content">
             <h4>واجهة سهلة الاستخدام</h4>
-            <p>تصميم عصري ومريح للعين يدعم الوضع الليلي</p>
+            <p>تصميم عصري ومريح للعين، يدعم الوضع الليلي والشاشات اللمسية لتوفير أسهل تجربة إدارة ممكنة.</p>
           </div>
         </div>
-        <div class="feature-item">
+
+        <!-- 17. ذكاء الأعمال والتحليلات الرسومية (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
           <span class="f-icon">📈</span>
           <div class="f-content">
-            <h4>ذكاء الأعمال (BI)</h4>
-            <p>رسوم بيانية تفاعلية تحلل ساعات الذروة، الأصناف الأكثر مبيعاً، والأرباح لمساعدتك في اتخاذ قرارات ذكية</p>
+            <h4>تحليلات ذكاء الأعمال BI <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>رسومات بيانية تفاعلية (ApexCharts) تعرض ساعات الذروة، الأصناف الأكثر مبيعاً، وتطور أرباحك</p>
           </div>
         </div>
+
+        <!-- 18. سجل النشاط والرقابة الكاملة -->
         <div class="feature-item">
           <span class="f-icon">📜</span>
           <div class="f-content">
-            <h4>سجل النشاط والرقابة</h4>
-            <p>رقابة كاملة تسجل عمليات الدخول، الخروج، وحذف الفواتير لضمان الأمان ومنع التلاعب</p>
+            <h4>سجل الرقابة والنشاط الكامل</h4>
+            <p>تسجيل كافة عمليات النظام (تسجيل الدخول، الخروج، وتعديل الفواتير) لحماية الكاش من السرقة</p>
           </div>
         </div>
+
+        <!-- 19. الأرشفة الذكية وتخفيف قواعد البيانات -->
         <div class="feature-item">
           <span class="f-icon">⚡</span>
           <div class="f-content">
-            <h4>الأرشفة الذكية والصيانة</h4>
-            <p>نظام تلقائي يحافظ على خفة قاعدة البيانات وسرعة البرنامج مهما طالت سنوات الاستخدام</p>
+            <h4>الأرشفة التلقائية والصيانة</h4>
+            <p>نظام ذكي لنقل السجلات القديمة للأرشيف للحفاظ على سرعة الصاروخ للبرنامج مدى الحياة</p>
           </div>
         </div>
+
+        <!-- 20. تحديثات مستمرة للنظام -->
         <div class="feature-item">
           <span class="f-icon">🛠️</span>
           <div class="f-content">
-            <h4>تحديثات مستمرة</h4>
-            <p>نعمل دائماً على إضافة ميزات جديدة وتحسين الأداء</p>
+            <h4>تحديثات مستمرة وتطوير دوري</h4>
+            <p>متابعة ودعم مستمر للتطبيق وإطلاق تحسينات وإضافات مستمرة لزيادة مبيعاتك</p>
+          </div>
+        </div>
+
+        <!-- 21. الاستشارة والدعم الفني المتكامل (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">📞</span>
+          <div class="f-content">
+            <h4>الاستشارة والدعم الفني المتكامل <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>تقديم استشارات تشغيلية مجانية لمشروعك ودعم فني متواصل على مدار الساعة لحل أي مشكلة وضمان استمرارية العمل بأمان.</p>
           </div>
         </div>
       </div>
@@ -239,6 +327,13 @@ const ui = useUIStore();
 
 const router = useRouter();
 const store = useAppStore();
+
+const scrollToFeatures = () => {
+  const element = document.getElementById('features-section');
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' });
+  }
+};
 
 const refreshStatus = async () => {
   // 1. Show Splash Screen
@@ -405,9 +500,73 @@ const selectPlan = async (plan, devices = 1) => {
   box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
 }
 
-.pricing-header { margin-bottom: 4rem; }
-.ph-title { font-size: 2.5rem; color: #fff; margin-bottom: 1rem; font-weight: 900; }
-.ph-subtitle { font-size: 1.2rem; color: #94a3b8; }
+.pricing-header {
+  margin-bottom: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ph-title {
+  font-size: 2.5rem;
+  color: #fff;
+  margin: 0;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.ph-subtitle {
+  font-size: 1.2rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ph-hint-container {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.features-badge-hint {
+  background: rgba(0, 229, 255, 0.08);
+  color: #00e5ff;
+  border: 1.5px solid rgba(0, 229, 255, 0.25);
+  padding: 10px 28px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: pulse-hint 2s infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.features-badge-hint:hover {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: #00e5ff;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+  transform: translateY(-3px);
+}
+
+@keyframes pulse-hint {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(0, 229, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+  }
+}
 
 .features-section {
   max-width: 1200px;
@@ -434,13 +593,42 @@ const selectPlan = async (plan, devices = 1) => {
   gap: 1.5rem;
   text-align: right;
   border: 1px solid rgba(255,255,255,0.05);
-  transition: 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .feature-item:hover {
   background: rgba(30, 41, 59, 0.8);
   transform: translateY(-5px);
   border-color: rgba(0, 229, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.feature-item.highlighted {
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6), rgba(0, 229, 255, 0.03));
+  box-shadow: 0 5px 20px rgba(0, 229, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-item.highlighted::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #00e5ff, #7c3aed);
+}
+
+.badge-featured {
+  background: rgba(0, 229, 255, 0.15);
+  color: #00e5ff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 50px;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .f-icon { font-size: 2rem; }

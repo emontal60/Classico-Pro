@@ -8,7 +8,7 @@
     <nav class="top-nav" style="display: flex !important; justify-content: center !important; align-items: center !important; gap: 0.8rem !important; order: 2 !important; flex: 0 1 auto !important;">
       <router-link v-if="store.appSettings.pageVisibility?.monitoring !== false && store.canAccess('monitoring', 'none')" to="/" v-slot="{ isActive }">
         <button class="nav-btn" :class="{ active: isActive }">
-          <span class="icon">🎮</span> الأجهزة
+          <span class="icon icon-devices">🎮</span> الأجهزة
         </button>
       </router-link>
       
@@ -20,7 +20,7 @@
 
       <router-link v-if="store.appSettings.pageVisibility?.customers !== false && store.canAccess('customers', 'none')" to="/customers" v-slot="{ isActive }">
         <button class="nav-btn" :class="{ active: isActive }">
-          <span class="icon">👥</span> حسابات العملاء
+          <span class="icon">📒</span> حسابات العملاء
         </button>
       </router-link>
 
@@ -32,12 +32,12 @@
 
       <router-link v-if="store.appSettings.pageVisibility?.archive !== false && store.canAccess('archive', 'none')" to="/archive" v-slot="{ isActive }">
         <button class="nav-btn" :class="{ active: isActive }">
-          <span class="icon">🗄️</span> الأرشيف
+          <span class="icon">📦</span> الأرشيف
         </button>
       </router-link>
       <router-link v-if="store.appSettings.pageVisibility?.menu !== false && store.canAccess('menu', 'none')" to="/menu" v-slot="{ isActive }">
         <button class="nav-btn" :class="{ active: isActive }">
-          <span class="icon">📋</span> قائمة الأسعار
+          <span class="icon">📜</span> قائمة الأسعار
         </button>
       </router-link>
 
@@ -286,5 +286,36 @@ const vClickOutside = {
   background: #f59e0b;
   color: #000;
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+}
+
+.icon {
+  margin-left: 6px;
+  display: inline-block;
+  vertical-align: middle;
+  filter: brightness(1.5) saturate(1.2) drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.nav-btn:hover .icon {
+  filter: brightness(1.8) saturate(1.4) drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+  transform: scale(1.15);
+}
+
+.nav-btn.active .icon {
+  filter: brightness(1.8) saturate(1.4) drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+}
+
+/* 🎮 Smart color converter to make the devices icon silver-white and high contrast */
+.icon-devices {
+  filter: grayscale(1) brightness(2.2) contrast(1.2) drop-shadow(0 0 4px rgba(255, 255, 255, 0.5)) !important;
+}
+
+.nav-btn:hover .icon-devices {
+  filter: grayscale(1) brightness(2.6) contrast(1.2) drop-shadow(0 0 6px rgba(255, 255, 255, 0.7)) !important;
+  transform: scale(1.15);
+}
+
+.nav-btn.active .icon-devices {
+  filter: grayscale(1) brightness(2.6) contrast(1.2) drop-shadow(0 0 6px rgba(255, 255, 255, 0.7)) !important;
 }
 </style>

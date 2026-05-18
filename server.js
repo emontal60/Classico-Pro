@@ -272,8 +272,61 @@ async function getOwnerMachineId(mid) {
     return null;
 }
 
+// --- SECURE API SUBSCRIPTION GATEWAY MIDDLEWARE ---
+async function requireActiveSubscription(req, res, next) {
+    try {
+        // 1. Allow all GET requests (prevent boot deadlocks and let the app render the subscriptions view)
+        if (req.method === 'GET') {
+            return next();
+        }
+
+        // 2. Allow license activation and factory reset requests to pass through
+        if (req.body && (req.body.is_activation === true || req.body.is_reset === true)) {
+            return next();
+        }
+
+        const mid = (await getMid()).toUpperCase().trim();
+        const now = new Date();
+
+        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
+        const localPath = path.join(baseDir, 'database.json');
+        
+        if (!fs.existsSync(localPath)) {
+            return res.status(403).json({ success: false, error: 'Database not initialized, active license required.' });
+        }
+
+        const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        const localSub = localData.classico_subscription;
+
+        if (!localSub || localSub.status !== 'active' || !localSub.token) {
+            return res.status(403).json({ success: false, error: 'Subscription inactive or expired. Please purchase a license to access the program.' });
+        }
+
+        const [tokenPayload, sig] = localSub.token.split('.');
+        if (!tokenPayload || !sig) {
+            return res.status(403).json({ success: false, error: 'Invalid subscription token format. Access denied.' });
+        }
+
+        const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(tokenPayload).digest('hex');
+        if (sig !== expectedSig) {
+            return res.status(403).json({ success: false, error: 'Cryptographic signature mismatch! Access denied.' });
+        }
+
+        const [cachedMid, status, expiryStr] = tokenPayload.split('|');
+        if (cachedMid !== mid || status !== 'active' || new Date(expiryStr) <= now) {
+            return res.status(403).json({ success: false, error: 'Subscription is expired or tied to another hardware ID.' });
+        }
+
+        // All checks passed securely!
+        next();
+    } catch (err) {
+        console.error("[Security] Middleware error:", err.message);
+        res.status(500).json({ success: false, error: 'Security validation failure.' });
+    }
+}
+
 // 3. Core Sync API
-app.get('/api/data', async (req, res) => {
+app.get('/api/data', requireActiveSubscription, async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
         
@@ -356,7 +409,7 @@ app.get('/api/data', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/save', async (req, res) => {
+app.post('/api/save', requireActiveSubscription, async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
         const data = req.body;
@@ -547,8 +600,48 @@ app.get('/api/system/subscription-verify', async (req, res) => {
             res.json({ success: false, status: status });
         }
     } catch (e) { 
-        console.error("[Subscription] Verification error:", e.message);
-        res.json({ success: false, status: 'error', message: 'خطأ في الاتصال بسيرفر التحقق' }); 
+        console.error("[Subscription] Online verification failed. Trying secure offline fallback...", e.message);
+        
+        // --- SECURE OFFLINE FALLBACK CRYPTOGRAPHIC VALIDATION ---
+        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
+        const localPath = path.join(baseDir, 'database.json');
+        if (fs.existsSync(localPath)) {
+            try {
+                const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+                const localSub = localData.classico_subscription;
+                
+                if (localSub && localSub.status === 'active' && localSub.token) {
+                    const [tokenPayload, sig] = localSub.token.split('.');
+                    if (tokenPayload && sig) {
+                        const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(tokenPayload).digest('hex');
+                        
+                        if (sig === expectedSig) {
+                            const [cachedMid, status, expiryStr] = tokenPayload.split('|');
+                            if (cachedMid === mid && status === 'active') {
+                                const expiry = new Date(expiryStr);
+                                if (expiry > now) {
+                                    console.log(`[Security] Secure offline subscription verified for machine: ${mid}`);
+                                    return res.json({
+                                        success: true,
+                                        status: 'active',
+                                        activated_at: localSub.activated_at || localSub.created_at,
+                                        created_at: localSub.created_at,
+                                        expires_at: localSub.expires_at,
+                                        plan_type: localSub.plan_type,
+                                        max_devices: localSub.max_devices || 1,
+                                        activation_keys: localSub.activation_keys || [],
+                                        token: localSub.token
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("[Security] Offline cryptographic check error:", err.message);
+            }
+        }
+        res.json({ success: false, status: 'error', message: 'خطأ في الاتصال بسيرفر التحقق ولم يتم العثور على تفعيل محلي موثق.' }); 
     }
 });
 

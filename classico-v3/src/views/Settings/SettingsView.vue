@@ -319,7 +319,7 @@
                   تسجيل مسحوبات (خصم) 🔴
                 </button>
                 <button @click="handleSalaryOp('settlement')" class="btn-green-v3" :disabled="!selectedStaffUsername">
-                  صرف الراتب المتبقي وتصفية الحساب 🗄️
+                  صرف الراتب المتبقي وتصفية الحساب 📦
                 </button>
               </div>
             </div>
@@ -840,7 +840,7 @@
 
                   <!-- Customers -->
                   <div @click="togglePageVisibility('customers')" :class="['vis-card', { active: store.appSettings.pageVisibility?.customers !== false }]">
-                     <div class="vis-icon">👥</div>
+                     <div class="vis-icon">📒</div>
                      <div class="vis-label">حسابات العملاء</div>
                      <div class="vis-status">{{ store.appSettings.pageVisibility?.customers !== false ? 'ظاهرة ✅' : 'مخفية 🚫' }}</div>
                   </div>
@@ -854,14 +854,14 @@
 
                   <!-- Archive -->
                   <div @click="togglePageVisibility('archive')" :class="['vis-card', { active: store.appSettings.pageVisibility?.archive !== false }]">
-                     <div class="vis-icon">🗄️</div>
+                     <div class="vis-icon">📦</div>
                      <div class="vis-label">الأرشيف</div>
                      <div class="vis-status">{{ store.appSettings.pageVisibility?.archive !== false ? 'ظاهرة ✅' : 'مخفية 🚫' }}</div>
                   </div>
 
                   <!-- Price List -->
                   <div @click="togglePageVisibility('menu')" :class="['vis-card', { active: store.appSettings.pageVisibility?.menu !== false }]">
-                     <div class="vis-icon">📋</div>
+                     <div class="vis-icon">📜</div>
                      <div class="vis-label">قائمة الأسعار</div>
                      <div class="vis-status">{{ store.appSettings.pageVisibility?.menu !== false ? 'ظاهرة ✅' : 'مخفية 🚫' }}</div>
                   </div>
@@ -885,7 +885,7 @@
 
            <!-- Smart Archiving Section -->
            <div v-if="store.canAccess('settings_system', 'edit') && !isReadOnlyMode" class="system-card-v3 info">
-              <h3 class="sys-title-v3"><span>🗄️</span> أرشفة البيانات الذكية (Auto-Maintenance)</h3>
+              <h3 class="sys-title-v3"><span>📦</span> أرشفة البيانات الذكية (Auto-Maintenance)</h3>
               <p class="sys-desc-v3">
                  للحفاظ على سرعة البرنامج كالبرق، يمكنك نقل السجلات القديمة جداً إلى ملفات أرشيف منفصلة. هذا الإجراء يحافظ على خفة قاعدة البيانات دون حذف أي معلومة.
               </p>
