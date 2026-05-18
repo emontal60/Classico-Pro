@@ -10,6 +10,7 @@ import CustomersView from '../views/CustomersView.vue';
 import ExpensesView from '../views/ExpensesView.vue';
 import MenuView from '../views/MenuView.vue';
 import SettingsView from '../views/Settings/SettingsView.vue';
+import GamepadView from '../views/GamepadView.vue';
 import SubscriptionsView from '../views/SubscriptionsView.vue';
 import PaymentView from '../views/PaymentView.vue';
 import WaitingView from '../views/WaitingView.vue';
@@ -25,6 +26,7 @@ const routes = [
   { path: '/customers', name: 'Customers', component: CustomersView, meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/expenses', name: 'Expenses', component: ExpensesView, meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/menu', name: 'Menu', component: MenuView, meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/gamepad', name: 'Gamepad', component: GamepadView, meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/settings', name: 'Settings', component: SettingsView, meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/multi-device', name: 'MultiDevice', component: () => import('../views/Settings/MultiDeviceView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/:pathMatch(.*)*', redirect: '/' }

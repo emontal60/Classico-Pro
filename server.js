@@ -313,8 +313,11 @@ async function requireActiveSubscription(req, res, next) {
         }
 
         const [cachedMid, status, expiryStr] = tokenPayload.split('|');
-        if (cachedMid !== mid || status !== 'active' || new Date(expiryStr) <= now) {
-            return res.status(403).json({ success: false, error: 'Subscription is expired or tied to another hardware ID.' });
+        if (cachedMid !== mid) {
+            console.warn(`[Subscription Security] Machine ID mismatch. Cached in token: ${cachedMid}, Current machine: ${mid}. Allowing because signature is verified.`);
+        }
+        if (status !== 'active' || new Date(expiryStr) <= now) {
+            return res.status(403).json({ success: false, error: 'Subscription is expired.' });
         }
 
         // All checks passed securely!
@@ -617,7 +620,10 @@ app.get('/api/system/subscription-verify', async (req, res) => {
                         
                         if (sig === expectedSig) {
                             const [cachedMid, status, expiryStr] = tokenPayload.split('|');
-                            if (cachedMid === mid && status === 'active') {
+                            if (status === 'active') {
+                                if (cachedMid !== mid) {
+                                    console.warn(`[Offline Fallback] Machine ID mismatch. Cached in token: ${cachedMid}, Current machine: ${mid}. Allowing because signature is verified.`);
+                                }
                                 const expiry = new Date(expiryStr);
                                 if (expiry > now) {
                                     console.log(`[Security] Secure offline subscription verified for machine: ${mid}`);

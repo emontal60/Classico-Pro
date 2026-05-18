@@ -865,6 +865,13 @@
                      <div class="vis-label">قائمة الأسعار</div>
                      <div class="vis-status">{{ store.appSettings.pageVisibility?.menu !== false ? 'ظاهرة ✅' : 'مخفية 🚫' }}</div>
                   </div>
+
+                  <!-- Gamepad Diagnostics -->
+                  <div @click="togglePageVisibility('gamepad')" :class="['vis-card', { active: store.appSettings.pageVisibility?.gamepad !== false }]">
+                     <div class="vis-icon">🎮</div>
+                     <div class="vis-label">فحص الأذرع</div>
+                     <div class="vis-status">{{ store.appSettings.pageVisibility?.gamepad !== false ? 'ظاهرة ✅' : 'مخفية 🚫' }}</div>
+                  </div>
                </div>
            </div>
 
@@ -1328,8 +1335,9 @@ const initCharts = () => {
   // 1. Busy Hours
   if (hChart) {
     try {
+      const safeHours = analyticsData.busyHours && analyticsData.busyHours.length ? analyticsData.busyHours.map(n => Number(n) || 0) : Array(24).fill(0);
       charts.hours = new ApexCharts(hChart, {
-        series: [{ name: 'عدد الزيارات', data: analyticsData.busyHours || Array(24).fill(0) }],
+        series: [{ name: 'عدد الزيارات', data: safeHours }],
         chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
         stroke: { curve: 'smooth', width: 3 },
         colors: ['#00e5ff'],
@@ -1350,7 +1358,7 @@ const initCharts = () => {
   if (pChart) {
     try {
       const pLabels = (analyticsData.monthlyProfits || []).map(m => m.month);
-      const pData = (analyticsData.monthlyProfits || []).map(m => m.profit);
+      const pData = (analyticsData.monthlyProfits || []).map(m => Number(m.profit) || 0);
 
       charts.profit = new ApexCharts(pChart, {
         series: [{ name: 'صافي الربح', data: pData.length ? pData : [0] }],
@@ -1369,14 +1377,14 @@ const initCharts = () => {
   // 4. Income vs Expenses
   if (incChart) {
     try {
-      const iLabels = analyticsData.incomeVsExpenses.map(d => d.date);
-      const revData = analyticsData.incomeVsExpenses.map(d => d.rev);
-      const expData = analyticsData.incomeVsExpenses.map(d => d.exp);
+      const iLabels = (analyticsData.incomeVsExpenses || []).map(d => d.date);
+      const revData = (analyticsData.incomeVsExpenses || []).map(d => Number(d.rev) || 0);
+      const expData = (analyticsData.incomeVsExpenses || []).map(d => Number(d.exp) || 0);
       
       charts.income = new ApexCharts(incChart, {
         series: [
-          { name: 'الإيرادات', data: revData },
-          { name: 'المصروفات', data: expData }
+          { name: 'الإيرادات', data: revData.length ? revData : [0] },
+          { name: 'المصروفات', data: expData.length ? expData : [0] }
         ],
         chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
         colors: ['#10b981', '#ef4444'],
@@ -1386,7 +1394,7 @@ const initCharts = () => {
         xaxis: { categories: iLabels.length ? iLabels : ['---'] },
         yaxis: {
           labels: {
-            formatter: (value) => { return Math.round(value).toLocaleString(); }
+            formatter: (value) => { return Math.round(Number(value) || 0).toLocaleString(); }
           }
         },
         grid: { borderColor: 'rgba(255,255,255,0.05)' },
@@ -1399,16 +1407,25 @@ const initCharts = () => {
   // 5. Ratio Chart
   if (rChart) {
     try {
+      const psVal = Number(analyticsData.ratioData?.ps) || 0;
+      const loungeVal = Number(analyticsData.ratioData?.lounge) || 0;
+      const isRatioZero = (psVal + loungeVal) === 0;
+
       charts.ratio = new ApexCharts(rChart, {
-        series: [analyticsData.ratioData.ps || 0, analyticsData.ratioData.lounge || 0],
+        series: isRatioZero ? [1, 1] : [psVal, loungeVal],
         labels: ['الأجهزة 🎮', 'الصالة ☕'],
         chart: { type: 'donut', height: 300, foreColor: '#cbd5e1', background: 'transparent' },
         colors: ['#00e5ff', '#10b981'],
         stroke: { show: false },
         legend: { position: 'bottom' },
         plotOptions: { pie: { donut: { size: '70%' } } },
-        dataLabels: { enabled: true, style: { colors: ['#fff'] } },
-        tooltip: { theme: 'dark' }
+        dataLabels: { enabled: !isRatioZero, style: { colors: ['#fff'] } },
+        tooltip: {
+          theme: 'dark',
+          y: {
+            formatter: (val) => isRatioZero ? '0 ج' : `${Math.round(val).toLocaleString()} ج`
+          }
+        }
       });
       charts.ratio.render();
     } catch(e) { console.error('ratioChart error', e); }
@@ -1417,11 +1434,11 @@ const initCharts = () => {
   // 6. Staff Performance
   if (sChart) {
     try {
-      const sLabels = analyticsData.staffPerformance.map(s => s.name || 'غير محدد');
-      const sData = analyticsData.staffPerformance.map(s => s.rev);
+      const sLabels = (analyticsData.staffPerformance || []).map(s => s.name || 'غير محدد');
+      const sData = (analyticsData.staffPerformance || []).map(s => Number(s.rev) || 0);
       
       charts.staff = new ApexCharts(sChart, {
-        series: [{ name: 'إجمالي المبيعات', data: sData }],
+        series: [{ name: 'إجمالي المبيعات', data: sData.length ? sData : [0] }],
         chart: { type: 'bar', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
         plotOptions: { bar: { horizontal: false, borderRadius: 6, distributed: true } },
         colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
@@ -1440,13 +1457,13 @@ const initCharts = () => {
   if (bcChart) {
     try {
       const bLabels = (analyticsData.branchComparison || []).map(b => b.name);
-      const bSales = (analyticsData.branchComparison || []).map(b => b.revenue);
-      const bProfits = (analyticsData.branchComparison || []).map(b => b.profit);
+      const bSales = (analyticsData.branchComparison || []).map(b => Number(b.revenue) || 0);
+      const bProfits = (analyticsData.branchComparison || []).map(b => Number(b.profit) || 0);
 
       charts.branchComparison = new ApexCharts(bcChart, {
         series: [
-          { name: 'إجمالي المبيعات 💸', data: bSales },
-          { name: 'صافي الأرباح 📈', data: bProfits }
+          { name: 'إجمالي المبيعات 💸', data: bSales.length ? bSales : [0] },
+          { name: 'صافي الأرباح 📈', data: bProfits.length ? bProfits : [0] }
         ],
         chart: { type: 'bar', height: 350, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
         colors: ['#00e5ff', '#10b981'],
@@ -1456,7 +1473,7 @@ const initCharts = () => {
         xaxis: { categories: bLabels.length ? bLabels : ['---'] },
         yaxis: {
           labels: {
-            formatter: (value) => { return Math.round(value).toLocaleString() + ' ج'; }
+            formatter: (value) => { return Math.round(Number(value) || 0).toLocaleString() + ' ج'; }
           }
         },
         grid: { borderColor: 'rgba(255,255,255,0.05)' },

@@ -275,6 +275,15 @@
           </div>
         </div>
 
+        <!-- 21. فحص وصيانة أذرع البلاي ستيشن (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">🎮</span>
+          <div class="f-content">
+            <h4>نظام فحص وصيانة أذرع البلاي ستيشن <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <p>محاكاة كاملة ودقيقة لذراع التحكم (DualSense/DualShock) عبر توصيل الـ USB لقياس حساسية وجودة الأزرار، الأنالوج بدقة، واختبار الهزازات (Haptics) للحفاظ على كفاءة ذراع اللعب.</p>
+          </div>
+        </div>
+
         <!-- 21. الاستشارة والدعم الفني المتكامل (⭐ ميزة حصرية) -->
         <div class="feature-item highlighted">
           <span class="f-icon">📞</span>

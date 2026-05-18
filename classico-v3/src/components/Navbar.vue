@@ -41,6 +41,12 @@
         </button>
       </router-link>
 
+      <router-link v-if="store.appSettings.pageVisibility?.gamepad !== false && store.canAccess('gamepad', 'none')" to="/gamepad" v-slot="{ isActive }">
+        <button class="nav-btn" :class="{ active: isActive }">
+          <span class="icon">🕹️</span> فحص الأذرع
+        </button>
+      </router-link>
+
       <router-link v-if="store.canAccess('settings', 'none')" to="/settings" v-slot="{ isActive }">
         <button class="nav-btn" :class="{ active: isActive }">
           <span class="icon">⚙️</span> لوحة الإدارة
@@ -48,57 +54,66 @@
       </router-link>
     </nav>
 
-    <div class="user-profile-widget" style="display: flex !important; align-items: center !important; gap: 10px !important; order: 3 !important; margin: 0 !important; flex: 1 !important; justify-content: flex-end !important;">
-      <button @click="refreshPage" class="glass-icon-btn" title="تحديث">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4V9H9" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20 20V15H15" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20 9C18.5 5.5 15.5 3.5 12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 12.5 3.54224 12.9902 3.62358 13.4655" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M4 15C5.5 18.5 8.5 20.5 12 20.5C16.6944 20.5 20.5 16.6944 20.5 12C20.5 11.5 20.4578 11.0098 20.3764 10.5345" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+    <div class="user-profile-widget" style="display: flex !important; align-items: center !important; order: 3 !important; margin: 0 !important; flex: 1 !important; justify-content: flex-end !important;">
+      <div class="user-widget-column">
+        <!-- Compact Control Toolbar Above Profile -->
+        <div class="mini-control-toolbar">
+          <!-- Refresh -->
+          <button @click="refreshPage" class="mini-glass-icon-btn" title="تحديث">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4V9H9" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 20V15H15" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 9C18.5 5.5 15.5 3.5 12 3.5C7.30558 3.5 3.5 7.30558 3.5 12C3.5 12.5 3.54224 12.9902 3.62358 13.4655" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 15C5.5 18.5 8.5 20.5 12 20.5C16.6944 20.5 20.5 16.6944 20.5 12C20.5 11.5 20.4578 11.0098 20.3764 10.5345" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
 
-      <!-- Font Zoom Feature -->
-      <div class="zoom-dropdown-container" v-click-outside="() => showZoomMenu = false">
-        <button @click="showZoomMenu = !showZoomMenu" class="glass-icon-btn" :class="{ active: showZoomMenu }" title="حجم الخط">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="11" cy="11" r="8" stroke-width="2"/>
-            <path d="M21 21L16.65 16.65" stroke-width="2" stroke-linecap="round"/>
-            <path d="M11 8V14" stroke-width="2" stroke-linecap="round"/>
-            <path d="M8 11H14" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </button>
-        
-        <div v-if="showZoomMenu" class="zoom-popover glass-panel shadow-premium">
-          <div class="zoom-title">حجم الخط</div>
-          <div class="zoom-grid">
-            <button @click="changeFontSize('120')" class="zoom-btn" :class="{ current: ui.fontSize === '120' }">2+</button>
-            <button @click="changeFontSize('110')" class="zoom-btn" :class="{ current: ui.fontSize === '110' }">1+</button>
-            <button @click="changeFontSize('90')" class="zoom-btn" :class="{ current: ui.fontSize === '90' }">1-</button>
-            <button @click="changeFontSize('80')" class="zoom-btn" :class="{ current: ui.fontSize === '80' }">2-</button>
+          <!-- Zoom -->
+          <div class="zoom-dropdown-container" v-click-outside="() => showZoomMenu = false">
+            <button @click="showZoomMenu = !showZoomMenu" class="mini-glass-icon-btn" :class="{ active: showZoomMenu }" title="حجم الخط">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                <path d="M21 21L16.65 16.65" stroke-width="2" stroke-linecap="round"/>
+                <path d="M11 8V14" stroke-width="2" stroke-linecap="round"/>
+                <path d="M8 11H14" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            
+            <div v-if="showZoomMenu" class="zoom-popover glass-panel shadow-premium">
+              <div class="zoom-title">حجم الخط</div>
+              <div class="zoom-grid">
+                <button @click="changeFontSize('120')" class="zoom-btn" :class="{ current: ui.fontSize === '120' }">2+</button>
+                <button @click="changeFontSize('110')" class="zoom-btn" :class="{ current: ui.fontSize === '110' }">1+</button>
+                <button @click="changeFontSize('90')" class="zoom-btn" :class="{ current: ui.fontSize === '90' }">1-</button>
+                <button @click="changeFontSize('80')" class="zoom-btn" :class="{ current: ui.fontSize === '80' }">2-</button>
+              </div>
+              <button @click="changeFontSize('100')" class="zoom-reset-btn">إعادة ضبط (0)</button>
+            </div>
           </div>
-          <button @click="changeFontSize('100')" class="zoom-reset-btn">إعادة ضبط (0)</button>
+
+          <!-- Fullscreen -->
+          <button @click="toggleFullscreen" class="mini-glass-icon-btn" title="ملء الشاشة">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 3H21V9" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 21H3V15" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 3L14 10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 21L10 14" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Username and Exit buttons Row -->
+        <div class="user-badge-row" style="display: flex !important; align-items: center !important; gap: 8px !important;">
+          <div class="user-badge-premium">
+            <span class="user-role-dot"></span>
+            <span class="user-name-text">{{ username }}</span>
+          </div>
+
+          <button @click="logout" class="logout-btn-premium">
+            <span class="icon">🚪</span> خروج
+          </button>
         </div>
       </div>
-      <button @click="toggleFullscreen" class="glass-icon-btn" title="ملء الشاشة">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15 3H21V9" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M9 21H3V15" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M21 3L14 10" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M3 21L10 14" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-
-      <div class="nav-divider"></div>
-
-      <div class="user-badge-premium">
-        <span class="user-role-dot"></span>
-        <span class="user-name-text">{{ username }}</span>
-      </div>
-
-      <button @click="logout" class="logout-btn-premium">
-        <span class="icon">🚪</span> خروج
-      </button>
     </div>
   </header>
 </template>
@@ -317,5 +332,67 @@ const vClickOutside = {
 
 .nav-btn.active .icon-devices {
   filter: grayscale(1) brightness(2.6) contrast(1.2) drop-shadow(0 0 6px rgba(255, 255, 255, 0.7)) !important;
+}
+
+/* Compact Toolbar Mini Icons styling */
+.user-widget-column {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  padding-top: 22px !important; /* reserve exact absolute space for 12px absolute positioning */
+}
+
+.mini-control-toolbar {
+  position: absolute !important;
+  top: 0px !important;
+  left: 0 !important;
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+  z-index: 10 !important;
+}
+
+.mini-glass-icon-btn {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 5px !important;
+  padding: 4.5px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  color: #8fa0b5 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+}
+
+.mini-glass-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: #00e5ff !important;
+  color: #00e5ff !important;
+  transform: translateY(-0.5px) !important;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.3) !important;
+}
+
+.mini-glass-icon-btn:active {
+  transform: translateY(0) !important;
+}
+
+.mini-glass-icon-btn svg {
+  width: 12px !important;
+  height: 12px !important;
+  stroke-width: 2.5 !important;
+  display: block !important;
+}
+
+.mini-control-toolbar .zoom-popover {
+  top: 105% !important;
+  left: 0 !important;
+  right: auto !important;
+  transform: scale(0.92);
+  transform-origin: top left;
 }
 </style>

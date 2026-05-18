@@ -31,7 +31,8 @@ export const useAppStore = defineStore('app', {
         customers: true,
         expenses: true,
         archive: true,
-        menu: true
+        menu: true,
+        gamepad: true
       }
     },
     machineId: null,
@@ -753,7 +754,8 @@ export const useAppStore = defineStore('app', {
           customers: true,
           expenses: true,
           archive: true,
-          menu: true
+          menu: true,
+          gamepad: true
         }
       };
 

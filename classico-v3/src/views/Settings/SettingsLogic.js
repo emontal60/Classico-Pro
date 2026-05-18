@@ -339,6 +339,7 @@ export function useSettingsLogic() {
     { id: 'customers', label: '📒 حسابات العملاء', icon: '📒' },
     { id: 'expenses', label: '💸 المصروفات', icon: '💸' },
     { id: 'menu', label: '📜 قائمة الأسعار', icon: '📜' },
+    { id: 'gamepad', label: '🎮 فحص الأذرع', icon: '🎮' },
     {
       id: 'archive', label: '📦 الأرشيف', icon: '📦',
       children: [
@@ -1304,7 +1305,7 @@ export function useSettingsLogic() {
     togglePageVisibility: (pageId) => {
       if (!store.appSettings.pageVisibility) {
         store.appSettings.pageVisibility = {
-          monitoring: true, lounge: true, customers: true, expenses: true, archive: true, menu: true
+          monitoring: true, lounge: true, customers: true, expenses: true, archive: true, menu: true, gamepad: true
         };
       }
       store.appSettings.pageVisibility[pageId] = !store.appSettings.pageVisibility[pageId];
