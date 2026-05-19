@@ -212,7 +212,7 @@ const SupabaseService = {
                 console.error("Network Error:", e);
                 reject({ status: 500, error: e.message });
             });
-            req.setTimeout(5000, () => { // 5 seconds timeout
+            req.setTimeout(15000, () => { // 15 seconds timeout
                 req.destroy();
                 reject({ status: 408, error: 'Connection Timeout' });
             });
@@ -225,13 +225,71 @@ const SupabaseService = {
 let CACHED_ID = null;
 async function getMid() {
     if (CACHED_ID) return CACHED_ID;
-    return new Promise(resolve => {
-        exec('wmic baseboard get serialnumber', (e, out) => {
-            const id = out ? out.replace('SerialNumber', '').trim() : os.hostname();
-            CACHED_ID = crypto.createHash('md5').update(id).digest('hex').substring(0, 12).toUpperCase().trim();
-            resolve(CACHED_ID);
+
+    // Helper to get motherboard serial number if valid
+    const getMotherboardSerial = () => {
+        return new Promise(resolve => {
+            exec('wmic baseboard get serialnumber', (e, out) => {
+                if (out) {
+                    const clean = out.replace(/SerialNumber/i, '').trim();
+                    const cleanLower = clean.toLowerCase();
+                    const isGeneric = cleanLower.includes('o.e.m') ||
+                                      cleanLower.includes('fill') ||
+                                      cleanLower.includes('none') ||
+                                      cleanLower.includes('default') ||
+                                      cleanLower.replace(/[^a-z0-9]/g, '').length < 4 ||
+                                      /^0+$/.test(cleanLower.replace(/[^0-9]/g, ''));
+                    if (!isGeneric) {
+                        return resolve(clean);
+                    }
+                }
+                resolve('');
+            });
         });
-    });
+    };
+
+    // Helper to get Windows Cryptographic MachineGuid
+    const getWindowsGuid = () => {
+        return new Promise(resolve => {
+            exec('reg query HKLM\\Software\\Microsoft\\Cryptography /v MachineGuid', (e, out) => {
+                if (out) {
+                    const match = out.match(/MachineGuid\s+REG_SZ\s+(\S+)/i);
+                    if (match && match[1]) {
+                        return resolve(match[1].trim());
+                    }
+                }
+                resolve('');
+            });
+        });
+    };
+
+    // Helper to get MAC address
+    const getNetworkMac = () => {
+        const interfaces = os.networkInterfaces();
+        for (const name of Object.keys(interfaces)) {
+            for (const net of interfaces[name]) {
+                if (!net.internal && net.mac && net.mac !== '00:00:00:00:00:00') {
+                    return net.mac;
+                }
+            }
+        }
+        return '';
+    };
+
+    const serial = await getMotherboardSerial();
+    let idSource = serial;
+    if (!idSource) {
+        idSource = await getWindowsGuid();
+    }
+    if (!idSource) {
+        idSource = getNetworkMac();
+    }
+    if (!idSource) {
+        idSource = os.hostname();
+    }
+
+    CACHED_ID = crypto.createHash('md5').update(idSource).digest('hex').substring(0, 12).toUpperCase().trim();
+    return CACHED_ID;
 }
 
 function getDataPath() {
@@ -461,12 +519,17 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
                 const isDataEmpty = !data || !data.classico_menu || data.classico_menu.length === 0;
                 const isDeliberateReset = data && data.is_reset === true;
 
+                if (isDataEmpty && !isDeliberateReset) {
+                    console.warn("[Save] Skipped cloud sync: Local data is empty or invalid, protecting cloud backup.");
+                    return;
+                }
+
                 // For background sync, we can just use PATCH. If it's a new machine, we might need POST.
                 // To keep it simple and safe, we can still do a quick check or just try/catch.
 
                 // If it's a deliberate reset, we MUST also clear the backups directory
                 if (isDeliberateReset) {
-                    const backupDir = path.join(__dirname, 'backups');
+                    const backupDir = path.join(path.dirname(getDataPath()), 'backups');
                     if (fs.existsSync(backupDir)) {
                         fs.readdirSync(backupDir).forEach(f => fs.unlinkSync(path.join(backupDir, f)));
                     }
@@ -474,19 +537,21 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
 
                 // Cloud Upsert logic
                 try {
-                    await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, {
-                        data,
-                        updated_at: new Date().toISOString()
-                    });
-                } catch (patchErr) {
-                    // If PATCH failed (maybe record doesn't exist), try POST
-                    if (patchErr.status === 404 || (Array.isArray(patchErr.data) && patchErr.data.length === 0)) {
+                    const existing = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=machine_id`);
+                    if (existing && existing.length > 0) {
+                        await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, {
+                            data,
+                            updated_at: new Date().toISOString()
+                        });
+                    } else {
                         await SupabaseService.request('POST', '/rest/v1/cloud_backups', {
                             machine_id: mid,
                             data,
                             updated_at: new Date().toISOString()
                         });
                     }
+                } catch (cloudErrInner) {
+                    console.error("[Save] Background cloud upsert failed:", cloudErrInner);
                 }
                 console.log(`[Sync] Cloud backup successful for ${mid}`);
             } catch (cloudErr) {
@@ -893,9 +958,13 @@ app.get('/api/system/cloud-restore', async (req, res) => {
 app.post('/api/system/manual-cloud-backup', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase().trim();
-        const localPath = path.join(__dirname, 'database.json');
+        const localPath = getDataPath();
         if (fs.existsSync(localPath)) {
             const data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+            const isDataEmpty = !data || !data.classico_menu || data.classico_menu.length === 0;
+            if (isDataEmpty) {
+                return res.status(400).json({ error: 'قاعدة البيانات فارغة أو غير صالحة، لا يمكن رفع نسخة احتياطية فارغة.' });
+            }
             // Try to update existing first
             try {
                 const existing = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=machine_id`);
@@ -924,21 +993,27 @@ app.post('/api/system/factory-reset', async (req, res) => {
         console.log(`[Factory Reset] Initiating for ${mid}...`);
 
         // 1. Wipe Cloud
-        await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, {
-            data: cleanData,
-            updated_at: new Date().toISOString()
-        }).catch(async () => {
-            // If record doesn't exist, just create a clean one
-            await SupabaseService.request('POST', '/rest/v1/cloud_backups', {
-                machine_id: mid,
-                data: cleanData,
-                updated_at: new Date().toISOString()
-            });
-        });
+        try {
+            const existing = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=machine_id`);
+            if (existing && existing.length > 0) {
+                await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, {
+                    data: cleanData,
+                    updated_at: new Date().toISOString()
+                });
+            } else {
+                await SupabaseService.request('POST', '/rest/v1/cloud_backups', {
+                    machine_id: mid,
+                    data: cleanData,
+                    updated_at: new Date().toISOString()
+                });
+            }
+        } catch (cloudErr) {
+            console.error("[Factory Reset] Cloud wipe/sync failed:", cloudErr.message);
+        }
 
         // 2. Wipe Local
         const localPath = getDataPath();
-        const backupDir = path.join(__dirname, 'backups');
+        const backupDir = path.join(path.dirname(localPath), 'backups');
 
         if (fs.existsSync(localPath)) {
             fs.renameSync(localPath, localPath + '.factory_reset_bak');
@@ -963,7 +1038,7 @@ app.post('/api/system/factory-reset', async (req, res) => {
 app.post('/api/system/archive-maintenance', async (req, res) => {
     try {
         const { monthsThreshold = 6 } = req.body;
-        const localPath = path.join(__dirname, 'database.json');
+        const localPath = getDataPath();
         if (!fs.existsSync(localPath)) return res.status(404).json({ error: 'Database not found' });
 
         const data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
@@ -971,8 +1046,8 @@ app.post('/api/system/archive-maintenance', async (req, res) => {
         const thresholdDate = new Date();
         thresholdDate.setMonth(now.getMonth() - monthsThreshold);
 
-        const archivesDir = path.join(__dirname, 'archived_files');
-        if (!fs.existsSync(archivesDir)) fs.mkdirSync(archivesDir);
+        const archivesDir = path.join(path.dirname(localPath), 'archived_files');
+        if (!fs.existsSync(archivesDir)) fs.mkdirSync(archivesDir, { recursive: true });
 
         const archivedData = {
             timestamp: new Date().toISOString(),
@@ -1027,14 +1102,14 @@ async function runMaintenance() {
     console.log('[Maintenance] Running scheduled tasks...');
     try {
         const mid = await getMid();
-        const localPath = path.join(__dirname, 'database.json');
+        const localPath = getDataPath();
         if (!fs.existsSync(localPath)) return;
 
         const data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
 
         // A. Hourly Local Backup
-        const backupDir = path.join(__dirname, 'backups');
-        if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
+        const backupDir = path.join(path.dirname(localPath), 'backups');
+        if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
 
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupFile = path.join(backupDir, `backup-${timestamp}.json`);
@@ -1051,18 +1126,24 @@ async function runMaintenance() {
             console.log(`[Maintenance] Rotated local backups. Deleted ${files.length - 24} old files.`);
         }
 
-        // B. Daily Auto Cloud Sync
-        const cloudInfo = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=updated_at`);
-        const lastCloud = (cloudInfo && cloudInfo.length > 0) ? new Date(cloudInfo[0].updated_at) : new Date(0);
-        const now = new Date();
+        // B. Auto Cloud Sync (Every 12 Hours)
+        const isDataEmpty = !data || !data.classico_menu || data.classico_menu.length === 0;
+        if (isDataEmpty) {
+            console.warn('[Maintenance] Skipped scheduled cloud sync: local database is empty or invalid.');
+        } else {
+            const cloudInfo = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=updated_at`);
+            const lastCloud = (cloudInfo && cloudInfo.length > 0) ? new Date(cloudInfo[0].updated_at) : new Date(0);
+            const now = new Date();
 
-        if (now - lastCloud > 24 * 60 * 60 * 1000) {
-            console.log('[Maintenance] Triggering daily cloud sync...');
-            await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, { data, updated_at: now.toISOString() })
-                .catch(async () => {
+            if (now - lastCloud > 12 * 60 * 60 * 1000) {
+                console.log('[Maintenance] Triggering scheduled cloud sync (12-hour interval)...');
+                if (cloudInfo && cloudInfo.length > 0) {
+                    await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, { data, updated_at: now.toISOString() });
+                } else {
                     await SupabaseService.request('POST', '/rest/v1/cloud_backups', { machine_id: mid, data, updated_at: now.toISOString() });
-                });
-            console.log('[Maintenance] Daily cloud sync completed.');
+                }
+                console.log('[Maintenance] Scheduled cloud sync completed.');
+            }
         }
     } catch (e) {
         console.error('[Maintenance] Task failed:', e.message);

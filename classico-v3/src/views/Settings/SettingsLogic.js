@@ -1006,8 +1006,49 @@ export function useSettingsLogic() {
     showRestoreOptionsModal.value = true;
   };
 
-  const restoreFromLocal = () => {
-    showRestoreOptionsModal.value = false;
+  const processRestoreData = async (data) => {
+    try {
+      const confirmed = await ui.confirm({
+        title: 'استعادة نسخة احتياطية',
+        message: '⚠️ تحذير: استعادة النسخة الاحتياطية سيؤدي لمسح كافة البيانات الحالية واستبدالها ببيانات الملف. هل تريد المتابعة؟',
+        type: 'warning'
+      });
+      if (confirmed) {
+        // Normalize Users (Ensure it's an object, even if stored as array)
+        let restoredUsers = data.classico_users || data.users || {};
+        if (Array.isArray(restoredUsers)) {
+            const userObj = {};
+            restoredUsers.forEach(u => { if (u.username) userObj[u.username] = u; });
+            restoredUsers = userObj;
+        }
+
+        const mappedData = {
+            devices: data.classico_devices || data.devices || [],
+            menu: data.classico_menu || data.menu || [],
+            history: data.classico_history || data.history || [],
+            customers: data.classico_customers || data.customers || [],
+            archivedCustomers: data.classico_archived_customers || data.archivedCustomers || [],
+            users: restoredUsers,
+            archivedSalaries: data.classico_archived_salaries || data.archivedSalaries || [],
+            loungeInvoices: data.classico_lounge_invoices || data.loungeInvoices || [],
+            loungeHistory: data.classico_lounge_history || data.loungeHistory || [],
+            expenses: data.classico_expenses || data.expenses || [],
+            archivedExpenses: data.classico_archived_expenses || data.archivedExpenses || [],
+            localSubscription: data.classico_subscription || data.localSubscription || null,
+            lastJournalClosure: data.classico_last_journal_closure || data.lastJournalClosure || new Date().toISOString(),
+            appSettings: data.classico_app_settings || data.appSettings || {}
+        };
+        store.$patch(mappedData);
+        await store.saveToServer();
+        await ui.alert('تم استعادة البيانات من الجهاز بنجاح ✅', 'نجاح', 'success');
+        window.location.reload();
+      }
+    } catch (err) {
+      ui.showToast('فشل استعادة البيانات: ملف غير صالح', 'error');
+    }
+  };
+
+  const fallbackToStandardInputFile = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -1017,47 +1058,36 @@ export function useSettingsLogic() {
       reader.onload = async (event) => {
         try {
           const data = JSON.parse(event.target.result);
-          const confirmed = await ui.confirm({
-            title: 'استعادة نسخة احتياطية',
-            message: '⚠️ تحذير: استعادة النسخة الاحتياطية سيؤدي لمسح كافة البيانات الحالية واستبدالها ببيانات الملف. هل تريد المتابعة؟',
-            type: 'warning'
-          });
-          if (confirmed) {
-            // Mapping keys from classico_ format to store properties
-            // Normalize Users (Ensure it's an object, even if stored as array)
-            let restoredUsers = data.classico_users || data.users || {};
-            if (Array.isArray(restoredUsers)) {
-                const userObj = {};
-                restoredUsers.forEach(u => { if (u.username) userObj[u.username] = u; });
-                restoredUsers = userObj;
-            }
-
-            const mappedData = {
-                devices: data.classico_devices || data.devices || [],
-                menu: data.classico_menu || data.menu || [],
-                history: data.classico_history || data.history || [],
-                customers: data.classico_customers || data.customers || [],
-                archivedCustomers: data.classico_archived_customers || data.archivedCustomers || [],
-                users: restoredUsers,
-                archivedSalaries: data.classico_archived_salaries || data.archivedSalaries || [],
-                loungeInvoices: data.classico_lounge_invoices || data.loungeInvoices || [],
-                loungeHistory: data.classico_lounge_history || data.loungeHistory || [],
-                expenses: data.classico_expenses || data.expenses || [],
-                archivedExpenses: data.classico_archived_expenses || data.archivedExpenses || [],
-                localSubscription: data.classico_subscription || data.localSubscription || null,
-                lastJournalClosure: data.classico_last_journal_closure || data.lastJournalClosure || new Date().toISOString(),
-                appSettings: data.classico_app_settings || data.appSettings || {}
-            };
-            store.$patch(mappedData);
-            await store.saveToServer();
-            await ui.alert('تم استعادة البيانات من الجهاز بنجاح ✅', 'نجاح', 'success');
-            window.location.reload();
-          }
+          await processRestoreData(data);
         } catch (err) { ui.showToast('فشل استعادة البيانات: ملف غير صالح', 'error'); }
       };
       reader.readAsText(file);
     };
     input.click();
+  };
+
+  const restoreFromLocal = async () => {
+    showRestoreOptionsModal.value = false;
+    
+    // Use native Electron open dialog if available
+    if (window.electronAPI && typeof window.electronAPI.selectBackupFile === 'function') {
+      try {
+        const result = await window.electronAPI.selectBackupFile();
+        if (result && result.success && result.content) {
+          try {
+            const data = JSON.parse(result.content);
+            await processRestoreData(data);
+          } catch (jsonErr) {
+            ui.showToast('فشل استعادة البيانات: ملف غير صالح', 'error');
+          }
+        }
+      } catch (err) {
+        console.error('Electron File Dialog Error:', err);
+        fallbackToStandardInputFile();
+      }
+    } else {
+      fallbackToStandardInputFile();
+    }
   };
 
   const fetchCloudBackupInfo = async () => {

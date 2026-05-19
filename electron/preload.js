@@ -14,5 +14,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
       // Deliberately strip event as it includes `sender` 
       ipcRenderer.on(channel, (event, ...args) => func(...args));
     }
-  }
+  },
+  selectBackupFile: () => ipcRenderer.invoke('select-backup-file')
 });
