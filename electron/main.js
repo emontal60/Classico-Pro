@@ -132,6 +132,10 @@ ipcMain.on('restart_app', () => {
   autoUpdater.quitAndInstall();
 });
 
+ipcMain.on('exit_app', () => {
+  app.quit();
+});
+
 ipcMain.on('print-html', (event, html) => {
   let printWin = new BrowserWindow({ 
     show: false, 

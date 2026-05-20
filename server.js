@@ -212,7 +212,7 @@ const SupabaseService = {
                 console.error("Network Error:", e);
                 reject({ status: 500, error: e.message });
             });
-            req.setTimeout(15000, () => { // 15 seconds timeout
+            req.setTimeout(5000, () => { // 5 seconds timeout
                 req.destroy();
                 reject({ status: 408, error: 'Connection Timeout' });
             });
@@ -574,9 +574,10 @@ app.get('/api/system/machine-id', async (req, res) => {
 });
 
 app.get('/api/system/subscription-verify', async (req, res) => {
+    let mid;
+    const now = new Date();
     try {
-        const mid = (await getMid()).toUpperCase().trim();
-        const now = new Date();
+        mid = (await getMid()).toUpperCase().trim();
 
         // --- ANTI-TAMPER LOGIC ---
         const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
@@ -605,71 +606,100 @@ app.get('/api/system/subscription-verify', async (req, res) => {
         }
         // -------------------------
 
-        // 1. Direct check (Primary Device)
-        const results = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${mid}&select=*`);
-        let sub = (results && results.length > 0) ? results[0] : null;
+        // Fetch all checks concurrently to avoid serial network delay (saves ~75% of query latency)
+        const csQuery = encodeURIComponent(`[{"hardware_id":"${mid}"}]`);
+        const [primaryResults, subDeviceResults, keyResults] = await Promise.all([
+            SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${mid}&select=*`),
+            SupabaseService.request('GET', `/rest/v1/subscriptions?status=eq.active&activation_keys=cs.${csQuery}&select=*`),
+            SupabaseService.request('GET', `/rest/v1/subscription_keys?used_by=eq.${mid}&status=eq.used&select=device_name,owner_machine_id`)
+        ]);
 
-        // 2. Secondary check (Additional Device via activation_keys)
-        if (!sub) {
-            // Search for mid inside activation_keys array of any active subscription
-            const allActive = await SupabaseService.request('GET', `/rest/v1/subscriptions?status=eq.active&select=*`);
-            sub = (allActive || []).find(s => {
-                const keys = Array.isArray(s.activation_keys) ? s.activation_keys : [];
-                return keys.some(k => k.hardware_id === mid);
-            });
+        let sub = (primaryResults && primaryResults.length > 0) ? primaryResults[0] : null;
+
+        if (!sub && subDeviceResults && subDeviceResults.length > 0) {
+            sub = subDeviceResults[0];
         }
 
-        if (!sub) return res.json({ success: false, status: 'none', mid: mid });
+        // Helper: save subscription result directly to local database.json (auto-sync)
+        const saveSubToLocal = (subData) => {
+            try {
+                const dbPath = getDataPath();
+                if (fs.existsSync(dbPath)) {
+                    const localData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+                    // Stamp the current time as last successful online verification
+                    subData.last_online_check = new Date().toISOString();
+                    localData.classico_subscription = subData;
+                    fs.writeFileSync(dbPath, JSON.stringify(localData, null, 2));
+                    console.log(`[SubSync] Subscription auto-saved to local DB. Status: ${subData.status}`);
+                }
+            } catch (e) {
+                console.error('[SubSync] Failed to auto-save subscription:', e.message);
+            }
+        };
 
-        let status = sub.status;
-        const expiry = sub.expires_at ? new Date(sub.expires_at) : null;
+        if (sub) {
+            let status = sub.status;
+            const expiry = sub.expires_at ? new Date(sub.expires_at) : null;
+            if (status === 'active' && expiry && expiry <= now) status = 'expired';
 
-        if (status === 'active' && expiry && expiry <= now) status = 'expired';
+            if (status === 'active') {
+                const token = `${mid}|active|${sub.expires_at}`;
+                const sig = crypto.createHmac('sha256', SECRET_KEY).update(token).digest('hex');
+                const subResult = {
+                    success: true,
+                    status: 'active',
+                    activated_at: sub.activated_at || sub.created_at,
+                    created_at: sub.created_at,
+                    expires_at: sub.expires_at,
+                    plan_type: sub.plan_type,
+                    max_devices: sub.max_devices || 1,
+                    activation_keys: sub.activation_keys || [],
+                    token: `${token}.${sig}`
+                };
+                saveSubToLocal(subResult);
+                return res.json(subResult);
+            } else {
+                saveSubToLocal({ status: status, success: false, expires_at: sub.expires_at || null });
+                return res.json({ success: false, status: status });
+            }
+        }
 
-        if (status === 'active') {
-            const token = `${mid}|active|${sub.expires_at}`;
-            const sig = crypto.createHmac('sha256', SECRET_KEY).update(token).digest('hex');
-            res.json({
-                success: true,
-                status: 'active',
-                activated_at: sub.activated_at || sub.created_at,
-                created_at: sub.created_at,
-                expires_at: sub.expires_at,
-                plan_type: sub.plan_type,
-                max_devices: sub.max_devices || 1,
-                activation_keys: sub.activation_keys || [],
-                token: `${token}.${sig}`
-            });
-        } else {
-            // 3. Last chance: check subscription_keys table for used_by
-            const keyResults = await SupabaseService.request('GET', `/rest/v1/subscription_keys?used_by=eq.${mid}&status=eq.used&select=device_name,owner_machine_id`);
-            if (keyResults && keyResults.length > 0) {
-                const keyInfo = keyResults[0];
-                // Check if owner is active
-                const ownerResults = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${keyInfo.owner_machine_id}&status=eq.active&select=*`);
-                if (ownerResults && ownerResults.length > 0) {
-                    const ownerSub = ownerResults[0];
-                    const ownerExpiry = ownerSub.expires_at ? new Date(ownerSub.expires_at) : null;
-                    if (ownerExpiry && ownerExpiry > now) {
-                        const token = `${mid}|active|${ownerSub.expires_at}`;
-                        const sig = crypto.createHmac('sha256', SECRET_KEY).update(token).digest('hex');
-                        return res.json({
-                            success: true,
-                            status: 'active',
-                            activated_at: ownerSub.activated_at || ownerSub.created_at,
-                            created_at: ownerSub.created_at,
-                            expires_at: ownerSub.expires_at,
-                            plan_type: ownerSub.plan_type,
-                            device_name: keyInfo.device_name || null,
-                            token: `${token}.${sig}`
-                        });
-                    }
+        // 3. Sub-device license check via subscription_keys
+        if (keyResults && keyResults.length > 0) {
+            const keyInfo = keyResults[0];
+            // Check if owner is active
+            const ownerResults = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${keyInfo.owner_machine_id}&status=eq.active&select=*`).catch(() => []);
+            if (ownerResults && ownerResults.length > 0) {
+                const ownerSub = ownerResults[0];
+                const ownerExpiry = ownerSub.expires_at ? new Date(ownerSub.expires_at) : null;
+                if (ownerExpiry && ownerExpiry > now) {
+                    const token = `${mid}|active|${ownerSub.expires_at}`;
+                    const sig = crypto.createHmac('sha256', SECRET_KEY).update(token).digest('hex');
+                    const subResult = {
+                        success: true,
+                        status: 'active',
+                        activated_at: ownerSub.activated_at || ownerSub.created_at,
+                        created_at: ownerSub.created_at,
+                        expires_at: ownerSub.expires_at,
+                        plan_type: ownerSub.plan_type,
+                        device_name: keyInfo.device_name || null,
+                        token: `${token}.${sig}`
+                    };
+                    saveSubToLocal(subResult);
+                    return res.json(subResult);
                 }
             }
-            res.json({ success: false, status: status });
         }
+
+        // No active subscription found
+        saveSubToLocal({ status: 'none', success: false });
+        res.json({ success: false, status: 'none', mid: mid });
     } catch (e) { 
         console.error("[Subscription] Online verification failed. Trying secure offline fallback...", e.message);
+        
+        if (!mid) {
+            try { mid = (await getMid()).toUpperCase().trim(); } catch (err) { mid = ''; }
+        }
         
         // --- SECURE OFFLINE FALLBACK CRYPTOGRAPHIC VALIDATION ---
         const localPath = getDataPath();
@@ -693,6 +723,29 @@ app.get('/api/system/subscription-verify', async (req, res) => {
                                 }
                                 const expiry = new Date(expiryStr);
                                 if (expiry > now) {
+                                    // Check 7-day offline connection limit
+                                    const lastOnlineStr = localSub.last_online_check;
+                                    if (lastOnlineStr) {
+                                        const lastOnline = new Date(lastOnlineStr);
+                                        const diffMs = now - lastOnline;
+                                        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                                        if (diffDays > 7) {
+                                            console.warn(`[Offline Fallback] Offline limit exceeded. Last online: ${lastOnlineStr}`);
+                                            return res.json({
+                                                success: false,
+                                                status: 'expired_offline_limit',
+                                                message: 'يجب الاتصال بالإنترنت لتحديث حالة الاشتراك (مضى أكثر من 7 أيام دون اتصال).'
+                                            });
+                                        }
+                                    } else {
+                                        console.warn('[Offline Fallback] No last online check date found. Forcing check.');
+                                        return res.json({
+                                            success: false,
+                                            status: 'expired_offline_limit',
+                                            message: 'يجب الاتصال بالإنترنت مرة واحدة على الأقل لتنشيط ميزة التحقق الدوري.'
+                                        });
+                                    }
+
                                     console.log(`[Security] Secure offline subscription verified for machine: ${mid}`);
                                     return res.json({
                                         success: true,
@@ -703,7 +756,8 @@ app.get('/api/system/subscription-verify', async (req, res) => {
                                         plan_type: localSub.plan_type,
                                         max_devices: localSub.max_devices || 1,
                                         activation_keys: localSub.activation_keys || [],
-                                        token: localSub.token
+                                        token: localSub.token,
+                                        last_online_check: localSub.last_online_check
                                     });
                                 }
                             }
@@ -715,6 +769,36 @@ app.get('/api/system/subscription-verify', async (req, res) => {
             }
         }
         res.json({ success: false, status: 'error', message: 'خطأ في الاتصال بسيرفر التحقق ولم يتم العثور على تفعيل محلي موثق.' }); 
+    }
+});
+
+// Lightweight endpoint: saves ONLY subscription data to local DB without full-data save
+// Used by frontend when subscription status changes (renewal, cancellation)
+// No subscription middleware required — this IS the subscription update mechanism
+app.post('/api/system/sync-subscription', async (req, res) => {
+    try {
+        const subData = req.body;
+        if (!subData || !subData.status) {
+            return res.status(400).json({ success: false, error: 'Missing subscription data' });
+        }
+        const dbPath = getDataPath();
+        if (!fs.existsSync(dbPath)) {
+            return res.status(404).json({ success: false, error: 'Database not found' });
+        }
+        const localData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+        
+        // Preserve last_online_check if it exists in local storage but is missing in frontend sync payload
+        if (localData.classico_subscription && localData.classico_subscription.last_online_check && !subData.last_online_check) {
+            subData.last_online_check = localData.classico_subscription.last_online_check;
+        }
+
+        localData.classico_subscription = subData;
+        fs.writeFileSync(dbPath, JSON.stringify(localData, null, 2));
+        console.log(`[SubSync] Manual subscription sync saved. Status: ${subData.status}`);
+        res.json({ success: true });
+    } catch (e) {
+        console.error('[SubSync] Error:', e.message);
+        res.status(500).json({ success: false, error: e.message });
     }
 });
 

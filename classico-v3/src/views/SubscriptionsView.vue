@@ -4,6 +4,31 @@
       <span>تحديث الحالة</span>
       <i class="icon">🔄</i>
     </button>
+
+    <!-- ⚠️ Warning Banners depending on sub status -->
+    <div v-if="store.subscriptionStatus === 'expired_offline_limit'" class="offline-warning-banner glass-panel-warning">
+      <div class="banner-icon-wrapper">⚠️</div>
+      <div class="banner-content">
+        <h3>مطلوب الاتصال بالإنترنت لتنشيط الترخيص</h3>
+        <p>لقد مضى أكثر من 7 أيام على آخر تحقق من الاشتراك عبر الإنترنت. يرجى توصيل الجهاز بالإنترنت والضغط على زر "تحديث الحالة" بالأعلى لتحديث ترخيصك والتمكن من الدخول للبرنامج.</p>
+      </div>
+    </div>
+
+    <div v-if="store.subscriptionStatus === 'expired'" class="expired-warning-banner glass-panel-danger">
+      <div class="banner-icon-wrapper">🛑</div>
+      <div class="banner-content">
+        <h3>عذراً، انتهت صلاحية اشتراكك!</h3>
+        <p>انتهت فترة صلاحية الاشتراك المخصص لهذا الجهاز في نظام كلاسيكو. يرجى تجديد الاشتراك باختيار إحدى الباقات أدناه، أو إدخال كود تفعيل جهاز إضافي بالأسفل لتتمكن من تشغيل البرنامج.</p>
+      </div>
+    </div>
+
+    <div v-if="store.subscriptionStatus === 'tampered'" class="tampered-warning-banner glass-panel-security">
+      <div class="banner-icon-wrapper">🚨</div>
+      <div class="banner-content">
+        <h3>تنبيه أمني: تلاعب في تاريخ وساعة الجهاز!</h3>
+        <p>تم اكتشاف عدم تطابق أو تلاعب في تاريخ وساعة جهازك الحالي. يرجى ضبط الساعة بالوقت والتاريخ الصحيحين وتوصيل الإنترنت ثم الضغط على زر "تحديث الحالة" لإزالة هذا الحظر.</p>
+      </div>
+    </div>
     <div class="pricing-header">
       <h2 class="ph-title">نظام متكامل لإدارة الكافيهات وصالات الألعاب</h2>
       <p class="ph-subtitle">حل شامل لإدارة البلايستيشن، البوفيه، وتعدد الفروع — آمن ومرتبط بجهازك</p>
@@ -360,10 +385,28 @@ const refreshStatus = async () => {
     const status = store.subscriptionStatus;
     
     if (status === 'active') {
+      const activatedAtStr = store.subscriptionData?.activated_at || store.subscriptionData?.created_at;
+      let isNewActivation = false;
+      
+      if (activatedAtStr) {
+        const activatedAt = new Date(activatedAtStr);
+        const diffMs = new Date() - activatedAt;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        // Margin of 24 hours to distinguish new activation vs existing active subscription
+        if (diffHours <= 24 && diffHours >= -24) {
+          isNewActivation = true;
+        }
+      }
+
       const planName = store.subscriptionData?.plan_type === 'trial' ? 'تجربة مجانية' : 
                        store.subscriptionData?.plan_type === 'monthly' ? 'باقة شهرية' : 'باقة سنوية';
-      ui.showCelebration(`لقد تم تفعيل اشتراكك بنجاح! نتمى لك تجربة رائعة مع كلاسيكو.`, planName);
-      setTimeout(() => router.push('/login'), 2000);
+      
+      if (isNewActivation) {
+        ui.showCelebration(`لقد تم تفعيل اشتراكك بنجاح! نتمنى لك تجربة رائعة مع كلاسيكو.`, planName);
+      } else {
+        ui.showToast('اشتراكك نشط وسارٍ بالفعل! ✅ جاري تحويلك للمراقبة...', 'success');
+      }
+      setTimeout(() => router.push('/login'), 1500);
     } else if (status === 'pending') {
       ui.showToast('طلب الاشتراك قيد المراجعة حالياً ⏳ سيتم التفعيل فور التأكد.', 'warning');
     } else if (status === 'expired') {
@@ -415,7 +458,7 @@ const activateAdditionalDevice = async () => {
     if (response.data.success) {
       ui.showCelebration('تم تفعيل الجهاز الإضافي بنجاح! 🎉', 'باقة إضافية');
       await store.checkSubscription();
-      setTimeout(() => router.push('/login'), 2000);
+      setTimeout(() => router.push('/login'), 1500);
     } else {
       ui.showToast(response.data.message || 'فشل التفعيل، تأكد من الكود ورقم الهاتف.', 'error');
     }
@@ -796,5 +839,86 @@ const selectPlan = async (plan, devices = 1) => {
 .btn-activate-v3:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Warning Banners CSS */
+.glass-panel-warning, .glass-panel-danger, .glass-panel-security {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 90%;
+  margin: 0 auto 2.5rem auto;
+  text-align: right;
+  direction: rtl;
+  backdrop-filter: blur(10px);
+  animation: fade-in-down 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-warning {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.05);
+}
+
+.glass-panel-danger {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.05);
+}
+
+.glass-panel-security {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.08);
+  animation: pulse-border 2s infinite alternate;
+}
+
+@keyframes pulse-border {
+  from { border-color: rgba(239, 68, 68, 0.3); }
+  to { border-color: rgba(239, 68, 68, 0.6); }
+}
+
+@keyframes fade-in-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.banner-icon-wrapper {
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.banner-content h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.glass-panel-warning .banner-content h3 { color: #f59e0b; }
+.glass-panel-danger .banner-content h3 { color: #f87171; }
+.glass-panel-security .banner-content h3 { color: #f87171; }
+
+.banner-content p {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  margin: 0;
 }
 </style>

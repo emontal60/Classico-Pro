@@ -838,7 +838,31 @@ export function useSettingsLogic() {
 
   const showCloseShiftModal = ref(false);
 
-  const closeShift = () => {
+  const closeShift = async () => {
+    const runningDevices = store.devices.filter(d => d.status === 'running');
+    const openLoungeInvoices = store.loungeInvoices || [];
+
+    if (runningDevices.length > 0 || openLoungeInvoices.length > 0) {
+      let msg = '⚠️ تنبيه هام جداً قبل إغلاق اليومية:\n\n';
+      if (runningDevices.length > 0) {
+        msg += `• هناك (${runningDevices.length}) أجهزة قيد التشغيل حالياً.\n`;
+      }
+      if (openLoungeInvoices.length > 0) {
+        msg += `• هناك (${openLoungeInvoices.length}) فواتير/طاولات صالة مفتوحة ولم تُغلق بعد.\n`;
+      }
+      msg += '\nيرجى إنهاء كافة الجلسات وإغلاق فواتير الصالة أولاً لضمان احتساب جميع الإيرادات بشكل صحيح في هذه الوردية.\n\nهل أنت متأكد من رغبتك في الاستمرار وفتح نافذة تقفيل الوردية؟';
+
+      const confirmed = await ui.confirm({
+        title: 'تنبيه: جلسات وطلبات نشطة',
+        message: msg,
+        type: 'warning',
+        confirmText: 'نعم، استمر',
+        cancelText: 'إلغاء وتراجع'
+      });
+
+      if (!confirmed) return;
+    }
+
     showCloseShiftModal.value = true;
   };
 
@@ -859,7 +883,17 @@ export function useSettingsLogic() {
     if (confirmed) {
       ui.showToast('جاري التنظيف الذكي... 🧹', 'info');
       const results = await store.smartClean(false);
+
+      // Preserve key user settings so they aren't logged out or inconvenienced!
+      const session = localStorage.getItem('classico_session');
+      const fontSize = localStorage.getItem('classico_font_size');
+      const multiBranch = localStorage.getItem('classico_multi_branch_active');
+
       localStorage.clear();
+
+      if (session) localStorage.setItem('classico_session', session);
+      if (fontSize) localStorage.setItem('classico_font_size', fontSize);
+      if (multiBranch) localStorage.setItem('classico_multi_branch_active', multiBranch);
 
       await ui.alert(`تم الانتهاء! تم تنظيف ${results.cleanedCount} سجل مؤقت وتوفير مساحة تقريبية. سيتم الآن إعادة تشغيل الواجهة.`, 'نجاح التنظيف', 'success');
       window.location.reload();

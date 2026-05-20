@@ -104,7 +104,7 @@
 
         <!-- Username and Exit buttons Row -->
         <div class="user-badge-row" style="display: flex !important; align-items: center !important; gap: 8px !important;">
-          <div class="user-badge-premium">
+          <div :class="['user-badge-premium', connectionClass]">
             <span class="user-role-dot"></span>
             <span class="user-name-text">{{ username }}</span>
           </div>
@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../stores/appStore';
 import { useUIStore } from '../stores/uiStore';
@@ -140,6 +140,76 @@ const changeFontSize = (size) => {
 };
 
 const username = computed(() => store.session?.username || '---');
+
+// Connection Status Monitor
+const connectionStatus = ref(navigator.onLine ? 'online' : 'offline');
+const connectionClass = computed(() => `conn-${connectionStatus.value}`);
+
+let connectionInterval = null;
+
+const checkConnectionQuality = async () => {
+  if (!navigator.onLine) {
+    connectionStatus.value = 'offline';
+    return;
+  }
+
+  // Quick initial check via navigator.connection if supported
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  if (conn) {
+    if (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g') {
+      connectionStatus.value = 'weak';
+      return;
+    }
+    if (conn.rtt && conn.rtt > 1000) {
+      connectionStatus.value = 'weak';
+      return;
+    }
+  }
+
+  // Active check to measure real latency with concurrent fetches for extreme sensitivity
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout for fast offline detection
+  const startTime = performance.now();
+
+  const fetchGoogle = fetch(`https://clients3.google.com/generate_204?cb=${Date.now()}`, {
+    method: 'GET',
+    mode: 'no-cors',
+    signal: controller.signal,
+    cache: 'no-store'
+  });
+
+  const fetchCloudflare = fetch(`https://1.1.1.1/cdn-cgi/trace?cb=${Date.now()}`, {
+    method: 'GET',
+    mode: 'no-cors',
+    signal: controller.signal,
+    cache: 'no-store'
+  });
+
+  try {
+    // Wait for the fastest successful connection
+    await Promise.any([fetchGoogle, fetchCloudflare]);
+    clearTimeout(timeoutId);
+
+    const duration = performance.now() - startTime;
+    if (duration > 1000) {
+      connectionStatus.value = 'weak';
+    } else {
+      connectionStatus.value = 'online';
+    }
+  } catch (err) {
+    clearTimeout(timeoutId);
+    connectionStatus.value = 'offline';
+  }
+};
+
+const handleOnline = () => {
+  checkConnectionQuality();
+};
+
+const handleOffline = () => {
+  connectionStatus.value = 'offline';
+};
+
 const isAdmin = computed(() => {
   const role = store.session?.role?.toLowerCase()?.trim();
   return role === 'manager' || role === 'admin';
@@ -179,6 +249,22 @@ onMounted(() => {
     setTimeout(() => {
       ui.showToast('تم تحديث البيانات بنجاح ✅', 'success');
     }, 1200);
+  }
+
+  // Start connection quality check immediately and schedule periodic checks
+  checkConnectionQuality();
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
+  window.addEventListener('focus', checkConnectionQuality);
+  connectionInterval = setInterval(checkConnectionQuality, 3000);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('online', handleOnline);
+  window.removeEventListener('offline', handleOffline);
+  window.removeEventListener('focus', checkConnectionQuality);
+  if (connectionInterval) {
+    clearInterval(connectionInterval);
   }
 });
 
@@ -394,5 +480,48 @@ const vClickOutside = {
   right: auto !important;
   transform: scale(0.92);
   transform-origin: top left;
+}
+
+/* Dynamic connection styling overrides */
+.user-badge-premium.conn-online {
+    background: rgba(32, 201, 151, 0.05) !important;
+    border: 1px solid rgba(32, 201, 151, 0.2) !important;
+    box-shadow: inset 0 0 10px rgba(32, 201, 151, 0.05) !important;
+}
+.user-badge-premium.conn-online .user-role-dot {
+    background: #20c997 !important;
+    box-shadow: 0 0 10px #20c997 !important;
+}
+.user-badge-premium.conn-online .user-name-text {
+    color: #20c997 !important;
+    text-shadow: 0 0 8px rgba(32, 201, 151, 0.3) !important;
+}
+
+.user-badge-premium.conn-weak {
+    background: rgba(245, 158, 11, 0.05) !important;
+    border: 1px solid rgba(245, 158, 11, 0.2) !important;
+    box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.05) !important;
+}
+.user-badge-premium.conn-weak .user-role-dot {
+    background: #f59e0b !important;
+    box-shadow: 0 0 10px #f59e0b !important;
+}
+.user-badge-premium.conn-weak .user-name-text {
+    color: #f59e0b !important;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.3) !important;
+}
+
+.user-badge-premium.conn-offline {
+    background: rgba(239, 68, 68, 0.05) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.05) !important;
+}
+.user-badge-premium.conn-offline .user-role-dot {
+    background: #ef4444 !important;
+    box-shadow: 0 0 10px #ef4444 !important;
+}
+.user-badge-premium.conn-offline .user-name-text {
+    color: #ef4444 !important;
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.3) !important;
 }
 </style>

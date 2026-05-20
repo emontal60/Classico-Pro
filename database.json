@@ -6,7 +6,7 @@
       "status": "running",
       "hourPrice": 50,
       "orders": [],
-      "startTime": "2026-05-17T21:29:04.447Z",
+      "startTime": "2026-05-20T21:08:08.549Z",
       "prepaidSeconds": 0,
       "usedTimeSeconds": 0
     },
@@ -676,137 +676,9 @@
     }
   ],
   "classico_history": [],
-  "classico_customers": [
-    {
-      "id": 1779053290561,
-      "clientId": 1778624784052,
-      "name": "ايمن",
-      "ledger": [
-        {
-          "id": 1779053294789,
-          "type": "debt",
-          "amount": 45,
-          "note": "طلب صنف: سموذي فراولة (1x)",
-          "timestamp": "2026-05-17T21:28:14.789Z"
-        },
-        {
-          "id": 1779053297656,
-          "type": "debt",
-          "amount": 45,
-          "note": "طلب صنف: سموذي بطيخ (1x)",
-          "timestamp": "2026-05-17T21:28:17.656Z"
-        },
-        {
-          "id": 1779053300658,
-          "type": "payment",
-          "amount": 20,
-          "note": "تسديد مبلغ نقدًا",
-          "timestamp": "2026-05-17T21:28:20.658Z"
-        },
-        {
-          "id": 1779053326390,
-          "type": "payment",
-          "amount": 30,
-          "note": "تسديد مبلغ نقدًا",
-          "timestamp": "2026-05-17T21:28:46.390Z"
-        }
-      ]
-    }
-  ],
-  "classico_archived_customers": [
-    {
-      "id": 1779053300661.6218,
-      "clientId": 1778624784052,
-      "name": "ايمن",
-      "ledger": [
-        {
-          "id": 1779053294789,
-          "type": "debt",
-          "amount": 45,
-          "note": "طلب صنف: سموذي فراولة (1x)",
-          "timestamp": "2026-05-17T21:28:14.789Z"
-        },
-        {
-          "id": 1779053297656,
-          "type": "debt",
-          "amount": 45,
-          "note": "طلب صنف: سموذي بطيخ (1x)",
-          "timestamp": "2026-05-17T21:28:17.656Z"
-        },
-        {
-          "id": 1779053300658,
-          "type": "payment",
-          "amount": 20,
-          "note": "تسديد مبلغ نقدًا",
-          "timestamp": "2026-05-17T21:28:20.658Z"
-        },
-        {
-          "id": 1779053326390,
-          "type": "payment",
-          "amount": 30,
-          "note": "تسديد مبلغ نقدًا",
-          "timestamp": "2026-05-17T21:28:46.390Z"
-        }
-      ],
-      "originalCustomerId": 1779053290561,
-      "settledAmount": 20,
-      "archivedAt": "2026-05-17T21:28:20.661Z",
-      "archivedBy": "admin"
-    },
-    {
-      "id": 1779053326402.0244,
-      "clientId": 1778624784052,
-      "name": "ايمن",
-      "ledger": [
-        {
-          "id": 1779053294789,
-          "type": "debt",
-          "amount": 45,
-          "note": "طلب صنف: سموذي فراولة (1x)",
-          "timestamp": "2026-05-17T21:28:14.789Z"
-        },
-        {
-          "id": 1779053297656,
-          "type": "debt",
-          "amount": 45,
-          "note": "طلب صنف: سموذي بطيخ (1x)",
-          "timestamp": "2026-05-17T21:28:17.656Z"
-        },
-        {
-          "id": 1779053300658,
-          "type": "payment",
-          "amount": 20,
-          "note": "تسديد مبلغ نقدًا",
-          "timestamp": "2026-05-17T21:28:20.658Z"
-        },
-        {
-          "id": 1779053326390,
-          "type": "payment",
-          "amount": 30,
-          "note": "تسديد مبلغ نقدًا",
-          "timestamp": "2026-05-17T21:28:46.390Z"
-        }
-      ],
-      "originalCustomerId": 1779053290561,
-      "settledAmount": 30,
-      "archivedAt": "2026-05-17T21:28:46.402Z",
-      "archivedBy": "admin"
-    }
-  ],
-  "classico_clients_dir": [
-    {
-      "id": 1778624784052,
-      "name": "ايمن"
-    },
-    {
-      "id": 1778624812677,
-      "name": "ابراهيم"
-    },
-    {
-      "id": 1778624836079,
-      "name": "احمد"
-    }
-  ],
+  "classico_customers": [],
+  "classico_archived_customers": [],
+  "classico_clients_dir": [],
   "classico_users": {
     "admin": {
       "role": "manager",
@@ -816,333 +688,102 @@
     }
   },
   "classico_archived_salaries": [],
-  "classico_lounge_invoices": [],
-  "classico_lounge_history": [
+  "classico_lounge_invoices": [
     {
-      "name": "فاتورة #101",
-      "startTime": "2026-05-17T21:14:21.355Z",
-      "endTime": "2026-05-17T21:27:50.418Z",
+      "id": 1779311296429,
+      "name": "فاتورة #102",
+      "startTime": "2026-05-20T21:08:16.429Z",
       "orders": [
         {
-          "itemId": 2,
-          "name": "سموذي فراولة",
+          "itemId": 5,
+          "name": "سموذي ليمون نعناع",
           "price": 45,
           "qty": 1,
           "total": 45
         }
+      ]
+    }
+  ],
+  "classico_lounge_history": [
+    {
+      "name": "فاتورة #101",
+      "startTime": "2026-05-20T21:08:12.474Z",
+      "endTime": "2026-05-20T21:08:33.678Z",
+      "orders": [
+        {
+          "itemId": 25,
+          "name": "ميلك شيك فراولة",
+          "price": 60,
+          "qty": 1,
+          "total": 60
+        }
       ],
-      "total": 45,
+      "total": 60,
       "paymentType": "cash",
       "processedBy": "admin",
-      "timestamp": "2026-05-17T21:27:50.419Z"
+      "timestamp": "2026-05-20T21:08:33.678Z"
     }
   ],
   "classico_expenses": [],
-  "classico_archived_expenses": [
-    {
-      "id": 1779051723003,
-      "timestamp": "2026-05-17T21:02:03.003Z",
-      "category": "كهرباء",
-      "amount": 898,
-      "note": "33متلابهتاايلاايلا",
-      "processedBy": "admin",
-      "reason": "كهرباء - 33متلابهتاايلاايلا",
-      "user": "admin",
-      "archivedAt": "2026-05-17T21:02:03.003Z",
-      "archivedBy": "admin"
-    },
-    {
-      "id": 1779053319930,
-      "timestamp": "2026-05-17T21:28:39.930Z",
-      "category": "نثرية",
-      "amount": 234,
-      "note": "",
-      "processedBy": "admin",
-      "reason": "نثرية",
-      "user": "admin",
-      "archivedAt": "2026-05-17T21:28:39.930Z",
-      "archivedBy": "admin"
-    }
-  ],
+  "classico_archived_expenses": [],
   "classico_subscription": {
     "success": true,
     "status": "active",
-    "activated_at": "2026-05-19T22:33:04.899+00:00",
-    "created_at": "2026-05-19T22:32:59.941+00:00",
-    "expires_at": "2026-06-18T22:33:04.899+00:00",
+    "activated_at": "2026-05-20T21:09:36.454+00:00",
+    "created_at": "2026-05-20T21:09:21.972+00:00",
+    "expires_at": "2026-06-19T21:09:36.454+00:00",
     "plan_type": "monthly",
     "max_devices": 3,
     "activation_keys": [],
-    "token": "384A46880B05|active|2026-06-18T22:33:04.899+00:00.1ad0fe5e5d8ca11d1bc50e0992a740e57dfeed40aff2ed41f75262f39e5c5198"
+    "token": "384A46880B05|active|2026-06-19T21:09:36.454+00:00.d77b937d2bc373e55e8c849cabd1292820a2533e59447e6938e9bf2ed429fd42",
+    "last_online_check": "2026-05-20T21:20:29.777Z"
   },
-  "classico_last_journal_closure": "2026-05-20T13:32:14.043Z",
+  "classico_last_journal_closure": "2026-05-20T21:14:17.463Z",
   "classico_app_settings": {
     "appName": "Classico",
-    "userId": "USR-A0IQK5",
+    "appLogo": null,
+    "userId": "",
+    "subscriptionDays": 30,
     "pageVisibility": {
       "monitoring": true,
       "lounge": true,
       "customers": true,
       "expenses": true,
       "archive": true,
-      "menu": true
+      "menu": true,
+      "gamepad": true
     }
   },
   "classico_activity_log": [
     {
-      "id": 1779283934043.3545,
-      "timestamp": "2026-05-20T13:32:14.043Z",
+      "id": 1779312036900.7146,
+      "timestamp": "2026-05-20T21:20:36.900Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1779311657463.5078,
+      "timestamp": "2026-05-20T21:14:17.463Z",
       "user": "admin",
       "action": "تقفيل اليومية",
-      "details": "تم تقفيل اليومية بنجاح. صافي الربح: -204 ج"
+      "details": "تم تقفيل اليومية بنجاح. صافي الربح: 60 ج"
     },
     {
-      "id": 1779283923328.809,
-      "timestamp": "2026-05-20T13:32:03.328Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1779224286288.666,
-      "timestamp": "2026-05-19T20:58:06.288Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1779123642451.0007,
-      "timestamp": "2026-05-18T17:00:42.451Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1779057477881.6514,
-      "timestamp": "2026-05-17T22:37:57.881Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1779053313267.5862,
-      "timestamp": "2026-05-17T21:28:33.267Z",
-      "user": "admin",
-      "action": "تقفيل اليومية",
-      "details": "تم تقفيل اليومية بنجاح. صافي الربح: 65 ج"
-    },
-    {
-      "id": 1779053270435.9233,
-      "timestamp": "2026-05-17T21:27:50.435Z",
+      "id": 1779311313682.831,
+      "timestamp": "2026-05-20T21:08:33.682Z",
       "user": "admin",
       "action": "حذف فاتورة صالة",
       "details": "تم حذف فاتورة صالة باسم فاتورة #101 بقيمة undefined ج"
     },
     {
-      "id": 1779051740348.874,
-      "timestamp": "2026-05-17T21:02:20.348Z",
-      "user": "admin",
-      "action": "تقفيل اليومية",
-      "details": "تم تقفيل اليومية بنجاح. صافي الربح: -898 ج"
-    },
-    {
-      "id": 1778971497846.8162,
-      "timestamp": "2026-05-16T22:44:57.846Z",
+      "id": 1779309129755.737,
+      "timestamp": "2026-05-20T20:32:09.755Z",
       "user": "admin",
       "action": "تسجيل دخول",
       "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778971486008.0566,
-      "timestamp": "2026-05-16T22:44:46.008Z",
-      "user": "admin",
-      "action": "إعادة ضبط المصنع",
-      "details": "تم إجراء إعادة ضبط كاملة للمصنع ومسح كافة البيانات"
-    },
-    {
-      "id": 1778952111653.8914,
-      "timestamp": "2026-05-16T17:21:51.653Z",
-      "user": "admin",
-      "action": "إضافة موظف",
-      "details": "تم إضافة بيانات الموظف ثثث"
-    },
-    {
-      "id": 1778951822136.6326,
-      "timestamp": "2026-05-16T17:17:02.136Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778883235456.5913,
-      "timestamp": "2026-05-15T22:13:55.456Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778883225824.9636,
-      "timestamp": "2026-05-15T22:13:45.824Z",
-      "user": "admin",
-      "action": "إعادة ضبط المصنع",
-      "details": "تم إجراء إعادة ضبط كاملة للمصنع ومسح كافة البيانات"
-    },
-    {
-      "id": 1778883090391.9194,
-      "timestamp": "2026-05-15T22:11:30.391Z",
-      "user": "admin",
-      "action": "حذف من أرشيف المصروفات",
-      "details": "تم حذف مصروف (كهرباء) بقيمة 100 ج"
-    },
-    {
-      "id": 1778883090331.3064,
-      "timestamp": "2026-05-15T22:11:30.331Z",
-      "user": "admin",
-      "action": "حذف مصروف",
-      "details": "تم حذف مصروف (كهرباء) بقيمة 100 ج"
-    },
-    {
-      "id": 1778877509892.8147,
-      "timestamp": "2026-05-15T20:38:29.892Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778877497849.957,
-      "timestamp": "2026-05-15T20:38:17.849Z",
-      "user": "admin",
-      "action": "تسجيل خروج",
-      "details": "المستخدم admin قام بتسجيل الخروج"
-    },
-    {
-      "id": 1778875058412.1428,
-      "timestamp": "2026-05-15T19:57:38.412Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778874884441.9617,
-      "timestamp": "2026-05-15T19:54:44.441Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778867740633.5938,
-      "timestamp": "2026-05-15T17:55:40.633Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778867196187.5247,
-      "timestamp": "2026-05-15T17:46:36.187Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778863188938.9614,
-      "timestamp": "2026-05-15T16:39:48.938Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778792816383.5503,
-      "timestamp": "2026-05-14T21:06:56.383Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778696279099.8657,
-      "timestamp": "2026-05-13T18:17:59.099Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778624861376.4004,
-      "timestamp": "2026-05-12T22:27:41.376Z",
-      "user": "admin",
-      "action": "حذف عميل",
-      "details": "تم حذف حساب العميل احمد"
-    },
-    {
-      "id": 1778624859274.7666,
-      "timestamp": "2026-05-12T22:27:39.274Z",
-      "user": "admin",
-      "action": "حذف عميل",
-      "details": "تم حذف حساب العميل ابراهيم"
-    },
-    {
-      "id": 1778624857347.3186,
-      "timestamp": "2026-05-12T22:27:37.347Z",
-      "user": "admin",
-      "action": "حذف عميل",
-      "details": "تم حذف حساب العميل ايمن"
-    },
-    {
-      "id": 1778624780128.3223,
-      "timestamp": "2026-05-12T22:26:20.128Z",
-      "user": "admin",
-      "action": "حذف عميل",
-      "details": "تم حذف حساب العميل ايمن"
-    },
-    {
-      "id": 1778624625691.3306,
-      "timestamp": "2026-05-12T22:23:45.691Z",
-      "user": "admin",
-      "action": "حذف عميل",
-      "details": "تم حذف حساب العميل ايمن"
-    },
-    {
-      "id": 1778618718088.2534,
-      "timestamp": "2026-05-12T20:45:18.088Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1778618712662.5735,
-      "timestamp": "2026-05-12T20:45:12.662Z",
-      "user": "admin",
-      "action": "تسجيل خروج",
-      "details": "المستخدم admin قام بتسجيل الخروج"
-    },
-    {
-      "id": 1778618702649.9717,
-      "timestamp": "2026-05-12T20:45:02.649Z",
-      "user": "admin",
-      "action": "حذف من أرشيف المصروفات",
-      "details": "تم حذف مصروف (غاز) بقيمة 100 ج"
-    },
-    {
-      "id": 1778618694441.4675,
-      "timestamp": "2026-05-12T20:44:54.441Z",
-      "user": "admin",
-      "action": "حذف من أرشيف المصروفات",
-      "details": "تم حذف مصروف (undefined) بقيمة undefined ج"
-    },
-    {
-      "id": 1778618694422.3037,
-      "timestamp": "2026-05-12T20:44:54.422Z",
-      "user": "admin",
-      "action": "حذف مصروف",
-      "details": "تم حذف مصروف (كهرباء) بقيمة 180 ج"
-    },
-    {
-      "id": 1778618681459.4944,
-      "timestamp": "2026-05-12T20:44:41.459Z",
-      "user": "admin",
-      "action": "نظام",
-      "details": "تم تنظيف سجل النشاط بالكامل"
     }
   ],
   "is_activation": false,
-  "is_reset": false,
-  "last_seen_time": "2026-05-20T13:32:23.923Z"
+  "is_reset": false
 }

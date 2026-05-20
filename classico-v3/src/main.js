@@ -14,10 +14,10 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 
-// Initialize store before mounting
+// Mount immediately so the splash screen appears instantly (no black screen)
+// Then initialize the store in the background
 import { useAppStore } from './stores/appStore';
 const store = useAppStore();
 
-store.init().then(() => {
-  app.mount('#app');
-});
+app.mount('#app');
+store.init();

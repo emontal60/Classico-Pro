@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
-
 const API_BASE = 'http://localhost:3000/api';
+
+// Short timeout for all API calls to avoid long black screen waits on slow/no internet
+const api = axios.create({ baseURL: API_BASE, timeout: 5000 });
 
 export const useAppStore = defineStore('app', {
   state: () => ({
@@ -194,40 +196,58 @@ export const useAppStore = defineStore('app', {
     async init() {
       this.isLoading = true;
       try {
-        const res = await axios.get(`${API_BASE}/system/machine-id`);
-        this.machineId = res.data.id.trim();
-
-        await this.syncFromServer();
+        // Step 1: Verify local subscription IMMEDIATELY from cached data (offline-safe)
         this.verifyLocalSubscription();
 
-        if (this.machineId) {
-          await this.checkSubscription();
-          this.startSubscriptionPolling();
-          if (this.multiBranchActive) {
-            await this.fetchMultiBranchData();
-          }
+        // Step 2: Get machine ID from local server (fast, no internet needed)
+        try {
+          const res = await api.get('/system/machine-id');
+          this.machineId = res.data.id.trim();
+        } catch (e) {
+          console.warn('[Init] Could not get machine-id:', e.message);
         }
 
+        // Step 3: Load data from local server (fast, no internet needed)
+        await this.syncFromServer();
+
+        // Step 4: Re-verify after loading fresh data from local DB
+        this.verifyLocalSubscription();
+
+        // Step 5: Restore session from localStorage
+        const savedSession = localStorage.getItem('classico_session');
+        if (savedSession) {
+          try {
+            const session = JSON.parse(savedSession);
+            if (Date.now() - session.loginTime < 21600000) {
+              this.session = session;
+            }
+          } catch(e) { localStorage.removeItem('classico_session'); }
+        }
+
+        // Step 6: Ensure admin user exists
         if (!this.users || Object.keys(this.users).length === 0 || !this.users['admin']) {
           this.users = {
             ...this.users,
-            'admin': {
-              username: 'admin',
-              password: 'admin',
-              role: 'manager',
-              permissions: {}
-            }
+            'admin': { username: 'admin', password: 'admin', role: 'manager', permissions: {} }
           };
           await this.saveToDatabase(true);
         }
 
-        const savedSession = localStorage.getItem('classico_session');
-        if (savedSession) {
-          const session = JSON.parse(savedSession);
-          if (Date.now() - session.loginTime < 21600000) {
-            this.session = session;
+        // Step 7: Online verification in background (non-blocking)
+        if (this.machineId) {
+          this.checkSubscription().catch(() => {});
+          this.startSubscriptionPolling();
+          if (this.multiBranchActive) {
+            this.fetchMultiBranchData().catch(() => {});
           }
         }
+
+        // Step 8: Self-Healing Automatic background cleanup (runs 3s after startup)
+        setTimeout(() => {
+          this.smartClean(true).catch(() => {});
+          console.log('✨ Self-Healing: Startup background database sanitization completed.');
+        }, 3000);
+
       } catch (err) {
         console.error("Critical Init Error:", err);
       } finally {
@@ -241,21 +261,34 @@ export const useAppStore = defineStore('app', {
 
     async checkSubscription() {
       try {
-        const res = await axios.get(`${API_BASE}/system/subscription-verify`);
+        const res = await api.get('/system/subscription-verify');
         const data = res.data;
 
         if (data.success) {
           const oldStatus = this.subscriptionStatus;
+          const oldExpiry = this.localSubscription?.expires_at;
+          const newExpiry = data.expires_at;
+
           this.subscriptionData = data;
           this.subscriptionStatus = (data.status || 'none').toLowerCase().trim();
           this.localSubscription = data;
 
-          if (this.subscriptionStatus === 'active' && oldStatus !== 'active') {
-            await this.saveToDatabase(true);
+          // Detect any change: new activation, renewal (new expiry), plan change
+          const statusChanged = oldStatus !== this.subscriptionStatus;
+          const expiryExtended = newExpiry && oldExpiry && new Date(newExpiry) > new Date(oldExpiry);
+          const freshActivation = oldStatus !== 'active' && this.subscriptionStatus === 'active';
+
+          if (statusChanged || expiryExtended || freshActivation) {
+            console.log(`[SubSync] Subscription changed → status: ${this.subscriptionStatus}, expiry: ${newExpiry}`);
+            // Use lightweight sync endpoint (no subscription middleware needed)
+            api.post('/system/sync-subscription', data).catch(() => {});
+            // Also do full save for activation
+            if (freshActivation) {
+              await this.saveToDatabase(true);
+            }
           }
           
           if (data.device_name && this.appSettings.appName !== data.device_name) {
-            console.log(`[Subscription] Updating App Name to: ${data.device_name}`);
             this.appSettings.appName = data.device_name;
             await this.saveToDatabase();
           }
@@ -265,17 +298,26 @@ export const useAppStore = defineStore('app', {
              ui.showToast(data.message || 'تنبيه أمني: تم اكتشاف تلاعب في الوقت!', 'error');
           }
         } else {
-          this.subscriptionStatus = data.status || 'none';
-          this.subscriptionData = data; // Keep data for created_at even if none
+          // Online confirmed non-active (expired/cancelled/none)
+          const wasActive = this.subscriptionStatus === 'active';
+          const newStatus = data.status || 'none';
+
+          if (wasActive && newStatus !== 'active') {
+            // Subscription was just cancelled or expired online — sync immediately
+            console.log(`[SubSync] Subscription deactivated online → status: ${newStatus}`);
+            const deactivatedSub = { ...this.localSubscription, status: newStatus, success: false };
+            this.localSubscription = deactivatedSub;
+            // Use lightweight endpoint (works even without active subscription)
+            api.post('/system/sync-subscription', deactivatedSub).catch(() => {});
+          }
+          this.subscriptionStatus = newStatus;
+          this.subscriptionData = data;
         }
 
-        // Fetch History
-        try {
-          const histRes = await axios.get(`${API_BASE}/system/subscription-history`);
-          this.subscriptionHistory = histRes.data || [];
-        } catch (hErr) {
-          console.error("History fetch failed", hErr);
-        }
+        // Fetch History in background
+        api.get('/system/subscription-history')
+          .then(r => { this.subscriptionHistory = r.data || []; })
+          .catch(() => {});
 
         // Smart Expiry Notifications
         if (this.subscriptionStatus === 'active' && this.subscriptionData?.expires_at && !this.notifiedExpiry) {
@@ -283,7 +325,7 @@ export const useAppStore = defineStore('app', {
           const now = new Date();
           const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
 
-          const ui = (await import('./uiStore')).useUIStore(); // Dynamic import to avoid circular dep
+          const ui = (await import('./uiStore')).useUIStore();
 
           if (diffDays <= 3 && diffDays > 0) {
             ui.showToast(`تنبيه هام جداً 🚨: متبقي ${diffDays} أيام فقط! سيتم إغلاق النظام تلقائياً إذا لم يتم التجديد.`, 'error');
@@ -296,6 +338,8 @@ export const useAppStore = defineStore('app', {
 
         return this.subscriptionStatus;
       } catch (err) {
+        // Network error: fall back to local subscription check (never deactivate on network error)
+        console.warn('[Subscription] Online check failed, using local fallback:', err.message);
         this.verifyLocalSubscription();
         return this.subscriptionStatus;
       }
@@ -324,7 +368,7 @@ export const useAppStore = defineStore('app', {
           is_reset: isReset
         };
 
-        await axios.post(`${API_BASE}/save`, payload);
+        await api.post('/save', payload);
       } catch (err) {
         if (err.response?.status === 401) return;
         console.error("Save failed", err);
@@ -333,7 +377,7 @@ export const useAppStore = defineStore('app', {
 
     async syncFromServer() {
       try {
-        const res = await axios.get(`${API_BASE}/data`);
+        const res = await api.get('/data');
         if (res.data) {
           const data = res.data;
           this.devices = data.classico_devices || [];
@@ -348,13 +392,16 @@ export const useAppStore = defineStore('app', {
           this.loungeHistory = data.classico_lounge_history || [];
           this.expenses = data.classico_expenses || [];
           this.archivedExpenses = data.classico_archived_expenses || [];
-          this.localSubscription = data.classico_subscription || null;
+          // Only update localSubscription if server returned one (preserve cached value otherwise)
+          if (data.classico_subscription) {
+            this.localSubscription = data.classico_subscription;
+          }
           this.lastJournalClosure = data.classico_last_journal_closure || "2024-01-01T00:00:00.000Z";
           this.appSettings = data.classico_app_settings || { appName: 'Classico', userId: 'USR-' + Math.random().toString(36).substr(2, 6).toUpperCase() };
           this.activityLog = data.classico_activity_log || [];
         }
       } catch (err) {
-        console.warn("Sync failed", err);
+        console.warn('[Sync] Local server unreachable, continuing with cached data:', err.message);
       }
     },
 
@@ -643,11 +690,31 @@ export const useAppStore = defineStore('app', {
       if (this.localSubscription && this.localSubscription.status === 'active') {
         const expiry = new Date(this.localSubscription.expires_at);
         if (expiry > new Date()) {
+          // Check 7-day offline connection limit
+          const lastOnlineStr = this.localSubscription.last_online_check;
+          if (lastOnlineStr) {
+            const diffMs = new Date() - new Date(lastOnlineStr);
+            const diffDays = diffMs / (1000 * 60 * 60 * 24);
+            if (diffDays > 7) {
+              this.subscriptionStatus = 'expired_offline_limit';
+              console.warn('[LocalSub] Offline limit exceeded (more than 7 days offline).');
+              return;
+            }
+          } else {
+            this.subscriptionStatus = 'expired_offline_limit';
+            console.warn('[LocalSub] No last_online_check timestamp found in active local subscription.');
+            return;
+          }
+
+          // Local subscription is valid - set active immediately
           this.subscriptionStatus = 'active';
+          console.log('[LocalSub] Active subscription verified locally until:', this.localSubscription.expires_at);
         } else {
           this.subscriptionStatus = 'expired';
         }
       }
+      // If no local subscription found, keep status as 'checking' to avoid
+      // premature redirect to subscription page before online check finishes
     },
 
     startSubscriptionPolling() {
@@ -708,7 +775,8 @@ export const useAppStore = defineStore('app', {
       this.expenses = cleanArray(this.expenses);
       this.archivedExpenses = cleanArray(this.archivedExpenses);
 
-      if (!isSilent) {
+      // If we actually cleaned something, save it to persist the cleanup!
+      if (cleanedCount > 0 || !isSilent) {
         await this.saveToDatabase();
       }
 

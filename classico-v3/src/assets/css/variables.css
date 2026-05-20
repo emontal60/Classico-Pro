@@ -4,7 +4,10 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: var(--font-main) !important;
+}
+
+body, button, input, select, textarea {
+    font-family: var(--font-main), sans-serif;
 }
 
 :root {
@@ -31,11 +34,6 @@
     --font-heading: 'Outfit', sans-serif;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }

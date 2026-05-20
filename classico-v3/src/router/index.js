@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { watch } from 'vue';
 import { useAppStore } from '../stores/appStore';
 
 // Views
@@ -40,30 +41,42 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const store = useAppStore();
 
-  // CRITICAL: Await store initialization on every route change (handles refresh)
+  // If store is still loading, wait until it finishes
   if (store.isLoading) {
-    await store.init();
+    await new Promise((resolve) => {
+      const unwatch = watch(
+        () => store.isLoading,
+        (loading) => {
+          if (!loading) {
+            unwatch();
+            resolve();
+          }
+        },
+        { immediate: true }
+      );
+    });
   }
 
-  // 1. Check Subscription First (The Gatekeeper)
+  // 1. Check Subscription (The Gatekeeper)
   if (to.meta.requiresSubscription) {
-    // If status is still 'checking', wait for store to finish or trigger a check
-    if (store.subscriptionStatus === 'checking') {
-      await store.checkSubscription();
-    }
-
     if (store.subscriptionStatus === 'active') {
       // Proceed normally
     } else if (store.subscriptionStatus === 'pending') {
       return next('/waiting');
+    } else if (store.subscriptionStatus === 'checking') {
+      // Still checking - do online check now to get definitive answer
+      await store.checkSubscription();
+      if (store.subscriptionStatus !== 'active') {
+        if (store.subscriptionStatus === 'pending') return next('/waiting');
+        return next('/subscriptions');
+      }
     } else {
-      return next('/subscriptions'); // Fail-secure: redirect all expired, none, error or other statuses
+      return next('/subscriptions'); // expired, none, error etc.
     }
   }
 
   // 2. Check Auth
   if (to.meta.requiresAuth && !store.session) {
-    if (store.isLoading) return; // Wait for loading to finish
     return next('/login');
   }
 
