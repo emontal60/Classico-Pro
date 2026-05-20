@@ -346,8 +346,7 @@ async function requireActiveSubscription(req, res, next) {
         const mid = (await getMid()).toUpperCase().trim();
         const now = new Date();
 
-        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
-        const localPath = path.join(baseDir, 'database.json');
+        const localPath = getDataPath();
         
         if (!fs.existsSync(localPath)) {
             return res.status(403).json({ success: false, error: 'Database not initialized, active license required.' });
@@ -360,7 +359,9 @@ async function requireActiveSubscription(req, res, next) {
             return res.status(403).json({ success: false, error: 'Subscription inactive or expired. Please purchase a license to access the program.' });
         }
 
-        const [tokenPayload, sig] = localSub.token.split('.');
+        const tokenParts = localSub.token.split('.');
+        const sig = tokenParts.pop();
+        const tokenPayload = tokenParts.join('.');
         if (!tokenPayload || !sig) {
             return res.status(403).json({ success: false, error: 'Invalid subscription token format. Access denied.' });
         }
@@ -671,15 +672,16 @@ app.get('/api/system/subscription-verify', async (req, res) => {
         console.error("[Subscription] Online verification failed. Trying secure offline fallback...", e.message);
         
         // --- SECURE OFFLINE FALLBACK CRYPTOGRAPHIC VALIDATION ---
-        const baseDir = process.env.CLASSICO_DATA_PATH || __dirname;
-        const localPath = path.join(baseDir, 'database.json');
+        const localPath = getDataPath();
         if (fs.existsSync(localPath)) {
             try {
                 const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
                 const localSub = localData.classico_subscription;
                 
                 if (localSub && localSub.status === 'active' && localSub.token) {
-                    const [tokenPayload, sig] = localSub.token.split('.');
+                    const tokenParts = localSub.token.split('.');
+                    const sig = tokenParts.pop();
+                    const tokenPayload = tokenParts.join('.');
                     if (tokenPayload && sig) {
                         const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(tokenPayload).digest('hex');
                         

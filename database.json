@@ -837,18 +837,7 @@
       "timestamp": "2026-05-17T21:27:50.419Z"
     }
   ],
-  "classico_expenses": [
-    {
-      "id": 1779053319930,
-      "timestamp": "2026-05-17T21:28:39.930Z",
-      "category": "نثرية",
-      "amount": 234,
-      "note": "",
-      "processedBy": "admin",
-      "reason": "نثرية",
-      "user": "admin"
-    }
-  ],
+  "classico_expenses": [],
   "classico_archived_expenses": [
     {
       "id": 1779051723003,
@@ -886,7 +875,7 @@
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-18T22:33:04.899+00:00.1ad0fe5e5d8ca11d1bc50e0992a740e57dfeed40aff2ed41f75262f39e5c5198"
   },
-  "classico_last_journal_closure": "2026-05-17T21:28:33.267Z",
+  "classico_last_journal_closure": "2026-05-20T13:32:14.043Z",
   "classico_app_settings": {
     "appName": "Classico",
     "userId": "USR-A0IQK5",
@@ -900,6 +889,20 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1779283934043.3545,
+      "timestamp": "2026-05-20T13:32:14.043Z",
+      "user": "admin",
+      "action": "تقفيل اليومية",
+      "details": "تم تقفيل اليومية بنجاح. صافي الربح: -204 ج"
+    },
+    {
+      "id": 1779283923328.809,
+      "timestamp": "2026-05-20T13:32:03.328Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
     {
       "id": 1779224286288.666,
       "timestamp": "2026-05-19T20:58:06.288Z",
@@ -1139,6 +1142,7 @@
       "details": "تم تنظيف سجل النشاط بالكامل"
     }
   ],
-  "is_activation": true,
-  "is_reset": false
+  "is_activation": false,
+  "is_reset": false,
+  "last_seen_time": "2026-05-20T13:32:23.923Z"
 }
