@@ -749,6 +749,47 @@ export function useSettingsLogic() {
   const formatDate = (iso) => new Date(iso).toLocaleDateString();
   const formatTime = (iso) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+  const formatFriendlyDateTime = (iso) => {
+    if (!iso) return { dateStr: 'غير متوفر', timeStr: '', relativeStr: '' };
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return { dateStr: 'غير متوفر', timeStr: '', relativeStr: '' };
+      
+      const dateStr = d.toLocaleDateString('ar-EG', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      const timeStr = d.toLocaleTimeString('ar-EG', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true 
+      });
+      
+      const diffMs = Date.now() - d.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+      
+      let relativeStr = '';
+      if (diffMins < 1) {
+        relativeStr = 'الآن';
+      } else if (diffMins < 60) {
+        relativeStr = `منذ ${diffMins} دقيقة`;
+      } else if (diffHours < 24) {
+        relativeStr = `منذ ${diffHours} ساعة`;
+      } else {
+        relativeStr = `منذ ${diffDays} يوم`;
+      }
+      
+      return { dateStr, timeStr, relativeStr };
+    } catch (e) {
+      return { dateStr: 'غير متوفر', timeStr: '', relativeStr: '' };
+    }
+  };
+
   const editStaff = (user) => {
     editingStaffMode.value = true;
     staffForm.username = user.username;
@@ -1344,7 +1385,7 @@ export function useSettingsLogic() {
     showExportModal, exportToExcel, exportToPDF, selectedStaffUsername, salaryOp, selectedStaffTransactions,
     getShiftDetailedData,
     selectedStaffTotalWithdrawals, selectedStaffNetRemaining, staffForm, filteredStaff,
-    formatCurrency, formatDate, formatTime, editStaff, cancelStaffEdit, saveStaff, handleSalaryOp,
+    formatCurrency, formatDate, formatTime, formatFriendlyDateTime, editStaff, cancelStaffEdit, saveStaff, handleSalaryOp,
     deleteStaff, deleteTransaction, closeShift, backupData, restoreData, handleFactoryReset,
     manualSmartClean, smartArchive, cleanupMonths, monitoringGroups,
     showPermissionsModal, selectedUserForPerms, userPermsDraft, APP_PAGES, openPermissionsModal, savePermissions,

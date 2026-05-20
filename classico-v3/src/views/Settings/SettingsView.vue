@@ -1108,22 +1108,35 @@
 
     <!-- ☁️ Cloud Restore Confirmation Modal -->
     <div v-if="showCloudRestoreConfirm" class="perms-modal-overlay" style="z-index: 10001;">
-      <div class="glass-panel" style="width: 450px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(0, 229, 255, 0.3); animation: fadeScale 0.3s ease-out;">
+      <div class="glass-panel" style="width: 460px; border-radius: 20px; overflow: hidden; border: 1px solid rgba(0, 229, 255, 0.3); animation: fadeScale 0.3s ease-out; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);">
         <div style="background: rgba(0, 229, 255, 0.1); padding: 2rem; text-align: center; border-bottom: 1px solid rgba(0, 229, 255, 0.2);">
           <div style="font-size: 3.5rem; margin-bottom: 1rem; filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.5));">☁️</div>
           <h2 style="margin: 0; color: #00e5ff; font-weight: 800;">النسخة السحابية المتاحة</h2>
         </div>
-        <div style="padding: 2.5rem; text-align: center;">
-          <div style="background: rgba(15, 23, 42, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 2rem;">
-            <p style="color: #94a3b8; margin: 0 0 0.5rem 0; font-size: 0.9rem;">تاريخ آخر نسخة مسجلة:</p>
-            <h3 style="color: #fff; margin: 0; font-size: 1.4rem;">{{ formatDate(cloudBackupInfo?.updated_at) }}</h3>
-            <p style="color: #00e5ff; margin: 0.3rem 0 0 0; font-weight: 700;">{{ formatTime(cloudBackupInfo?.updated_at) }}</p>
+        <div style="padding: 2rem; text-align: center;">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center;">
+            <p style="color: #94a3b8; margin: 0; font-size: 0.95rem;">تاريخ الرفع وتوقيت النسخة السحابية:</p>
+            <h3 style="color: #fff; margin: 0.3rem 0; font-size: 1.3rem; font-weight: 800; line-height: 1.4;">
+              {{ formatFriendlyDateTime(cloudBackupInfo?.updated_at).dateStr }}
+            </h3>
+            <p style="color: #00e5ff; margin: 0; font-weight: 700; font-size: 1.25rem; letter-spacing: 0.5px;">
+              {{ formatFriendlyDateTime(cloudBackupInfo?.updated_at).timeStr }}
+            </p>
+            <span v-if="formatFriendlyDateTime(cloudBackupInfo?.updated_at).relativeStr" style="display: inline-block; margin-top: 0.4rem; padding: 0.3rem 1rem; background: rgba(0, 229, 255, 0.12); color: #00e5ff; border-radius: 20px; font-size: 0.85rem; font-weight: 700; border: 1px solid rgba(0, 229, 255, 0.2);">
+              🕒 {{ formatFriendlyDateTime(cloudBackupInfo?.updated_at).relativeStr }}
+            </span>
           </div>
+          
+          <div style="margin-bottom: 2rem; color: #ff4b72; font-size: 0.9rem; background: rgba(255, 75, 114, 0.08); padding: 0.9rem; border-radius: 12px; border: 1px solid rgba(255, 75, 114, 0.2); line-height: 1.5; text-align: right; display: flex; gap: 0.5rem; align-items: flex-start;">
+            <span>⚠️</span>
+            <span>تنبيه: استعادة هذه النسخة سيقوم باستبدال كافة البيانات الحالية على هذا الجهاز. تأكد من أنك تريد استرجاع هذه النسخة بالتحديد.</span>
+          </div>
+
           <div style="display: flex; gap: 1rem;">
-            <button @click="showCloudRestoreConfirm = false" style="flex: 1; padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer;">
+            <button @click="showCloudRestoreConfirm = false" style="flex: 1; padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 700; transition: all 0.2s;">
               إلغاء
             </button>
-            <button @click="restoreFromCloud" style="flex: 2; padding: 1rem; border-radius: 12px; border: none; background: linear-gradient(135deg, #00e5ff, #0ea5e9); color: #000; font-weight: 800; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 15px rgba(0, 229, 255, 0.3);">
+            <button @click="restoreFromCloud" style="flex: 2; padding: 1rem; border-radius: 12px; border: none; background: linear-gradient(135deg, #00e5ff, #0ea5e9); color: #000; font-weight: 800; font-size: 1.1rem; cursor: pointer; box-shadow: 0 5px 15px rgba(0, 229, 255, 0.3); transition: all 0.2s;">
               استعادة الآن ✔
             </button>
           </div>
@@ -1252,7 +1265,7 @@ const {
   showDetailedReportTable, detailedReportRows, applyReportFilter, showAllReports, viewDetailedReport,
   showExportModal, exportToExcel, exportToPDF, selectedStaffUsername, salaryOp, selectedStaffTransactions,
   selectedStaffTotalWithdrawals, selectedStaffNetRemaining, staffForm, filteredStaff,
-  formatCurrency, formatDate, formatTime, editStaff, cancelStaffEdit, saveStaff, handleSalaryOp,
+  formatCurrency, formatDate, formatTime, formatFriendlyDateTime, editStaff, cancelStaffEdit, saveStaff, handleSalaryOp,
   deleteStaff, deleteTransaction, closeShift, backupData, restoreData, handleFactoryReset,
   manualSmartClean, smartArchive, cleanupMonths, monitoringGroups,
   showPermissionsModal, selectedUserForPerms, userPermsDraft, APP_PAGES, openPermissionsModal, savePermissions,
