@@ -171,8 +171,16 @@ app.get(['/logoapp.png', '/api/logo', '/portal/logoapp.png'], (req, res) => {
     }
 });
 
-// 2. Static Files (Main App)
-app.use(express.static(path.join(__dirname, 'classico-v3/dist')));
+// 2. Static Files (Main App with robust caching prevention)
+app.use(express.static(path.join(__dirname, 'classico-v3/dist'), {
+    etag: false,
+    maxAge: 0,
+    setHeaders: (res, path) => {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+}));
 
 // 2. Supabase Service Helper
 const SupabaseService = {

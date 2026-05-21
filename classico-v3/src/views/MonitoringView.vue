@@ -417,34 +417,7 @@ const sendToCustomerAccount = () => {
   }
   store.updateCustomer(customer);
   
-  // Archive Device Part (Time Only)
-  store.addHistoryRecord({
-    name: data.deviceName,
-    dept: data.groupName,
-    startTime: data.startTime,
-    endTime: data.endTime,
-    usedTimeSeconds: data.usedSeconds,
-    hourPrice: data.hourPrice,
-    timeCost: data.timeCost,
-    ordersCost: 0,
-    totalCost: data.timeCost,
-    orders: [],
-    paymentType: 'debt',
-    processedBy: store.session.username
-  });
-
-  // Archive Lounge Part (Beverages Only)
-  if (data.orders.length > 0) {
-    store.addLoungeHistoryRecord({
-      name: `طلبات ${data.deviceName}`,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      orders: [...data.orders],
-      total: data.ordersCost,
-      paymentType: 'debt',
-      processedBy: store.session.username
-    });
-  }
+  // Removed archiving to prevent deferred credit sessions/orders from appearing in general history / archives as per user request
 
   store.resetDevice(data.deviceId);
   showInvoiceModal.value = false;

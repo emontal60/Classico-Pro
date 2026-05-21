@@ -308,16 +308,7 @@ const sendToCustomerAccount = () => {
 
   store.updateCustomer(customer);
   
-  // Archive Lounge Invoice as 'debt'
-  store.addLoungeHistoryRecord({
-    name: invoiceData.value.name,
-    startTime: invoiceData.value.startTime,
-    endTime: new Date().toISOString(),
-    orders: invoiceData.value.orders,
-    total: invoiceData.value.total,
-    paymentType: 'debt',
-    processedBy: store.session.username
-  });
+  // Removed archiving to prevent deferred credit invoices from appearing in general lounge history / archives as per user request
 
   store.deleteLoungeInvoice(invoiceData.value.id);
   selectedInvoiceId.value = null;

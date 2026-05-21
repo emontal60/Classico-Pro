@@ -3,9 +3,12 @@
     {
       "id": 1,
       "name": "PlayStation 1",
-      "status": "stopped",
+      "status": "running",
       "hourPrice": 50,
-      "orders": []
+      "orders": [],
+      "startTime": "2026-05-21T21:34:13.072Z",
+      "prepaidSeconds": 0,
+      "usedTimeSeconds": 0
     },
     {
       "id": 2,
@@ -673,9 +676,29 @@
     }
   ],
   "classico_history": [],
-  "classico_customers": [],
+  "classico_customers": [
+    {
+      "id": 1779399196988,
+      "clientId": 1779399196983,
+      "name": "ايمن",
+      "ledger": [
+        {
+          "id": 1779399211171,
+          "type": "debt",
+          "amount": 45,
+          "note": "فاتورة صالة: فاتورة #101",
+          "timestamp": "2026-05-21T21:33:31.170Z"
+        }
+      ]
+    }
+  ],
   "classico_archived_customers": [],
-  "classico_clients_dir": [],
+  "classico_clients_dir": [
+    {
+      "id": 1779399196983,
+      "name": "ايمن"
+    }
+  ],
   "classico_users": {
     "admin": {
       "role": "manager",
@@ -685,7 +708,20 @@
     }
   },
   "classico_archived_salaries": [],
-  "classico_lounge_invoices": [],
+  "classico_lounge_invoices": [
+    {
+      "id": 1779399259473,
+      "name": "فاتورة #101",
+      "startTime": "2026-05-21T21:34:19.473Z",
+      "orders": []
+    },
+    {
+      "id": 1779399262628,
+      "name": "فاتورة #102",
+      "startTime": "2026-05-21T21:34:22.629Z",
+      "orders": []
+    }
+  ],
   "classico_lounge_history": [],
   "classico_expenses": [],
   "classico_archived_expenses": [],
@@ -699,7 +735,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-05-21T18:40:22.035Z"
+    "last_online_check": "2026-05-21T21:36:30.928Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -717,8 +753,16 @@
       "gamepad": true
     }
   },
-  "classico_activity_log": [],
-  "is_activation": true,
+  "classico_activity_log": [
+    {
+      "id": 1779399211176.291,
+      "timestamp": "2026-05-21T21:33:31.176Z",
+      "user": "admin",
+      "action": "حذف فاتورة صالة",
+      "details": "تم حذف فاتورة صالة باسم فاتورة #101 بقيمة undefined ج"
+    }
+  ],
+  "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-05-21T18:40:18.216Z"
+  "last_seen_time": "2026-05-21T21:36:30.535Z"
 }

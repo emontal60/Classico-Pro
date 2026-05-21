@@ -71,6 +71,13 @@ function createWindow() {
   // Hide the default menu bar (File, Edit, etc.) to keep the title bar clean
   mainWindow.setMenuBarVisibility(false);
 
+  // Clear browser/HTTP cache to ensure the latest version is loaded on startup
+  mainWindow.webContents.session.clearCache().then(() => {
+    console.log('[System] WebContents session cache cleared successfully');
+  }).catch(err => {
+    console.error('[System] Failed to clear session cache:', err);
+  });
+
   // In development, load from localhost. In production, we could load built files.
   // But since we rely on the local server.js, we always load from localhost:3000
   mainWindow.loadURL('http://localhost:3000');
@@ -114,8 +121,9 @@ app.on('before-quit', () => {
 });
 
 // Auto-updater events
-autoUpdater.on('update-available', () => {
-  if (mainWindow) mainWindow.webContents.send('update_available');
+autoUpdater.on('update-available', (info) => {
+  const version = info ? info.version : '';
+  if (mainWindow) mainWindow.webContents.send('update_available', version);
 });
 
 autoUpdater.on('download-progress', (progressObj) => {

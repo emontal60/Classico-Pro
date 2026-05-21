@@ -148,12 +148,17 @@ onMounted(() => {
 
   // Listen for Electron Updates
   if (window.electronAPI && typeof window.electronAPI.receive === 'function') {
-    window.electronAPI.receive('update_available', () => {
+    window.electronAPI.receive('update_available', (newVersion) => {
       ui.updateInfo.available = true;
       ui.updateInfo.progress = 0;
+      const versionStr = newVersion ? `"${newVersion}"` : '';
+      ui.alert(`يوجد اصدار جديد متاح ${versionStr}، برجاء الضغط على موافق للتحديث`, 'تحديث جديد متاح', 'warning').then(() => {
+        location.reload();
+      });
     });
 
     window.electronAPI.receive('download_progress', (percent) => {
+      ui.updateInfo.available = true; // Ensure bar remains visible after reload
       ui.updateInfo.progress = Math.round(percent);
     });
 
