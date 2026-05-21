@@ -93,7 +93,7 @@
           </thead>
           <tbody>
             <tr v-for="inv in loungeInvoices" :key="inv.id" :class="{ selected: selectedInvoiceId === inv.id }" @click="selectedInvoiceId = inv.id">
-              <td>
+              <td style="position: relative;">
                 <button v-if="store.canAccess('lounge', 'edit')" @click.stop="deleteInvoice(inv)" class="btn-icon floating-del">✖</button>
                 ☕ {{ inv.name }}
               </td>

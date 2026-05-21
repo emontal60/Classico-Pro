@@ -3,12 +3,9 @@
     {
       "id": 1,
       "name": "PlayStation 1",
-      "status": "running",
+      "status": "stopped",
       "hourPrice": 50,
-      "orders": [],
-      "startTime": "2026-05-20T21:08:08.549Z",
-      "prepaidSeconds": 0,
-      "usedTimeSeconds": 0
+      "orders": []
     },
     {
       "id": 2,
@@ -688,57 +685,23 @@
     }
   },
   "classico_archived_salaries": [],
-  "classico_lounge_invoices": [
-    {
-      "id": 1779311296429,
-      "name": "فاتورة #102",
-      "startTime": "2026-05-20T21:08:16.429Z",
-      "orders": [
-        {
-          "itemId": 5,
-          "name": "سموذي ليمون نعناع",
-          "price": 45,
-          "qty": 1,
-          "total": 45
-        }
-      ]
-    }
-  ],
-  "classico_lounge_history": [
-    {
-      "name": "فاتورة #101",
-      "startTime": "2026-05-20T21:08:12.474Z",
-      "endTime": "2026-05-20T21:08:33.678Z",
-      "orders": [
-        {
-          "itemId": 25,
-          "name": "ميلك شيك فراولة",
-          "price": 60,
-          "qty": 1,
-          "total": 60
-        }
-      ],
-      "total": 60,
-      "paymentType": "cash",
-      "processedBy": "admin",
-      "timestamp": "2026-05-20T21:08:33.678Z"
-    }
-  ],
+  "classico_lounge_invoices": [],
+  "classico_lounge_history": [],
   "classico_expenses": [],
   "classico_archived_expenses": [],
   "classico_subscription": {
     "success": true,
     "status": "active",
-    "activated_at": "2026-05-20T21:09:36.454+00:00",
-    "created_at": "2026-05-20T21:09:21.972+00:00",
-    "expires_at": "2026-06-19T21:09:36.454+00:00",
+    "activated_at": "2026-05-20T21:56:02.042+00:00",
+    "created_at": "2026-05-20T21:55:55.838+00:00",
+    "expires_at": "2026-06-19T21:56:02.039+00:00",
     "plan_type": "monthly",
     "max_devices": 3,
     "activation_keys": [],
-    "token": "384A46880B05|active|2026-06-19T21:09:36.454+00:00.d77b937d2bc373e55e8c849cabd1292820a2533e59447e6938e9bf2ed429fd42",
-    "last_online_check": "2026-05-20T21:45:55.898Z"
+    "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
+    "last_online_check": "2026-05-21T18:40:22.035Z"
   },
-  "classico_last_journal_closure": "2026-05-20T21:14:17.463Z",
+  "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
     "appName": "Classico",
     "appLogo": null,
@@ -754,37 +717,8 @@
       "gamepad": true
     }
   },
-  "classico_activity_log": [
-    {
-      "id": 1779312036900.7146,
-      "timestamp": "2026-05-20T21:20:36.900Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    },
-    {
-      "id": 1779311657463.5078,
-      "timestamp": "2026-05-20T21:14:17.463Z",
-      "user": "admin",
-      "action": "تقفيل اليومية",
-      "details": "تم تقفيل اليومية بنجاح. صافي الربح: 60 ج"
-    },
-    {
-      "id": 1779311313682.831,
-      "timestamp": "2026-05-20T21:08:33.682Z",
-      "user": "admin",
-      "action": "حذف فاتورة صالة",
-      "details": "تم حذف فاتورة صالة باسم فاتورة #101 بقيمة undefined ج"
-    },
-    {
-      "id": 1779309129755.737,
-      "timestamp": "2026-05-20T20:32:09.755Z",
-      "user": "admin",
-      "action": "تسجيل دخول",
-      "details": "تم تسجيل دخول المستخدم admin"
-    }
-  ],
-  "is_activation": false,
+  "classico_activity_log": [],
+  "is_activation": true,
   "is_reset": false,
-  "last_seen_time": "2026-05-20T21:45:55.680Z"
+  "last_seen_time": "2026-05-21T18:40:18.216Z"
 }

@@ -58,7 +58,7 @@
         </button>
       </div>
 
-      <div class="table-container" style="background: rgba(0,0,0,0.2); border-radius: 8px; position: relative; overflow: hidden;">
+      <div class="table-container" style="background: rgba(0,0,0,0.2); border-radius: 8px; position: relative; overflow-y: auto; max-height: 65vh;">
 
         <table style="position: relative; z-index: 1;">
           <thead style="background: rgba(30, 41, 59, 0.8);">

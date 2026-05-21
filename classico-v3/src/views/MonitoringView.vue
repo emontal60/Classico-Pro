@@ -117,7 +117,7 @@
               </tr>
 
               <tr v-for="device in group" :key="device.id" :class="{ selected: selectedDeviceId === device.id }" @click="selectDevice(device.id)">
-                <td>
+                <td style="position: relative;">
                   <button v-if="store.canAccess('monitoring', 'edit')" @click.stop="deleteDevice(device)" class="btn-icon floating-del">✖</button>
                   <span class="device-icon-wrapper">{{ getDeviceIcon(device.name) }}</span> {{ device.name }}
                 </td>

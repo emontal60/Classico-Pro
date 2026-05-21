@@ -231,6 +231,7 @@ th {
 }
 
 .devices-table tbody tr {
+    position: relative;
     transition: background-color 0.2s;
     cursor: pointer;
 }
