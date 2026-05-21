@@ -149,29 +149,40 @@ onMounted(() => {
   // Listen for Electron Updates
   if (window.electronAPI && typeof window.electronAPI.receive === 'function') {
     window.electronAPI.receive('update_available', (newVersion) => {
-      // If we already approved this version's download or are already downloading, don't show the alert again!
-      const approvedVersion = localStorage.getItem('approved_update_version');
-      if (approvedVersion === newVersion) {
+      // If we already refreshed/approved this version's download, don't show the side notification, show progress bar!
+      const notifiedVersion = sessionStorage.getItem('update_notified_version');
+      if (notifiedVersion === newVersion) {
         ui.updateInfo.available = true;
+        ui.updateToast.show = false;
         return;
       }
 
-      // Do NOT set ui.updateInfo.available = true yet to avoid showing progress bar and alert together
-      const versionStr = newVersion ? `"${newVersion}"` : '';
-      ui.alert(`يوجد اصدار جديد متاح ${versionStr}، برجاء الضغط على موافق للتحديث`, 'تحديث جديد متاح', 'warning').then(() => {
-        localStorage.setItem('approved_update_version', newVersion);
-        ui.updateInfo.available = true;
-        ui.updateInfo.progress = 0;
-        location.reload();
-      });
+      // Otherwise, show the beautiful side notification (updateToast)
+      ui.updateToast.version = newVersion;
+      ui.updateToast.show = true;
+      sessionStorage.setItem('update_notified_version', newVersion);
+
+      // Re-trigger the side notification every 5 minutes if they haven't refreshed yet
+      if (window._updateNotifyInterval) clearInterval(window._updateNotifyInterval);
+      window._updateNotifyInterval = setInterval(() => {
+        if (sessionStorage.getItem('update_notified_version') === newVersion && !ui.updateInfo.available && !ui.updateInfo.downloaded) {
+          // Re-show/flash the notification elegantly
+          ui.updateToast.show = false;
+          setTimeout(() => {
+            ui.updateToast.show = true;
+          }, 1000);
+        }
+      }, 5 * 60 * 1000); // every 5 minutes
     });
 
     window.electronAPI.receive('download_progress', (percent) => {
-      ui.updateInfo.available = true; // Ensure bar remains visible after reload
+      ui.updateToast.show = false; // Hide notification when downloading
+      ui.updateInfo.available = true; // Ensure bar is visible
       ui.updateInfo.progress = Math.round(percent);
     });
 
     window.electronAPI.receive('update_downloaded', () => {
+      ui.updateToast.show = false;
       ui.updateInfo.available = false;
       ui.updateInfo.downloaded = true;
       ui.updateInfo.progress = 100;

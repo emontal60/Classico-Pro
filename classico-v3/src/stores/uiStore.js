@@ -27,6 +27,10 @@ export const useUIStore = defineStore('ui', {
       available: false,
       downloaded: false,
       progress: 0
+    },
+    updateToast: {
+      show: false,
+      version: ''
     }
   }),
 

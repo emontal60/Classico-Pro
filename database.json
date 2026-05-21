@@ -735,7 +735,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-05-21T21:45:37.883Z"
+    "last_online_check": "2026-05-21T22:18:56.164Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -764,5 +764,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-05-21T21:45:37.630Z"
+  "last_seen_time": "2026-05-21T22:18:55.933Z"
 }

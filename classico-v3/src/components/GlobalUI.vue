@@ -113,6 +113,22 @@
       </div>
     </Transition>
 
+    <!-- 🔔 Beautiful Update Side Notification -->
+    <Transition name="slide-side">
+      <div v-if="ui.updateToast.show" class="update-side-toast">
+        <div class="side-toast-glow-bar"></div>
+        <div class="side-toast-content">
+          <div class="side-toast-icon-wrap">
+            <span class="side-toast-icon spinning">🔄</span>
+          </div>
+          <div class="side-toast-text">
+            <span class="side-toast-title">تحديث جديد متاح! (إصدار {{ ui.updateToast.version }})</span>
+            <span class="side-toast-desc">برجاء عمل ريفرش للصفحة لاستقبال التحديث وتثبيته.</span>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
   </div>
 </template>
 
@@ -530,4 +546,93 @@ watch(() => ui.dialog.show, (newVal) => {
 
 .update-enter-active { animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .update-leave-active { animation: slideUp 0.3s reverse ease-in; }
+
+/* 🔔 Update Side Toast Styling */
+.update-side-toast {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.98) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 229, 255, 0.2);
+  border-radius: 16px;
+  width: 380px;
+  overflow: hidden;
+  pointer-events: auto;
+  z-index: 10002;
+  direction: rtl;
+  backdrop-filter: blur(15px);
+  border-right: 4px solid #00e5ff;
+}
+
+.side-toast-glow-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #00e5ff, #3b82f6);
+  box-shadow: 0 1px 8px rgba(0, 229, 255, 0.4);
+}
+
+.side-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 22px;
+}
+
+.side-toast-icon-wrap {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+}
+
+.side-toast-icon {
+  font-size: 1.5rem;
+  color: #00e5ff;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+.side-toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: right;
+}
+
+.side-toast-title {
+  color: white;
+  font-weight: 800;
+  font-size: 0.95rem;
+  font-family: 'Cairo', sans-serif;
+}
+
+.side-toast-desc {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  font-family: 'Cairo', sans-serif;
+}
+
+/* Animations */
+.slide-side-enter-active {
+  animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-side-leave-active {
+  animation: slideInRight 0.4s reverse cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 </style>
