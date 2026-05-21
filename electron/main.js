@@ -3,6 +3,9 @@ const path = require('path');
 const { autoUpdater } = require('electron-updater');
 const { fork } = require('child_process');
 
+// Disable Hardware Acceleration to completely resolve mouse lag/sluggishness in packaged production environments on Windows
+app.disableHardwareAcceleration();
+
 let mainWindow;
 let serverProcess;
 
@@ -85,6 +88,14 @@ function createWindow() {
   mainWindow.webContents.on('did-finish-load', () => {
     console.log('[System] Page loaded, checking for updates...');
     autoUpdater.checkForUpdates().catch(err => console.error('Update check failed:', err));
+
+    // Check for updates periodically every 15 minutes
+    if (!global.updateCheckInterval) {
+      global.updateCheckInterval = setInterval(() => {
+        console.log('[System] Periodic check for updates...');
+        autoUpdater.checkForUpdates().catch(err => console.error('Periodic update check failed:', err));
+      }, 15 * 60 * 1000); // 15 minutes
+    }
   });
 
   mainWindow.once('ready-to-show', () => {
@@ -94,6 +105,10 @@ function createWindow() {
   });
 
   mainWindow.on('closed', () => {
+    if (global.updateCheckInterval) {
+      clearInterval(global.updateCheckInterval);
+      global.updateCheckInterval = null;
+    }
     mainWindow = null;
   });
 }

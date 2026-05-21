@@ -149,10 +149,19 @@ onMounted(() => {
   // Listen for Electron Updates
   if (window.electronAPI && typeof window.electronAPI.receive === 'function') {
     window.electronAPI.receive('update_available', (newVersion) => {
-      ui.updateInfo.available = true;
-      ui.updateInfo.progress = 0;
+      // If we already approved this version's download or are already downloading, don't show the alert again!
+      const approvedVersion = localStorage.getItem('approved_update_version');
+      if (approvedVersion === newVersion) {
+        ui.updateInfo.available = true;
+        return;
+      }
+
+      // Do NOT set ui.updateInfo.available = true yet to avoid showing progress bar and alert together
       const versionStr = newVersion ? `"${newVersion}"` : '';
       ui.alert(`يوجد اصدار جديد متاح ${versionStr}، برجاء الضغط على موافق للتحديث`, 'تحديث جديد متاح', 'warning').then(() => {
+        localStorage.setItem('approved_update_version', newVersion);
+        ui.updateInfo.available = true;
+        ui.updateInfo.progress = 0;
         location.reload();
       });
     });
