@@ -12,6 +12,8 @@
             <option value="غاز">🔥 غاز</option>
             <option value="مياه">💧 مياه</option>
             <option value="إيجار">🏠 إيجار</option>
+            <option value="قطع غيار">⚙️ قطع غيار</option>
+            <option value="صيانة">🛠️ صيانة</option>
             <option value="نثرية">💸 نثرية</option>
             <option value="أخرى">➕ أخرى</option>
           </select>
@@ -214,6 +216,8 @@ const getCategoryIcon = (cat) => {
     'غاز': '🔥',
     'مياه': '💧',
     'إيجار': '🏠',
+    'قطع غيار': '⚙️',
+    'صيانة': '🛠️',
     'نثرية': '💸',
     'أخرى': '➕'
   };

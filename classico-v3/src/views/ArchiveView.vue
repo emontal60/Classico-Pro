@@ -215,7 +215,10 @@
                       <small style="color: var(--text-muted)">{{ formatTime(e.timestamp || e.archivedAt) }}</small>
                     </td>
                     <td style="text-align: center;">
-                      <span class="category-badge-neon">{{ e.category }}</span>
+                      <span class="category-badge-neon">
+                        <span v-if="!e.category.includes(getCategoryIcon(e.category))" style="margin-left: 0.3rem;">{{ getCategoryIcon(e.category) }}</span>
+                        {{ e.category }}
+                      </span>
                     </td>
                     <td style="text-align: center;">{{ e.note || '------' }}</td>
                     <td style="text-align: center; color: #ef4444; font-weight: bold;">{{ formatCurrency(e.amount) }} ج</td>
@@ -747,6 +750,21 @@ const formatDuration = (sec) => {
   const m = Math.floor((sec % 3600) / 60);
   const s = sec % 60;
   return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+};
+
+const getCategoryIcon = (cat) => {
+  const icons = {
+    'بضاعة': '📦',
+    'كهرباء': '⚡',
+    'غاز': '🔥',
+    'مياه': '💧',
+    'إيجار': '🏠',
+    'قطع غيار': '⚙️',
+    'صيانة': '🛠️',
+    'نثرية': '💸',
+    'أخرى': '➕'
+  };
+  return icons[cat] || '';
 };
 </script>
 
