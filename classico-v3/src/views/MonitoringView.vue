@@ -422,7 +422,7 @@ const sendToCustomerAccount = () => {
   store.resetDevice(data.deviceId);
   showInvoiceModal.value = false;
   targetClientId.value = '';
-  ui.showToast(`تم ترحيل مديونية الجهاز "${data.deviceName}" لحساب العميل "${client.name}" بنجاح ✅`);
+  ui.showToast(`تم ترحيل مديونية الجهاز ${data.deviceName} لحساب العميل ${client.name} بنجاح ✅`);
 };
 
 const confirmInvoice = () => {
@@ -459,7 +459,7 @@ const confirmInvoice = () => {
   store.resetDevice(data.deviceId);
   showInvoiceModal.value = false;
   targetClientId.value = '';
-  ui.showToast(`تم محاسبة وأرشفة الجهاز "${data.deviceName}" بنجاح ✅`);
+  ui.showToast(`تم محاسبة وأرشفة الجهاز ${data.deviceName} بنجاح ✅`);
 };
 
 const printInvoice = (isQuick = false) => {
@@ -576,11 +576,22 @@ const addGenericDevice = (prefix) => {
 };
 
 const addCustomDevice = async () => {
+  const deviceSuggestions = new Set();
+  const ignored = store.appSettings?.ignoredSuggestions || [];
+  (store.devices || []).forEach(d => {
+    if (d.name && !ignored.includes(d.name)) deviceSuggestions.add(d.name);
+  });
+  (store.history || []).forEach(h => {
+    if (h.deviceName && !ignored.includes(h.deviceName)) deviceSuggestions.add(h.deviceName);
+    if (h.name && !ignored.includes(h.name)) deviceSuggestions.add(h.name);
+  });
+
   const name = await ui.confirm({
     title: 'إضافة مخصصة',
     message: 'يرجى إدخال اسم الجهاز أو الترابيزة الجديدة:',
     showInput: true,
-    inputPlaceholder: 'مثلاً: بلاي ستيشن VIP'
+    inputPlaceholder: 'مثلاً: بلاي ستيشن VIP',
+    suggestions: Array.from(deviceSuggestions).sort()
   });
   
   if (name && name.trim()) {

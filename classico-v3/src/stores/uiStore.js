@@ -14,7 +14,8 @@ export const useUIStore = defineStore('ui', {
       onCancel: null,
       showInput: false,
       inputValue: '',
-      inputPlaceholder: ''
+      inputPlaceholder: '',
+      suggestions: []
     },
     fontSize: localStorage.getItem('classico_font_size') || '100',
     splashShow: true,
@@ -62,6 +63,7 @@ export const useUIStore = defineStore('ui', {
           showInput: options.showInput || false,
           inputValue: options.inputValue || '',
           inputPlaceholder: options.inputPlaceholder || '',
+          suggestions: options.suggestions || [],
           onConfirm: () => {
             const val = this.dialog.inputValue;
             this.closeDialog();

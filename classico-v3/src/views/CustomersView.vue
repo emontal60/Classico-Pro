@@ -35,7 +35,7 @@
             <span class="summary-value">{{ formatCurrency(stats.totalDebt) }} ج</span>
           </div>
           <div class="summary-card-neon neon-green">
-            <span class="summary-label">إجمالي التحصيل :</span>
+            <span class="summary-label">إجمالي تحصيل اليوم :</span>
             <span class="summary-value">{{ formatCurrency(stats.totalPaid) }} ج</span>
           </div>
           <div class="summary-card-neon neon-cyan">
@@ -55,6 +55,7 @@
             <tr>
               <th>العميل</th>
               <th>الرصيد المتبقي</th>
+              <th>سداد</th>
               <th>إجراءات</th>
             </tr>
           </thead>
@@ -63,6 +64,9 @@
               <td>{{ c.name }}</td>
               <td :style="{ color: getBalance(c) > 0 ? 'var(--accent-danger)' : 'var(--accent-success)', fontWeight: 'bold' }">
                 {{ formatCurrency(getBalance(c)) }} ج
+              </td>
+              <td style="color: var(--accent-success); font-weight: bold;">
+                {{ formatCurrency(getPaid(c)) }} ج
               </td>
               <td>
                 <div style="display: flex; gap: 0.5rem; justify-content: center;">
@@ -73,7 +77,7 @@
               </td>
             </tr>
             <tr v-if="!filteredCustomers.length">
-              <td colspan="3" style="text-align: center; padding: 3rem; color: var(--text-muted);">لا توجد حسابات عملاء تطابق البحث 🔍</td>
+              <td colspan="4" style="text-align: center; padding: 3rem; color: var(--text-muted);">لا توجد حسابات عملاء تطابق البحث 🔍</td>
             </tr>
           </tbody>
         </table>
@@ -240,24 +244,48 @@ const filteredItems = computed(() => {
   return menu.value.filter(m => m.name.toLowerCase().includes(itemQuery.value.toLowerCase()));
 });
 
-const stats = computed(() => {
-  let totalDebt = 0, totalPaid = 0;
-  customers.value.forEach(c => {
-    c.ledger.forEach(l => {
-      if (l.type === 'debt') totalDebt += l.amount;
-      else totalPaid += l.amount;
-    });
-  });
-  return {
-    totalDebt,
-    totalPaid,
-    totalRemaining: totalDebt - totalPaid
-  };
-});
-
 const getBalance = (c) => {
   return c.ledger.reduce((sum, l) => l.type === 'debt' ? sum + l.amount : sum - l.amount, 0);
 };
+
+const getPaid = (c) => {
+  return c.ledger.reduce((sum, l) => l.type === 'payment' ? sum + l.amount : sum, 0);
+};
+
+const stats = computed(() => {
+  let totalRemaining = 0;
+  customers.value.forEach(c => {
+    totalRemaining += getBalance(c);
+  });
+
+  const lastClosure = new Date(store.lastJournalClosure);
+  let totalPaidToday = 0;
+  const seenPaymentKeys = new Set();
+  
+  const processPayment = (c) => {
+    (c.ledger || []).forEach(l => {
+      if (l.type === 'payment') {
+        const paymentKey = l.id || l.timestamp;
+        if (paymentKey && !seenPaymentKeys.has(paymentKey)) {
+          seenPaymentKeys.add(paymentKey);
+          if (new Date(l.timestamp) > lastClosure) {
+            totalPaidToday += l.amount || 0;
+          }
+        }
+      }
+    });
+  };
+
+  (store.customers || []).forEach(processPayment);
+
+  const totalDebt = totalRemaining + totalPaidToday;
+
+  return {
+    totalDebt,
+    totalPaid: totalPaidToday,
+    totalRemaining
+  };
+});
 
 const sortedLedger = computed(() => {
   if (!activeCustomer.value) return [];

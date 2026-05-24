@@ -445,17 +445,18 @@ export const useAppStore = defineStore('app', {
 
     addSalaryTransaction(tx) {
       const id = Date.now();
-      const transaction = { ...tx, id, timestamp: new Date().toISOString() };
+      const transaction = { 
+        processedBy: this.session?.username || 'admin',
+        ...tx, 
+        id, 
+        timestamp: new Date().toISOString() 
+      };
       this.archivedSalaries.push(transaction);
 
-      // Update user balance
+      // Update user balance (both withdrawals and settlements count as payouts in currentBalance)
       const user = this.users[tx.username];
-      if (user) {
-        if (tx.type === 'withdrawal') {
-          user.currentBalance = (user.currentBalance || 0) + tx.amount;
-        } else if (tx.type === 'settlement') {
-          user.currentBalance = 0;
-        }
+      if (user && (tx.type === 'withdrawal' || tx.type === 'settlement')) {
+        user.currentBalance = (user.currentBalance || 0) + tx.amount;
       }
       this.addActivity('عملية مادية (مرتبات)', `تم تسجيل ${tx.type === 'withdrawal' ? 'سحب' : 'تصفية'} مبلغ ${tx.amount} ج للموظف ${tx.username}`);
       this.saveToDatabase();
@@ -463,7 +464,7 @@ export const useAppStore = defineStore('app', {
 
     deleteSalaryTransaction(username, id) {
       const tx = this.archivedSalaries.find(t => t.id === id);
-      if (tx && tx.type === 'withdrawal') {
+      if (tx && (tx.type === 'withdrawal' || tx.type === 'settlement')) {
         const user = this.users[username];
         if (user) user.currentBalance = Math.max(0, (user.currentBalance || 0) - tx.amount);
       }
@@ -524,12 +525,45 @@ export const useAppStore = defineStore('app', {
       // Automatically clear and reset current active expenses
       this.expenses = [];
       
+      // Find all employees who had a settlement transaction registered during this shift (unsettled)
+      const settledUsernames = new Set();
+      this.archivedSalaries.forEach(t => {
+        if (t.type === 'settlement' && !t.isSettled) {
+          settledUsernames.add(t.username);
+        }
+      });
+
+      // Settle all transactions and reset balances for these employees
+      if (settledUsernames.size > 0) {
+        settledUsernames.forEach(username => {
+          const user = this.users[username];
+          if (user) {
+            user.currentBalance = 0;
+          }
+          this.archivedSalaries.forEach(t => {
+            if (t.username === username && !t.isSettled) {
+              t.isSettled = true;
+            }
+          });
+        });
+      }
+      
       this.saveToDatabase();
     },
 
     updateAppSettings(settings) {
       this.appSettings = { ...this.appSettings, ...settings };
       this.saveToDatabase();
+    },
+
+    ignoreSuggestion(name) {
+      if (!this.appSettings.ignoredSuggestions) {
+        this.appSettings.ignoredSuggestions = [];
+      }
+      if (!this.appSettings.ignoredSuggestions.includes(name)) {
+        this.appSettings.ignoredSuggestions.push(name);
+        this.saveToDatabase();
+      }
     },
 
     async login(username, password) {
@@ -774,6 +808,21 @@ export const useAppStore = defineStore('app', {
       this.loungeHistory = cleanArray(this.loungeHistory);
       this.expenses = cleanArray(this.expenses);
       this.archivedExpenses = cleanArray(this.archivedExpenses);
+
+      // Self-Healing: Mark older salary transactions as settled if they are before or equal to a settlement transaction
+      const usersList = Object.keys(this.users || {});
+      usersList.forEach(username => {
+        const userTxs = (this.archivedSalaries || []).filter(t => t.username === username);
+        const settlements = userTxs.filter(t => t.type === 'settlement' && t.isSettled);
+        if (settlements.length > 0) {
+          const latestSettlementTime = new Date(Math.max(...settlements.map(t => new Date(t.timestamp))));
+          this.archivedSalaries.forEach(t => {
+            if (t.username === username && new Date(t.timestamp) <= latestSettlementTime) {
+              t.isSettled = true;
+            }
+          });
+        }
+      });
 
       // If we actually cleaned something, save it to persist the cleanup!
       if (cleanedCount > 0 || !isSilent) {

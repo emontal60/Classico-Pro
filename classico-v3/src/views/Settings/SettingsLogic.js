@@ -722,20 +722,20 @@ export function useSettingsLogic() {
   const selectedStaffTransactions = computed(() => {
     if (!selectedStaffUsername.value) return [];
     return (archivedSalariesList.value || [])
-      .filter(t => t.username === selectedStaffUsername.value)
+      .filter(t => t.username === selectedStaffUsername.value && !t.isSettled)
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   });
 
   const selectedStaffTotalWithdrawals = computed(() => {
     return selectedStaffTransactions.value
-      .filter(t => t.type === 'withdrawal')
+      .filter(t => t.type === 'withdrawal' || t.type === 'settlement')
       .reduce((sum, t) => sum + t.amount, 0);
   });
 
   const selectedStaffNetRemaining = computed(() => {
     const user = store.users[selectedStaffUsername.value];
     if (!user) return 0;
-    return (user.baseSalary || 0) - selectedStaffTotalWithdrawals.value;
+    return Math.max(0, (user.baseSalary || 0) - selectedStaffTotalWithdrawals.value);
   });
 
   const staffForm = reactive({ username: '', password: '', baseSalary: null, salaryCycle: 'monthly', role: 'staff' });
@@ -826,26 +826,44 @@ export function useSettingsLogic() {
     if (!selectedStaffUsername.value) return;
     const amount = Number(salaryOp.amount);
     const user = store.users[selectedStaffUsername.value];
+    const remaining = (user.baseSalary || 0) - (user.currentBalance || 0);
+
     if (type === 'withdrawal') {
       if (amount <= 0) { ui.showToast('يرجى إدخال مبلغ صحيح', 'error'); return; }
+      let warningMsg = '';
+      if (amount > remaining) {
+        warningMsg = `\n\n⚠️ تنبيه: المبلغ المطلوب سحبه (${amount} ج) أكبر من المتبقي من الراتب (${remaining} ج).`;
+      }
       const confirmed = await ui.confirm({
         title: 'تأكيد مسحوبات',
-        message: `هل أنت متأكد من تسجيل سحب مبلغ ${amount} ج للموظف ${selectedStaffUsername.value}؟`,
+        message: `هل أنت متأكد من تسجيل سحب مبلغ ${amount} ج للموظف ${selectedStaffUsername.value}؟${warningMsg}`,
         type: 'warning'
       });
       if (confirmed) {
-        store.addSalaryTransaction({ username: selectedStaffUsername.value, type: 'withdrawal', amount, note: salaryOp.note || 'مسحوبات' });
+        store.addSalaryTransaction({ 
+          username: selectedStaffUsername.value, 
+          type: 'withdrawal', 
+          amount, 
+          note: salaryOp.note || 'مسحوبات',
+          processedBy: store.session?.username || 'admin'
+        });
         salaryOp.amount = null; salaryOp.note = ''; ui.showToast('تم تسجيل المسحوبات بنجاح ✅');
       }
     } else if (type === 'settlement') {
-      const balance = user.currentBalance || 0;
+      const balance = remaining;
       const confirmed = await ui.confirm({
         title: 'تصفية حساب',
         message: `هل أنت متأكد من تصفية حساب الموظف ${selectedStaffUsername.value} وصرف مبلغ ${balance} ج؟`,
         type: 'success'
       });
       if (confirmed) {
-        store.addSalaryTransaction({ username: selectedStaffUsername.value, type: 'settlement', amount: balance, note: salaryOp.note || 'تصفية راتب نهائية' });
+        store.addSalaryTransaction({ 
+          username: selectedStaffUsername.value, 
+          type: 'settlement', 
+          amount: balance, 
+          note: salaryOp.note || 'تصفية راتب نهائية',
+          processedBy: store.session?.username || 'admin'
+        });
         salaryOp.amount = null; salaryOp.note = ''; ui.showToast('تمت تصفية الحساب وصرف المستحقات بنجاح ✅');
       }
     }
@@ -855,7 +873,7 @@ export function useSettingsLogic() {
     if (username === 'admin') return;
     const confirmed = await ui.confirm({
       title: 'حذف موظف',
-      message: `هل أنت متأكد من حذف الموظف "${username}"؟ لا يمكن التراجع.`,
+      message: `هل أنت متأكد من حذف الموظف ${username}؟ لا يمكن التراجع.`,
       type: 'danger'
     });
     if (confirmed) {
@@ -1296,7 +1314,7 @@ export function useSettingsLogic() {
     user.permissions = { ...userPermsDraft.value };
     store.saveStaffData(user);
     showPermissionsModal.value = false;
-    ui.showToast(`تم تحديث صلاحيات الموظف "${selectedUserForPerms.value}" بنجاح 🛡️`);
+    ui.showToast(`تم تحديث صلاحيات الموظف ${selectedUserForPerms.value} بنجاح 🛡️`);
   };
 
   onMounted(() => {
@@ -1368,6 +1386,28 @@ export function useSettingsLogic() {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
+  const staffSalariesSummary = computed(() => {
+    return Object.values(store.users || {}).map(user => {
+      const username = user.username;
+      const txs = (store.archivedSalaries || []).filter(t => t.username === username && !t.isSettled);
+      const totalWithdrawals = txs.filter(t => t.type === 'withdrawal' || t.type === 'settlement').reduce((sum, t) => sum + t.amount, 0);
+      const hasSettlement = txs.some(t => t.type === 'settlement');
+      const netRemaining = hasSettlement ? 0 : (user.baseSalary || 0) - totalWithdrawals;
+
+      return {
+        username,
+        baseSalary: user.baseSalary || 0,
+        totalWithdrawals,
+        netRemaining,
+        role: user.role
+      };
+    });
+  });
+
+  const grandTotalBase = computed(() => staffSalariesSummary.value.reduce((sum, u) => sum + u.baseSalary, 0));
+  const grandTotalWithdrawals = computed(() => staffSalariesSummary.value.reduce((sum, u) => sum + u.totalWithdrawals, 0));
+  const grandTotalNetRemaining = computed(() => staffSalariesSummary.value.reduce((sum, u) => sum + u.netRemaining, 0));
+
   const filteredActivityLog = computed(() => {
     const query = activitySearchQuery.value.toLowerCase();
     return (activityLogList.value || []).filter(log => 
@@ -1378,6 +1418,10 @@ export function useSettingsLogic() {
   });
 
   return {
+    staffSalariesSummary,
+    grandTotalBase,
+    grandTotalWithdrawals,
+    grandTotalNetRemaining,
     store, isAdmin, activeTab, staffSearch, editingStaffMode, showDetailedJournal, shiftStats,
     isReadOnlyMode,
     totalShiftSalaries, totalHistoricalIncome, totalHistoricalExpenses, reportFilter, getReportStats,

@@ -138,7 +138,7 @@
                       </div>
                     </td>
                     <td style="text-align: center;">
-                      <span class="current-due-neon">{{ user.currentBalance || 0 }} ج</span>
+                      <span class="current-due-neon">{{ (user.baseSalary || 0) - (user.currentBalance || 0) }} ج</span>
                     </td>
                     <td style="text-align: center;">
                       <div v-if="store.canAccess('settings_staff', 'edit') && !isReadOnlyMode" class="actions-group-mini">
@@ -173,12 +173,12 @@
               <div class="form-row-modern">
                 <div class="form-group-modern">
                   <label>اسم المستخدم</label>
-                  <input type="text" v-model="staffForm.username" placeholder="مثلاً: أحمد محمد" :disabled="editingStaffMode">
+                  <input type="text" v-model="staffForm.username" autocomplete="new-password" placeholder="مثلاً: أحمد محمد" :disabled="editingStaffMode">
                 </div>
 
                 <div class="form-group-modern">
                   <label>كلمة السر</label>
-                  <input type="password" v-model="staffForm.password" placeholder="****">
+                  <input type="password" v-model="staffForm.password" autocomplete="new-password" placeholder="****">
                 </div>
               </div>
 
@@ -217,14 +217,79 @@
           
           <!-- Left: Account Statement -->
           <div class="statement-area">
-            <div v-if="!selectedStaffUsername" class="empty-selection-v3">
-              <div class="empty-inner">
-                <span class="icon">👈</span>
-                <h3>يرجى اختيار موظف من القائمة اليمنى لعرض كشف حسابه</h3>
+            <div v-if="!selectedStaffUsername" class="empty-selection-v3 staff-summary-dashboard" style="background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.3); backdrop-filter: blur(15px); text-align: right; width: 100%; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important;">
+              <div class="summary-header">
+                <h3 class="summary-title" style="font-family: 'Cairo', sans-serif; font-size: 1.35rem; font-weight: 800; color: #00e5ff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.6rem;">
+                  <span>📊</span> ملخص ميزانية وجدول رواتب الموظفين
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; font-family: 'Cairo', sans-serif;">👈 اختر موظفاً من القائمة المنسدلة يميناً، أو اضغط على أي موظف في الجدول أدناه للانتقال السريع إلى كشف حسابه وتسجيل المعاملات.</p>
+              </div>
+
+              <!-- Overall Budgets Totals Metrics Cards -->
+              <div class="metrics-summary-box" style="margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.6); border-color: rgba(0, 229, 255, 0.2);">
+                <div class="metric cyan">
+                  <span class="m-label" style="font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 0.8rem;">إجمالي الرواتب الأساسية</span>
+                  <span class="m-val">{{ formatCurrency(grandTotalBase) }} ج</span>
+                </div>
+                <div class="metric-divider"></div>
+                <div class="metric red">
+                  <span class="m-label" style="font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 0.8rem;">إجمالي مسحوبات الوردية</span>
+                  <span class="m-val">{{ formatCurrency(grandTotalWithdrawals) }} ج</span>
+                </div>
+                <div class="metric-divider"></div>
+                <div class="metric green">
+                  <span class="m-label" style="font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 0.8rem;">إجمالي المتبقي صرفه</span>
+                  <span class="m-val">{{ formatCurrency(grandTotalNetRemaining) }} ج</span>
+                </div>
+              </div>
+
+              <div class="table-frame-v3" style="max-height: 480px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; padding: 4px;">
+                <table class="table-v3" style="width: 100%; border-collapse: separate; border-spacing: 0 4px;">
+                  <thead>
+                    <tr style="background: rgba(15, 23, 42, 0.8);">
+                      <th style="text-align: right; padding: 14px 20px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">الموظف</th>
+                      <th style="text-align: center; padding: 14px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold;">الراتب الأساسي</th>
+                      <th style="text-align: center; padding: 14px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold;">إجمالي المسحوبات</th>
+                      <th style="text-align: center; padding: 14px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">صافي المتبقي صرفه</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="user in staffSalariesSummary" :key="user.username" @click="selectedStaffUsername = user.username" class="row-v3 clickable-row" style="cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.01);">
+                      <td style="text-align: right; padding: 14px 20px; font-family: 'Cairo', sans-serif; font-weight: 800; color: #fbbf24; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                        <span style="font-size: 1.2rem;">👤</span> {{ user.username }}
+                        <span v-if="user.role === 'manager'" style="font-size: 0.7rem; background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(37,99,235,0.25)); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); padding: 2px 8px; border-radius: 6px; font-weight: bold; margin-right: 8px; font-family: 'Cairo', sans-serif;">مدير</span>
+                      </td>
+                      <td style="text-align: center; padding: 14px; font-weight: bold; color: var(--accent-cyan); font-size: 1.05rem;">
+                        {{ formatCurrency(user.baseSalary) }} ج
+                      </td>
+                      <td style="text-align: center; padding: 14px; font-weight: bold; color: #f43f5e; font-size: 1.05rem;">
+                        {{ formatCurrency(user.totalWithdrawals) }} ج
+                      </td>
+                      <td style="text-align: center; padding: 14px; font-weight: 900; color: #10b981; font-size: 1.1rem; border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                        {{ formatCurrency(user.netRemaining) }} ج
+                      </td>
+                    </tr>
+                    <tr v-if="!staffSalariesSummary.length">
+                      <td colspan="4" class="empty-table-v3" style="text-align: center; padding: 4rem; color: var(--text-muted); font-family: 'Cairo', sans-serif; font-size: 1rem;">
+                        لا يوجد موظفين مسجلين حالياً 📂
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
             <div v-else class="full-statement-v3">
+              <div class="statement-info-row" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                 <div style="display: flex; align-items: center; gap: 1rem;">
+                    <h3 class="statement-title-v3" style="font-family: 'Cairo', sans-serif; font-size: 1.25rem; font-weight: 700; color: #00e5ff; margin: 0;">سجل معاملات الموظف: <span style="color: #fbbf24; font-weight: 900; font-size: 1.5rem; font-family: 'Cairo', sans-serif; margin-right: 0.3rem;">{{ selectedStaffUsername }}</span></h3>
+                    <button @click="selectedStaffUsername = ''" class="btn-back-to-summary">
+                      العودة للملخص العام <span class="back-icon">←</span>
+                    </button>
+                 </div>
+                 <span class="statement-hint-v3" style="font-family: 'Cairo', sans-serif; font-size: 0.85rem;">* تظهر هنا العمليات غير المؤرشفة فقط</span>
+              </div>
+
               <div class="metrics-summary-box">
                 <div class="metric cyan">
                   <span class="m-label">الراتب الأساسي</span>
@@ -240,11 +305,6 @@
                   <span class="m-label">صافي المتبقي صرفه</span>
                   <span class="m-val">{{ formatCurrency(selectedStaffNetRemaining) }} ج</span>
                 </div>
-              </div>
-
-              <div class="statement-info-row">
-                 <h3 class="statement-title-v3">سجل معاملات الموظف: {{ selectedStaffUsername }}</h3>
-                 <span class="statement-hint-v3">* تظهر هنا العمليات غير المؤرشفة فقط</span>
               </div>
 
               <div class="table-frame-v3">
@@ -321,7 +381,7 @@
                 <button @click="handleSalaryOp('withdrawal')" class="btn-red-v3" :disabled="!selectedStaffUsername || salaryOp.amount <= 0">
                   تسجيل مسحوبات (خصم) 🔴
                 </button>
-                <button @click="handleSalaryOp('settlement')" class="btn-green-v3" :disabled="!selectedStaffUsername">
+                <button @click="handleSalaryOp('settlement')" class="btn-green-v3" :disabled="!selectedStaffUsername || selectedStaffNetRemaining <= 0">
                   صرف الراتب المتبقي وتصفية الحساب 📦
                 </button>
               </div>
@@ -1259,6 +1319,10 @@ import pkg from '../../../package.json';
 const appVersion = `v${pkg.version}-Pro`;
 
 const {
+  staffSalariesSummary,
+  grandTotalBase,
+  grandTotalWithdrawals,
+  grandTotalNetRemaining,
   store, isAdmin, activeTab, staffSearch, editingStaffMode, shiftStats,
   isReadOnlyMode, getShiftDetailedData,
   totalShiftSalaries, reportFilter, getReportStats,
@@ -1533,3 +1597,46 @@ watch([() => store.multiBranchActive, () => store.activeBranchFilter], () => {
 </script>
 
 <style scoped src="./SettingsStyle.css"></style>
+<style scoped>
+.clickable-row {
+  position: relative;
+}
+.clickable-row:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  transform: translateX(-4px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.btn-back-to-summary {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  color: #00e5ff;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Cairo', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.05);
+}
+.btn-back-to-summary:hover {
+  background: #00e5ff !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.45) !important;
+  transform: translateY(-1px);
+}
+.back-icon {
+  font-size: 1.1rem;
+  font-weight: 900;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-block;
+  color: inherit;
+  line-height: 1;
+}
+.btn-back-to-summary:hover .back-icon {
+  transform: translateX(-4px);
+}
+</style>

@@ -32,15 +32,48 @@
           <div class="dialog-body">
             <p class="dialog-msg">{{ ui.dialog.message }}</p>
             
-            <div v-if="ui.dialog.showInput" class="dialog-input-wrap">
+            <div v-if="ui.dialog.showInput" class="dialog-input-wrap" style="position: relative; display: flex; align-items: center; width: 100%;">
               <input 
                 type="text" 
                 v-model="ui.dialog.inputValue" 
                 :placeholder="ui.dialog.inputPlaceholder"
                 @keyup.enter="ui.dialog.onConfirm"
+                @input="handleInput"
+                @blur="handleInputBlur"
                 ref="dialogInput"
                 class="premium-input-v3"
+                autocomplete="off"
+                style="padding-left: 40px; width: 100%;"
               >
+              <span 
+                v-if="ui.dialog.suggestions && ui.dialog.suggestions.length"
+                @mousedown.stop="toggleSuggestions" 
+                class="toggle-suggestions-arrow"
+                :class="{ active: showSuggestions }"
+              >
+                ▼
+              </span>
+              <div 
+                v-if="ui.dialog.suggestions && ui.dialog.suggestions.length && showSuggestions && filteredSuggestions.length" 
+                class="custom-suggestions-dropdown glass-panel"
+              >
+                <div 
+                  v-for="s in filteredSuggestions" 
+                  :key="s" 
+                  @mousedown="selectSuggestion(s)" 
+                  class="custom-suggestion-item"
+                  style="display: flex; justify-content: space-between; align-items: center;"
+                >
+                  <span>{{ s }}</span>
+                  <span 
+                    @mousedown.stop="deleteSuggestion(s)" 
+                    class="delete-suggestion-btn"
+                    title="حذف من المقترحات"
+                  >
+                    ✖
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="dialog-footer">
@@ -134,10 +167,55 @@
 
 <script setup>
 import { useUIStore } from '../stores/uiStore';
-import { watch, nextTick, ref } from 'vue';
+import { useAppStore } from '../stores/appStore';
+import { watch, nextTick, ref, computed } from 'vue';
 
 const ui = useUIStore();
+const store = useAppStore();
 const dialogInput = ref(null);
+const showSuggestions = ref(false);
+
+const filteredSuggestions = computed(() => {
+  const list = ui.dialog.suggestions || [];
+  const val = (ui.dialog.inputValue || '').toLowerCase().trim();
+  if (!val) return list;
+  return list.filter(s => s.toLowerCase().includes(val));
+});
+
+const selectSuggestion = (s) => {
+  ui.dialog.inputValue = s;
+  showSuggestions.value = false;
+};
+
+const deleteSuggestion = (s) => {
+  store.ignoreSuggestion(s);
+  if (ui.dialog.suggestions) {
+    ui.dialog.suggestions = ui.dialog.suggestions.filter(name => name !== s);
+  }
+};
+
+const handleInput = () => {
+  if (ui.dialog.inputValue && ui.dialog.inputValue.trim().length > 0) {
+    showSuggestions.value = true;
+  } else {
+    showSuggestions.value = false;
+  }
+};
+
+const toggleSuggestions = () => {
+  showSuggestions.value = !showSuggestions.value;
+  if (showSuggestions.value) {
+    nextTick(() => {
+      dialogInput.value?.focus();
+    });
+  }
+};
+
+const handleInputBlur = () => {
+  setTimeout(() => {
+    showSuggestions.value = false;
+  }, 200);
+};
 
 const restartApp = () => {
   if (window.electronAPI) {
@@ -152,6 +230,7 @@ const dismissUpdate = () => {
 
 watch(() => ui.dialog.show, (newVal) => {
   if (newVal && ui.dialog.showInput) {
+    showSuggestions.value = false;
     nextTick(() => {
       dialogInput.value?.focus();
     });
@@ -634,5 +713,93 @@ watch(() => ui.dialog.show, (newVal) => {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+.custom-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 5px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 99999;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  padding: 4px;
+}
+
+/* Custom Scrollbar for dropdown */
+.custom-suggestions-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-suggestions-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-suggestions-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+.custom-suggestions-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.custom-suggestion-item {
+  padding: 10px 15px;
+  color: #e2e8f0;
+  cursor: pointer;
+  border-radius: 8px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.9rem;
+  text-align: right;
+  transition: all 0.2s ease;
+}
+
+.custom-suggestion-item:hover {
+  background: rgba(0, 229, 255, 0.1);
+  color: #00e5ff;
+  transform: translateX(-4px);
+}
+
+.delete-suggestion-btn {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.delete-suggestion-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.toggle-suggestions-arrow {
+  position: absolute;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  user-select: none;
+  z-index: 10;
+}
+
+.toggle-suggestions-arrow:hover {
+  color: #00e5ff;
+}
+
+.toggle-suggestions-arrow.active {
+  transform: rotate(180deg);
+  color: #00e5ff;
 }
 </style>

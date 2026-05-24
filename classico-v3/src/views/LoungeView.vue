@@ -314,7 +314,7 @@ const sendToCustomerAccount = () => {
   selectedInvoiceId.value = null;
   showInvoiceModal.value = false;
   targetClientId.value = '';
-  ui.showToast(`تم ترحيل الفاتورة لحساب العميل "${client.name}" بنجاح ✅`);
+  ui.showToast(`تم ترحيل الفاتورة لحساب العميل ${client.name} بنجاح ✅`);
 };
 
 const transferToDevice = () => {
@@ -348,7 +348,7 @@ const transferToDevice = () => {
   selectedInvoiceId.value = null;
   showInvoiceModal.value = false;
   targetDeviceId.value = '';
-  ui.showToast(`تم ترحيل طلبات الصالة إلى "${device.name}" بنجاح 🚀✅`);
+  ui.showToast(`تم ترحيل طلبات الصالة إلى ${device.name} بنجاح 🚀✅`);
 };
 
 const loungeInvoices = computed(() => store.loungeInvoices);
@@ -371,12 +371,26 @@ const calculateInvoiceTotal = (inv) => {
 };
 
 const createNewInvoice = async () => {
+  const nameSuggestions = new Set();
+  const ignored = store.appSettings?.ignoredSuggestions || [];
+  (store.loungeInvoices || []).forEach(inv => {
+    if (inv.name && !inv.name.startsWith('فاتورة #') && !ignored.includes(inv.name)) {
+      nameSuggestions.add(inv.name);
+    }
+  });
+  (store.loungeHistory || []).forEach(inv => {
+    if (inv.name && !inv.name.startsWith('فاتورة #') && !ignored.includes(inv.name)) {
+      nameSuggestions.add(inv.name);
+    }
+  });
+
   const name = await ui.confirm({
     title: 'فتح فاتورة جديدة',
     message: 'أدخل اسم الفاتورة أو الطاولة (اختياري):',
     showInput: true,
     inputValue: '',
-    inputPlaceholder: 'مثلاً: طاولة 5'
+    inputPlaceholder: 'مثلاً: طاولة 5',
+    suggestions: Array.from(nameSuggestions).sort()
   });
   
   if (name === false) return; // Cancelled

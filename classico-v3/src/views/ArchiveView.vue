@@ -159,7 +159,7 @@
             <div class="archive-header-row">
               <button v-if="store.canAccess('archive_customers', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('archivedCustomers')" class="btn-clear-modern">🗑️ تفريغ أرشيف العملاء</button>
             </div>
-            <div class="table-container">
+            <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
               <table>
                 <thead>
                   <tr>
@@ -167,7 +167,7 @@
                     <th>اسم العميل</th>
                     <th>المبلغ المسدد عند الإغلاق</th>
                     <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1">الفرع</th>
-                    <th>بواسطة</th>
+                    <th>المسؤول</th>
                     <th>إجراء</th>
                   </tr>
                 </thead>
@@ -195,7 +195,7 @@
             <div class="archive-header-row">
               <button v-if="store.canAccess('archive_expenses', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('archivedExpenses')" class="btn-clear-modern">🗑️ تفريغ أرشيف المصروفات</button>
             </div>
-            <div class="table-container">
+            <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
               <table>
                 <thead>
                   <tr>
@@ -238,7 +238,7 @@
             <div class="archive-header-row">
               <button v-if="store.canAccess('archive_salaries', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('archivedSalaries')" class="btn-clear-modern">🗑️ تفريغ أرشيف المرتبات</button>
             </div>
-            <div class="table-container">
+            <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
               <table>
                 <thead>
                   <tr>
@@ -248,7 +248,7 @@
                     <th>المبلغ</th>
                     <th>ملاحظات</th>
                     <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1">الفرع</th>
-                    <th>بواسطة</th>
+                    <th>المسؤول</th>
                     <th>إجراء</th>
                   </tr>
                 </thead>
