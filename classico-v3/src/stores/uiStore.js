@@ -18,6 +18,7 @@ export const useUIStore = defineStore('ui', {
       suggestions: []
     },
     fontSize: localStorage.getItem('classico_font_size') || '100',
+    theme: localStorage.getItem('classico_theme') || 'dark',
     splashShow: true,
     celebration: {
       show: false,
@@ -40,6 +41,18 @@ export const useUIStore = defineStore('ui', {
       this.fontSize = size;
       localStorage.setItem('classico_font_size', size);
       document.documentElement.style.fontSize = size + '%';
+    },
+    setTheme(theme) {
+      this.theme = theme;
+      localStorage.setItem('classico_theme', theme);
+      if (theme === 'light') {
+        document.documentElement.classList.add('light-mode');
+      } else {
+        document.documentElement.classList.remove('light-mode');
+      }
+    },
+    toggleTheme() {
+      this.setTheme(this.theme === 'light' ? 'dark' : 'light');
     },
     // Toast Notifications
     showToast(message, type = 'success', duration = 3000) {

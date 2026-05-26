@@ -1,5 +1,5 @@
 <template>
-  <header class="topbar glass-panel" style="border-radius: 0 0 10px 10px !important; width: 100% !important; margin: 0 !important; padding: 35px 25px 10px 25px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: space-between !important; direction: rtl !important;">
+  <header class="topbar glass-panel" style="border-radius: 0 0 10px 10px !important; width: 100% !important; margin: 0 !important; padding: 35px 25px 10px 25px !important; height: auto !important; display: flex !important; align-items: center !important; justify-content: space-between !important; flex-wrap: wrap !important; gap: 15px !important; direction: rtl !important;">
     <div class="logo-container" style="display: flex !important; align-items: center !important; gap: 12px !important; order: 1 !important; margin: 0 !important; padding: 0 !important; flex: 1 !important; justify-content: flex-start !important;">
       <img :src="appLogo" alt="App Logo" class="app-logo" style="height: 40px !important; margin: 0 !important; order: 1 !important;">
       <h1 class="logo glow-text" style="font-size: 1.6rem !important; white-space: nowrap !important; margin: 0 !important; order: 2 !important;">{{ appName }}</h1>
@@ -90,6 +90,24 @@
               <button @click="changeFontSize('100')" class="zoom-reset-btn">إعادة ضبط (0)</button>
             </div>
           </div>
+
+          <!-- Theme Toggle -->
+          <button @click="ui.toggleTheme()" class="mini-glass-icon-btn" :title="ui.theme === 'light' ? 'الوضع الداكن 🌙' : 'الوضع المضيء ☀️'">
+            <svg v-if="ui.theme === 'light'" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 1V3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 21V23" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4.22 4.22L5.64 5.64" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.36 18.36L19.78 19.78" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M1 12H3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 12H23" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4.22 19.78L5.64 18.36" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.36 5.64L19.78 4.22" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
 
           <!-- Fullscreen -->
           <button @click="toggleFullscreen" class="mini-glass-icon-btn" title="ملء الشاشة">
@@ -422,17 +440,13 @@ const vClickOutside = {
 
 /* Compact Toolbar Mini Icons styling */
 .user-widget-column {
-  position: relative !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-end !important;
-  padding-top: 22px !important; /* reserve exact absolute space for 12px absolute positioning */
+  gap: 8px !important; /* Dynamic spacing that scales beautifully with font zoom */
 }
 
 .mini-control-toolbar {
-  position: absolute !important;
-  top: 0px !important;
-  left: 0 !important;
   display: flex !important;
   gap: 4px !important;
   align-items: center !important;

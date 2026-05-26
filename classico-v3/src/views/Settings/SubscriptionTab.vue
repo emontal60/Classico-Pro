@@ -675,3 +675,174 @@ const copySerial = (code) => {
 
 .btn-copy-serial:hover { background: #00e5ff; color: #000; border-color: #00e5ff; }
 </style>
+
+<style>
+/* --- LIGHT MODE GLOBAL OVERRIDES --- */
+.light-mode .sub-header-glass {
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(15px) !important;
+  -webkit-backdrop-filter: blur(15px) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+.light-mode .header-icon-shield {
+  background: rgba(15, 23, 42, 0.04) !important;
+  color: #0891b2 !important;
+}
+.light-mode .header-text h3 {
+  color: #0891b2 !important;
+}
+.light-mode .header-text p {
+  color: #475569 !important;
+}
+.light-mode .header-machine-id {
+  background: rgba(8, 145, 178, 0.05) !important;
+  border-color: rgba(8, 145, 178, 0.15) !important;
+}
+.light-mode .h-m-value {
+  color: #0891b2 !important;
+  text-shadow: none !important;
+}
+.light-mode .current-sub-card {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+}
+.light-mode .card-top-header {
+  background: linear-gradient(to left, #f1f5f9, #e0f2fe) !important;
+  color: #0f172a !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+.light-mode .plan-info h4 {
+  color: #0f172a !important;
+}
+.light-mode .plan-info p {
+  color: #475569 !important;
+}
+.light-mode .crown-icon {
+  color: #fbbf24 !important;
+}
+.light-mode .card-details-rows {
+  border-left-color: rgba(15, 23, 42, 0.06) !important;
+}
+.light-mode .detail-row {
+  border-bottom-color: rgba(15, 23, 42, 0.06) !important;
+}
+.light-mode .d-label {
+  color: #475569 !important;
+}
+.light-mode .d-value {
+  color: #0f172a !important;
+}
+.light-mode .countdown-label {
+  color: #0891b2 !important;
+}
+.light-mode .countdown-box {
+  background: #f8fafc !important;
+  border-color: rgba(8, 145, 178, 0.2) !important;
+  box-shadow: 0 10px 20px rgba(8, 145, 178, 0.04) !important;
+}
+.light-mode .days-unit {
+  color: #475569 !important;
+}
+.light-mode .btn-renew-sub {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(14, 165, 233, 0.04) 100%) !important;
+  border-top-color: rgba(8, 145, 178, 0.2) !important;
+  color: #0891b2 !important;
+}
+.light-mode .btn-renew-sub:hover {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(14, 165, 233, 0.15) 100%) !important;
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+.light-mode .sub-history-section {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+}
+.light-mode .history-header {
+  background: linear-gradient(to left, #f1f5f9, #e0f2fe) !important;
+  color: #0f172a !important;
+  border-color: rgba(8, 145, 178, 0.2) !important;
+}
+.light-mode .history-header h3 {
+  color: #0f172a !important;
+}
+.light-mode .history-table-container {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02) !important;
+}
+.light-mode .history-table th {
+  color: #475569 !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  background: var(--bg-table-header) !important;
+}
+.light-mode .history-table td {
+  color: #0f172a !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+.light-mode .date-range {
+  color: #475569 !important;
+}
+.light-mode .empty-history {
+  color: #475569 !important;
+}
+.light-mode .history-empty p {
+  color: #0f172a !important;
+}
+.light-mode .refresh-history-btn {
+  background: rgba(8, 145, 178, 0.08) !important;
+  border-color: rgba(8, 145, 178, 0.2) !important;
+  color: #0891b2 !important;
+}
+.light-mode .refresh-history-btn:hover {
+  background: #0891b2 !important;
+  color: #ffffff !important;
+}
+.light-mode .features-guide-section {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+}
+.light-mode .guide-header {
+  border-bottom-color: rgba(15, 23, 42, 0.06) !important;
+}
+.light-mode .guide-header h3 {
+  color: #0f172a !important;
+}
+.light-mode .f-text strong {
+  color: #0f172a !important;
+}
+.light-mode .f-text p {
+  color: #475569 !important;
+}
+.light-mode .serials-management-section {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
+}
+.light-mode .serial-card {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+}
+.light-mode .serial-card.used {
+  border-color: rgba(5, 150, 105, 0.3) !important;
+  background: rgba(5, 150, 105, 0.02) !important;
+}
+.light-mode .s-code {
+  color: #0891b2 !important;
+}
+.light-mode .btn-copy-serial {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #475569 !important;
+}
+.light-mode .btn-copy-serial:hover {
+  background: #0891b2 !important;
+  color: #ffffff !important;
+  border-color: #0891b2 !important;
+}
+</style>
+

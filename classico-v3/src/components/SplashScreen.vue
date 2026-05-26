@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div v-if="show" class="splash-screen">
+    <div v-if="show" class="splash-screen" :class="{ 'light-mode': ui.theme === 'light' }">
       <div class="splash-content">
         <!-- Squircle Logo Container -->
         <div class="logo-box">
@@ -175,5 +175,38 @@ const show = computed(() => ui.splashShow);
 
 .fade-leave-to {
   opacity: 0;
+}
+
+/* --- Splash Screen Light Mode Overrides --- */
+.splash-screen.light-mode {
+  background-color: #f8fafc !important;
+  background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 60%, #edfaf9 100%) !important;
+}
+
+.splash-screen.light-mode .logo-box {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
+}
+
+.splash-screen.light-mode .app-name {
+  background: linear-gradient(180deg, #0f172a 0%, #334155 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.splash-screen.light-mode .app-tagline {
+  color: #0d9488; /* High-contrast emerald/teal-600 */
+  text-shadow: none;
+  opacity: 1;
+}
+
+.splash-screen.light-mode .loader-track {
+  border-color: rgba(15, 23, 42, 0.06);
+}
+
+.splash-screen.light-mode .status-text {
+  color: #64748b;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-container" style="height: 100vh !important; display: flex !important; flex-direction: column !important; background: #0a0e14 !important; padding: 0 5px 5px 5px !important; overflow: hidden !important; gap: 8px !important;">
+  <div class="app-container" style="height: 100vh !important; display: flex !important; flex-direction: column !important; background: var(--bg-deep) !important; padding: 0 5px 5px 5px !important; overflow: hidden !important; gap: 8px !important;">
     <SplashScreen />
     <Navbar v-if="showNavbar" />
     <main class="main-content" style="flex: 1 !important; display: flex !important; flex-direction: column !important; min-height: 0 !important; margin: 0 !important;">
@@ -127,6 +127,9 @@ watch(isExpired, (newVal) => {
 }, { immediate: true });
 
 onMounted(() => {
+  if (ui.theme) {
+    ui.setTheme(ui.theme);
+  }
   // Hide initial splash after both 1s minimum and store finishes loading
   const minTimePromise = new Promise(resolve => setTimeout(resolve, 1000));
   const storeLoadPromise = new Promise(resolve => {

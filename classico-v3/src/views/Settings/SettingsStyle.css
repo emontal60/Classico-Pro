@@ -515,7 +515,8 @@
   display: grid;
   grid-template-columns: 1fr 380px;
   gap: 20px;
-  height: calc(100vh - 220px);
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* --- Left Area --- */
@@ -523,6 +524,9 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .empty-selection-v3 {
@@ -595,7 +599,15 @@
 }
 
 .table-v3 { width: 100%; border-collapse: collapse; position: relative; z-index: 1; }
-.table-v3 th { background: rgba(15, 23, 42, 0.5); padding: 12px; font-size: 0.85rem; color: #64748b; }
+.table-v3 th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-table-header) !important;
+  padding: 12px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
 .row-v3 td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); }
 
 .time-v3 { display: flex; flex-direction: column; }
@@ -1500,7 +1512,8 @@
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
 }
- 
+
+ 
  
 /* Logo Upload Styles */
 .logo-upload-wrapper {
@@ -1743,10 +1756,12 @@
 }
 
 .section-title {
-  text-align: center;
-  font-size: 1.8rem;
+  text-align: right;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Cairo', sans-serif;
   color: #00e5ff;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
 }
 
 .features-grid {

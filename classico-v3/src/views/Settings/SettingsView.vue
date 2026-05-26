@@ -1,12 +1,12 @@
 <template>
-  <div class="dashboard-wrapper">
-    <main class="main-area glass-panel page-watermark" style="width: 100%; position: relative; overflow-y: auto;">
+  <div class="dashboard-wrapper" :style="{ overflowY: activeTab === 'salaries' ? 'hidden' : 'auto' }">
+    <main class="main-area glass-panel page-watermark" :style="{ width: '100%', position: 'relative', overflowY: activeTab === 'salaries' ? 'hidden' : 'auto' }">
       
       <!-- Page Header -->
       <div class="settings-header-premium" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
           <h2 class="premium-title-main" style="margin: 0;">⚙️ اعدادات النظام والتقارير والموظفين</h2>
-          <span style="font-size: 0.8rem; font-weight: bold; background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.2)); border: 1px solid rgba(0, 229, 255, 0.3); color: #00e5ff; padding: 4px 10px; border-radius: 8px; box-shadow: 0 0 10px rgba(6, 182, 212, 0.2); white-space: nowrap; font-family: 'Cairo', sans-serif; direction: ltr; letter-spacing: 1.5px;">{{ appVersion }}</span>
+          <span class="premium-version-badge">{{ appVersion }}</span>
         </div>
         
         <!-- Multi-Branch Controls (Only for multi-device subscription owners) -->
@@ -217,9 +217,9 @@
           
           <!-- Left: Account Statement -->
           <div class="statement-area">
-            <div v-if="!selectedStaffUsername" class="empty-selection-v3 staff-summary-dashboard" style="background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.3); backdrop-filter: blur(15px); text-align: right; width: 100%; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important;">
+            <div v-if="!selectedStaffUsername" class="empty-selection-v3 staff-summary-dashboard" style="background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.3); backdrop-filter: blur(15px); text-align: right; width: 100%; display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; height: 100%; min-height: 0; box-sizing: border-box; overflow: hidden;">
               <div class="summary-header">
-                <h3 class="summary-title" style="font-family: 'Cairo', sans-serif; font-size: 1.35rem; font-weight: 800; color: #00e5ff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.6rem;">
+                <h3 class="summary-title" style="font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 700; color: #00e5ff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.6rem;">
                   <span>📊</span> ملخص ميزانية وجدول رواتب الموظفين
                 </h3>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; font-family: 'Cairo', sans-serif;">👈 اختر موظفاً من القائمة المنسدلة يميناً، أو اضغط على أي موظف في الجدول أدناه للانتقال السريع إلى كشف حسابه وتسجيل المعاملات.</p>
@@ -243,10 +243,10 @@
                 </div>
               </div>
 
-              <div class="table-frame-v3" style="max-height: 480px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; padding: 4px;">
+              <div class="table-frame-v3" style="flex: 1; min-height: 0; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; padding: 0 4px 4px 4px; position: relative;">
                 <table class="table-v3" style="width: 100%; border-collapse: separate; border-spacing: 0 4px;">
                   <thead>
-                    <tr style="background: rgba(15, 23, 42, 0.8);">
+                    <tr>
                       <th style="text-align: right; padding: 14px 20px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold; border-top-right-radius: 8px; border-bottom-right-radius: 8px;">الموظف</th>
                       <th style="text-align: center; padding: 14px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold;">الراتب الأساسي</th>
                       <th style="text-align: center; padding: 14px; font-family: 'Cairo', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: bold;">إجمالي المسحوبات</th>
@@ -279,7 +279,7 @@
               </div>
             </div>
 
-            <div v-else class="full-statement-v3">
+            <div v-else class="full-statement-v3" style="display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden;">
               <div class="statement-info-row" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; width: 100%;">
                  <div style="display: flex; align-items: center; gap: 1rem;">
                     <h3 class="statement-title-v3" style="font-family: 'Cairo', sans-serif; font-size: 1.25rem; font-weight: 700; color: #00e5ff; margin: 0;">سجل معاملات الموظف: <span style="color: #fbbf24; font-weight: 900; font-size: 1.5rem; font-family: 'Cairo', sans-serif; margin-right: 0.3rem;">{{ selectedStaffUsername }}</span></h3>
@@ -307,7 +307,7 @@
                 </div>
               </div>
 
-              <div class="table-frame-v3">
+              <div class="table-frame-v3" style="flex: 1; min-height: 0; overflow-y: auto;">
                 <div class="table-watermark">CLASSICO <span>Playstation & Cafe</span></div>
                 <table class="table-v3">
                   <thead>
@@ -432,7 +432,7 @@
 
               <div class="detailed-journal-section glass-panel">
                  <div class="section-header-row" style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3 class="section-title" style="margin-bottom: 0;">📄 كشف اليومية التفصيلي</h3>
+                    <h3 class="section-title" style="margin-bottom: 0; font-size: 1rem; font-family: 'Cairo', sans-serif; font-weight: 700;">📄 كشف اليومية التفصيلي</h3>
                     <button @click="showJournalPopup = true" class="btn-view-journal-v3">📓 عرض اليوميه</button>
                  </div>
                  <div class="table-scroll-area">
@@ -719,26 +719,26 @@
 
             <!-- KPIs (Compact) -->
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-right: auto; margin-left: auto; justify-content: center;">
-              <div class="glass-panel" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; min-width: 130px;">
-                <div style="font-size: 0.85rem; color: #10b981; margin-bottom: 0.4rem; font-weight: bold;">الإيرادات</div>
-                <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(16,185,129,0.3);">{{ formatCurrency(analyticsData.kpis.revenue) }} ج</div>
+              <div class="glass-panel bi-kpi-card bi-kpi-card-rev" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; min-width: 130px;">
+                <div style="font-size: 0.85rem; color: var(--bi-kpi-rev-label, #10b981); margin-bottom: 0.4rem; font-weight: bold;">الإيرادات</div>
+                <div style="font-size: 1.2rem; font-weight: 900; color: var(--bi-kpi-rev, #fff); text-shadow: var(--bi-kpi-rev-glow, 0 0 10px rgba(16,185,129,0.3));">{{ formatCurrency(analyticsData.kpis.revenue) }} ج</div>
               </div>
-              <div class="glass-panel" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; min-width: 130px;">
-                <div style="font-size: 0.85rem; color: #ef4444; margin-bottom: 0.4rem; font-weight: bold;">المصروفات والرواتب</div>
-                <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(239,68,68,0.3);">{{ formatCurrency(analyticsData.kpis.expenses) }} ج</div>
+              <div class="glass-panel bi-kpi-card bi-kpi-card-exp" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; min-width: 130px;">
+                <div style="font-size: 0.85rem; color: var(--bi-kpi-exp-label, #ef4444); margin-bottom: 0.4rem; font-weight: bold;">المصروفات والرواتب</div>
+                <div style="font-size: 1.2rem; font-weight: 900; color: var(--bi-kpi-exp, #fff); text-shadow: var(--bi-kpi-exp-glow, 0 0 10px rgba(239,68,68,0.3));">{{ formatCurrency(analyticsData.kpis.expenses) }} ج</div>
               </div>
-              <div class="glass-panel" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; min-width: 130px;">
-                <div style="font-size: 0.85rem; color: #f59e0b; margin-bottom: 0.4rem; font-weight: bold;">صافي الربح</div>
-                <div style="font-size: 1.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(245,158,11,0.3);">{{ formatCurrency(analyticsData.kpis.netProfit) }} ج</div>
+              <div class="glass-panel bi-kpi-card bi-kpi-card-profit" style="padding: 0.8rem 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; min-width: 130px;">
+                <div style="font-size: 0.85rem; color: var(--bi-kpi-profit-label, #f59e0b); margin-bottom: 0.4rem; font-weight: bold;">صافي الربح</div>
+                <div style="font-size: 1.2rem; font-weight: 900; color: var(--bi-kpi-profit, #fff); text-shadow: var(--bi-kpi-profit-glow, 0 0 10px rgba(245,158,11,0.3));">{{ formatCurrency(analyticsData.kpis.netProfit) }} ج</div>
               </div>
             </div>
           </div>
 
           <!-- Branch Comparison Chart (Visible only when All Branches is selected) -->
           <div v-if="store.multiBranchActive && store.activeBranchFilter === 'all'" class="analytics-card glass-panel fadeScale" style="padding: 1.5rem; margin-bottom: 2rem; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 16px;">
-            <h3 style="margin-bottom: 1.5rem; color: #00e5ff; display: flex; align-items: center; gap: 10px;">
+            <h3 style="margin-bottom: 1.5rem; color: var(--accent-cyan, #00e5ff); display: flex; align-items: center; gap: 10px;">
               <span>🌐 مقارنة الفروع في المبيعات وصافي الأرباح</span>
-              <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8; margin-right: auto;">(الفترة الزمنية المحددة)</span>
+              <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted, #94a3b8); margin-right: auto;">(الفترة الزمنية المحددة)</span>
             </h3>
             <div id="branchComparisonChart"></div>
           </div>
@@ -753,7 +753,7 @@
             <div class="analytics-card glass-panel" style="padding: 1.5rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <h3 style="margin: 0; color: var(--accent-success);">🏆 الأصناف الأكثر مبيعاً</h3>
-                <button @click="toggleItemsChartType" class="btn-sys-v3" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin: 0; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: all 0.3s ease;">
+                <button @click="toggleItemsChartType" class="btn-sys-v3" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; margin: 0; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--accent-success, #10b981); border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: all 0.3s ease;">
                   <span v-if="itemsChartType === 'donut'">📊 كأعمدة</span>
                   <span v-else>🍩 كدائرة</span>
                 </button>
@@ -769,40 +769,40 @@
               <div id="ratioChart"></div>
             </div>
             <div class="analytics-card glass-panel" style="padding: 1.5rem;">
-              <h3 style="margin-bottom: 1rem; color: #8b5cf6;">💼 أداء الموظفين (المبيعات)</h3>
+              <h3 style="margin-bottom: 1rem; color: var(--accent-staff, #8b5cf6);">💼 أداء الموظفين (المبيعات)</h3>
               <div id="staffChart"></div>
             </div>
           </div>
 
           <!-- Row 3: Income vs Expenses -->
           <div class="analytics-card glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1rem; color: #fff;">📈 الإيرادات مقابل المصروفات زمنياً</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--text-main, #fff);">📈 الإيرادات مقابل المصروفات زمنياً</h3>
             <div id="incomeChart"></div>
           </div>
 
           <!-- Row 4: Debt Analysis & Monthly Profits -->
           <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; padding-bottom: 3rem;">
             <div class="analytics-card glass-panel" style="padding: 1.5rem;">
-              <h3 style="margin-bottom: 1rem; color: #ec4899;">🤝 تحليل الديون والمديونيات</h3>
+              <h3 style="margin-bottom: 1rem; color: var(--accent-debt, #ec4899);">🤝 تحليل الديون والمديونيات</h3>
               
               <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                 <div style="flex: 1; background: rgba(16,185,129,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2); text-align: center;">
-                  <div style="font-size: 0.8rem; color: #10b981; margin-bottom: 0.5rem;">الديون المحصلة</div>
-                  <div style="font-size: 1.2rem; font-weight: bold; color: #10b981;">{{ formatCurrency(analyticsData.debtAnalysis.totalCollected) }} ج</div>
+                  <div style="font-size: 0.8rem; color: var(--accent-success, #10b981); margin-bottom: 0.5rem;">الديون المحصلة</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: var(--accent-success, #10b981);">{{ formatCurrency(analyticsData.debtAnalysis.totalCollected) }} ج</div>
                 </div>
                 <div style="flex: 1; background: rgba(239,68,68,0.1); padding: 1rem; border-radius: 8px; border: 1px solid rgba(239,68,68,0.2); text-align: center;">
-                  <div style="font-size: 0.8rem; color: #ef4444; margin-bottom: 0.5rem;">متبقي في السوق</div>
-                  <div style="font-size: 1.2rem; font-weight: bold; color: #ef4444;">{{ formatCurrency(analyticsData.debtAnalysis.totalRemaining) }} ج</div>
+                  <div style="font-size: 0.8rem; color: var(--accent-danger, #ef4444); margin-bottom: 0.5rem;">متبقي في السوق</div>
+                  <div style="font-size: 1.2rem; font-weight: bold; color: var(--accent-danger, #ef4444);">{{ formatCurrency(analyticsData.debtAnalysis.totalRemaining) }} ج</div>
                 </div>
               </div>
 
-              <h4 style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 0.5rem;">أكثر العملاء استدانة (Top 5)</h4>
-              <div v-if="analyticsData.debtAnalysis.topDebtors.length === 0" style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 1rem;">
+              <h4 style="color: var(--text-muted, #94a3b8); font-size: 0.9rem; margin-bottom: 0.5rem;">أكثر العملاء استدانة (Top 5)</h4>
+              <div v-if="analyticsData.debtAnalysis.topDebtors.length === 0" style="color: var(--text-muted, #64748b); font-size: 0.85rem; text-align: center; padding: 1rem;">
                 لا توجد ديون مسجلة.
               </div>
-              <div v-for="d in analyticsData.debtAnalysis.topDebtors" :key="d.name" style="display: flex; justify-content: space-between; padding: 0.8rem; background: rgba(255,255,255,0.02); margin-bottom: 0.5rem; border-radius: 6px;">
-                <span style="color: #cbd5e1;">{{ d.name }}</span>
-                <span style="color: #ef4444; font-weight: bold;">{{ formatCurrency(d.debt) }} ج</span>
+              <div v-for="d in analyticsData.debtAnalysis.topDebtors" :key="d.name" style="display: flex; justify-content: space-between; padding: 0.8rem; background: var(--analytics-item-bg, rgba(255,255,255,0.02)); margin-bottom: 0.5rem; border-radius: 6px;">
+                <span style="color: var(--text-main, #cbd5e1);">{{ d.name }}</span>
+                <span style="color: var(--accent-danger, #ef4444); font-weight: bold;">{{ formatCurrency(d.debt) }} ج</span>
               </div>
             </div>
 
@@ -1077,7 +1077,7 @@
       <div class="glass-panel" style="width: 500px; max-width: 95%; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); animation: fadeScale 0.3s ease-out;">
         
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 1.5rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;">
+        <div class="shift-modal-header" style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 1.5rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;">
           <button @click="showCloseShiftModal = false" style="position: absolute; left: 1rem; top: 1rem; background: transparent; border: none; color: #ef4444; font-size: 1.2rem; cursor: pointer;">✖</button>
           <div style="font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 0 20px rgba(0, 229, 255, 0.5);">⚙️</div>
           <h2 style="margin: 0; color: #fff; font-weight: 800; font-family: 'Cairo', sans-serif;">تقفيل الوردية الحالية</h2>
@@ -1093,7 +1093,7 @@
                 <td style="padding: 1rem; border-radius: 0 8px 8px 0; font-weight: bold; color: #10b981; font-size: 1.1rem; width: 60%;">
                   <span style="margin-left: 0.5rem;">📥</span> إجمالي الداخل
                 </td>
-                <td style="padding: 1rem; border-radius: 8px 0 0 8px; text-align: left; font-weight: 900; color: #fff; font-size: 1.2rem;">
+                <td class="shift-row-value" style="padding: 1rem; border-radius: 8px 0 0 8px; text-align: left; font-weight: 900; color: #fff; font-size: 1.2rem;">
                   {{ formatCurrency((shiftStats.psRevenue || 0) + (shiftStats.loungeRevenue || 0) + (shiftStats.customerCollections || 0)) }} ج
                 </td>
               </tr>
@@ -1103,7 +1103,7 @@
                 <td style="padding: 1rem; border-radius: 0 8px 8px 0; font-weight: bold; color: #ef4444; font-size: 1.1rem;">
                   <span style="margin-left: 0.5rem;">📤</span> إجمالي الخارج
                 </td>
-                <td style="padding: 1rem; border-radius: 8px 0 0 8px; text-align: left; font-weight: 900; color: #fff; font-size: 1.2rem;">
+                <td class="shift-row-value" style="padding: 1rem; border-radius: 8px 0 0 8px; text-align: left; font-weight: 900; color: #fff; font-size: 1.2rem;">
                   {{ formatCurrency((shiftStats.expenseSum || 0) + (totalShiftSalaries || 0)) }} ج
                 </td>
               </tr>
@@ -1120,7 +1120,7 @@
                 <td style="padding: 1.2rem 1rem; border-radius: 0 12px 12px 0; font-weight: 900; color: #00e5ff; font-size: 1.3rem;">
                   <span style="margin-left: 0.5rem;">⭐</span> الصافي (المتبقي)
                 </td>
-                <td style="padding: 1.2rem 1rem; border-radius: 12px 0 12px 12px; text-align: left; font-weight: 900; color: #fff; font-size: 1.5rem; text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);">
+                <td class="shift-net-value" style="padding: 1.2rem 1rem; border-radius: 12px 0 12px 12px; text-align: left; font-weight: 900; color: #fff; font-size: 1.5rem; text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);">
                   {{ formatCurrency((shiftStats.netProfit || 0) - (totalShiftSalaries || 0)) }} ج
                 </td>
               </tr>
@@ -1133,7 +1133,7 @@
         </div>
 
         <!-- Footer -->
-        <div style="padding: 1.5rem; background: rgba(15, 23, 42, 0.5); border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 1rem;">
+        <div class="shift-modal-footer" style="padding: 1.5rem; background: rgba(15, 23, 42, 0.5); border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 1rem;">
           <button @click="showCloseShiftModal = false" style="flex: 1; padding: 0.8rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s;">
             تراجع ✖
           </button>
@@ -1208,10 +1208,10 @@
     <div v-if="showJournalPopup" class="perms-modal-overlay" style="z-index: 9998;">
       <div class="glass-panel" style="width: 1100px; max-width: 95%; height: 90vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; animation: fadeScale 0.3s ease-out; border: 1px solid rgba(255,255,255,0.1);">
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div class="journal-popup-header" style="background: linear-gradient(135deg, #1e293b, #0f172a); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
           <div>
-            <h2 style="margin: 0; color: #fff; font-size: 1.5rem; font-weight: 800;">📓 عرض تفاصيل اليومية الحالية</h2>
-            <p style="margin: 0.2rem 0 0 0; color: #94a3b8; font-size: 0.9rem;">بداية الوردية: {{ formatDate(store.lastJournalClosure) }} , {{ formatTime(store.lastJournalClosure) }}</p>
+            <h2 class="journal-popup-title" style="margin: 0; color: #fff; font-size: 1.5rem; font-weight: 800;">📓 عرض تفاصيل اليومية الحالية</h2>
+            <p class="journal-popup-subtitle" style="margin: 0.2rem 0 0 0; color: #94a3b8; font-size: 0.9rem;">بداية الوردية: {{ formatDate(store.lastJournalClosure) }} , {{ formatTime(store.lastJournalClosure) }}</p>
           </div>
           <div style="display: flex; gap: 1rem; align-items: center;">
             <button @click="closeShift" class="btn-close-shift-neon" style="margin: 0; padding: 0.6rem 1.5rem;">⚙️ تقفيل اليومية</button>
@@ -1220,7 +1220,7 @@
         </div>
 
         <!-- Body -->
-        <div style="flex: 1; overflow-y: auto; padding: 2rem; background: rgba(15, 23, 42, 0.3);">
+        <div class="journal-popup-body" style="flex: 1; overflow-y: auto; padding: 2rem; background: rgba(15, 23, 42, 0.3);">
           <!-- Summary Cards in Modal -->
           <div class="journal-cards-grid" style="margin-bottom: 2rem;">
              <div class="j-card cyan">
@@ -1250,7 +1250,7 @@
           </div>
 
           <!-- Table -->
-          <div class="glass-panel" style="background: rgba(30, 41, 59, 0.4); border-radius: 16px; padding: 1px; overflow: hidden;">
+          <div class="glass-panel journal-popup-table-wrap" style="background: rgba(30, 41, 59, 0.4); border-radius: 16px; padding: 1px; overflow: hidden;">
             <table class="premium-table-journal">
                <thead>
                   <tr>
@@ -1301,7 +1301,7 @@
         </div>
 
         <!-- Footer -->
-        <div style="padding: 1.2rem 2rem; background: rgba(15, 23, 42, 0.8); border-top: 1px solid rgba(255,255,255,0.05); text-align: left;">
+        <div class="journal-popup-footer" style="padding: 1.2rem 2rem; background: rgba(15, 23, 42, 0.8); border-top: 1px solid rgba(255,255,255,0.05); text-align: left;">
           <button @click="showJournalPopup = false" class="btn-sys-v3 info" style="margin: 0; min-width: 120px;">إغلاق النافذة</button>
         </div>
       </div>
@@ -1314,9 +1314,12 @@ import { ref, watch, onMounted, nextTick } from 'vue';
 import { useSettingsLogic } from './SettingsLogic';
 import SubscriptionTab from './SubscriptionTab.vue';
 import ApexCharts from 'apexcharts';
+import { useUIStore } from '../../stores/uiStore';
 import pkg from '../../../package.json';
 
 const appVersion = `v${pkg.version}-Pro`;
+
+const ui = useUIStore();
 
 const {
   staffSalariesSummary,
@@ -1350,6 +1353,11 @@ const renderItemsChart = () => {
     if (!iChart) return;
     if (charts.items) charts.items.destroy();
 
+    const themeMode = ui.theme === 'light' ? 'light' : 'dark';
+    const textColor = ui.theme === 'light' ? '#334155' : '#cbd5e1';
+    const gridColor = ui.theme === 'light' ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+    const tooltipTheme = ui.theme === 'light' ? 'light' : 'dark';
+
     const itemNames = (analyticsData.topItems || []).map(i => i.name);
     const itemQtys = (analyticsData.topItems || []).map(i => i.qty);
     const isBar = itemsChartType.value === 'bar';
@@ -1361,26 +1369,28 @@ const renderItemsChart = () => {
     if (isBar) {
       options = {
         series: [{ name: 'الكمية المباعة', data: safeQtys }],
-        chart: { type: 'bar', height: 350, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        chart: { type: 'bar', height: 350, foreColor: textColor, toolbar: { show: false }, background: 'transparent' },
         xaxis: { categories: safeNames },
         colors: ['#00e5ff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#3b82f6'],
         plotOptions: { bar: { horizontal: true, borderRadius: 4, distributed: true } },
         dataLabels: { enabled: true, style: { colors: ['#fff'] } },
-        grid: { borderColor: 'rgba(255,255,255,0.05)' },
-        tooltip: { theme: 'dark' },
-        legend: { show: false }
+        grid: { borderColor: gridColor },
+        tooltip: { theme: tooltipTheme },
+        legend: { show: false },
+        theme: { mode: themeMode }
       };
     } else {
       options = {
         series: safeQtys.reduce((a,b)=>a+b, 0) === 0 ? [1] : safeQtys, // Prevent blank if all 0s
-        chart: { type: 'donut', height: 350, foreColor: '#cbd5e1', background: 'transparent' },
+        chart: { type: 'donut', height: 350, foreColor: textColor, background: 'transparent' },
         labels: safeNames,
         colors: ['#00e5ff', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#3b82f6'],
         stroke: { show: false },
         plotOptions: { pie: { donut: { size: '70%' } } },
         dataLabels: { enabled: true },
-        tooltip: { theme: 'dark' },
-        legend: { position: 'bottom' }
+        tooltip: { theme: tooltipTheme },
+        legend: { position: 'bottom' },
+        theme: { mode: themeMode }
       };
     }
 
@@ -1404,6 +1414,11 @@ const initCharts = () => {
   const rChart = document.querySelector("#ratioChart");
   const sChart = document.querySelector("#staffChart");
 
+  const themeMode = ui.theme === 'light' ? 'light' : 'dark';
+  const textColor = ui.theme === 'light' ? '#334155' : '#cbd5e1';
+  const gridColor = ui.theme === 'light' ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+  const tooltipTheme = ui.theme === 'light' ? 'light' : 'dark';
+
   // Destroy existing
   try {
     if (charts.hours) charts.hours.destroy();
@@ -1421,14 +1436,15 @@ const initCharts = () => {
       const safeHours = analyticsData.busyHours && analyticsData.busyHours.length ? analyticsData.busyHours.map(n => Number(n) || 0) : Array(24).fill(0);
       charts.hours = new ApexCharts(hChart, {
         series: [{ name: 'عدد الزيارات', data: safeHours }],
-        chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        chart: { type: 'area', height: 300, foreColor: textColor, toolbar: { show: false }, background: 'transparent' },
         stroke: { curve: 'smooth', width: 3 },
         colors: ['#00e5ff'],
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
         dataLabels: { enabled: false },
         xaxis: { categories: Array.from({length: 24}, (_, i) => i + ':00') },
-        grid: { borderColor: 'rgba(255,255,255,0.05)' },
-        tooltip: { theme: 'dark' }
+        grid: { borderColor: gridColor },
+        tooltip: { theme: tooltipTheme },
+        theme: { mode: themeMode }
       });
       charts.hours.render();
     } catch(e) { console.error('hoursChart error', e); }
@@ -1445,13 +1461,14 @@ const initCharts = () => {
 
       charts.profit = new ApexCharts(pChart, {
         series: [{ name: 'صافي الربح', data: pData.length ? pData : [0] }],
-        chart: { type: 'bar', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        chart: { type: 'bar', height: 300, foreColor: textColor, toolbar: { show: false }, background: 'transparent' },
         plotOptions: { bar: { borderRadius: 8, columnWidth: '50%', distributed: true } },
         colors: ['#f59e0b', '#10b981', '#00e5ff', '#8b5cf6', '#ec4899'],
         dataLabels: { enabled: false },
         xaxis: { categories: pLabels.length ? pLabels : ['---'] },
-        grid: { borderColor: 'rgba(255,255,255,0.05)' },
-        tooltip: { theme: 'dark' }
+        grid: { borderColor: gridColor },
+        tooltip: { theme: tooltipTheme },
+        theme: { mode: themeMode }
       });
       charts.profit.render();
     } catch(e) { console.error('profitChart error', e); }
@@ -1469,7 +1486,7 @@ const initCharts = () => {
           { name: 'الإيرادات', data: revData.length ? revData : [0] },
           { name: 'المصروفات', data: expData.length ? expData : [0] }
         ],
-        chart: { type: 'area', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        chart: { type: 'area', height: 300, foreColor: textColor, toolbar: { show: false }, background: 'transparent' },
         colors: ['#10b981', '#ef4444'],
         stroke: { curve: 'smooth', width: 3 },
         fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
@@ -1480,8 +1497,9 @@ const initCharts = () => {
             formatter: (value) => { return Math.round(Number(value) || 0).toLocaleString(); }
           }
         },
-        grid: { borderColor: 'rgba(255,255,255,0.05)' },
-        tooltip: { theme: 'dark' }
+        grid: { borderColor: gridColor },
+        tooltip: { theme: tooltipTheme },
+        theme: { mode: themeMode }
       });
       charts.income.render();
     } catch(e) { console.error('incomeChart error', e); }
@@ -1497,18 +1515,19 @@ const initCharts = () => {
       charts.ratio = new ApexCharts(rChart, {
         series: isRatioZero ? [1, 1] : [psVal, loungeVal],
         labels: ['الأجهزة 🎮', 'الصالة ☕'],
-        chart: { type: 'donut', height: 300, foreColor: '#cbd5e1', background: 'transparent' },
+        chart: { type: 'donut', height: 300, foreColor: textColor, background: 'transparent' },
         colors: ['#00e5ff', '#10b981'],
         stroke: { show: false },
         legend: { position: 'bottom' },
         plotOptions: { pie: { donut: { size: '70%' } } },
         dataLabels: { enabled: !isRatioZero, style: { colors: ['#fff'] } },
         tooltip: {
-          theme: 'dark',
+          theme: tooltipTheme,
           y: {
             formatter: (val) => isRatioZero ? '0 ج' : `${Math.round(val).toLocaleString()} ج`
           }
-        }
+        },
+        theme: { mode: themeMode }
       });
       charts.ratio.render();
     } catch(e) { console.error('ratioChart error', e); }
@@ -1522,14 +1541,15 @@ const initCharts = () => {
       
       charts.staff = new ApexCharts(sChart, {
         series: [{ name: 'إجمالي المبيعات', data: sData.length ? sData : [0] }],
-        chart: { type: 'bar', height: 300, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        chart: { type: 'bar', height: 300, foreColor: textColor, toolbar: { show: false }, background: 'transparent' },
         plotOptions: { bar: { horizontal: false, borderRadius: 6, distributed: true } },
         colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
         dataLabels: { enabled: false },
         xaxis: { categories: sLabels.length ? sLabels : ['لا يوجد بيانات'] },
-        grid: { borderColor: 'rgba(255,255,255,0.05)' },
+        grid: { borderColor: gridColor },
         legend: { show: false },
-        tooltip: { theme: 'dark' }
+        tooltip: { theme: tooltipTheme },
+        theme: { mode: themeMode }
       });
       charts.staff.render();
     } catch(e) { console.error('staffChart error', e); }
@@ -1548,7 +1568,7 @@ const initCharts = () => {
           { name: 'إجمالي المبيعات 💸', data: bSales.length ? bSales : [0] },
           { name: 'صافي الأرباح 📈', data: bProfits.length ? bProfits : [0] }
         ],
-        chart: { type: 'bar', height: 350, foreColor: '#cbd5e1', toolbar: { show: false }, background: 'transparent' },
+        chart: { type: 'bar', height: 350, foreColor: textColor, toolbar: { show: false }, background: 'transparent' },
         colors: ['#00e5ff', '#10b981'],
         stroke: { show: true, width: 2, colors: ['transparent'] },
         plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 8 } },
@@ -1559,9 +1579,10 @@ const initCharts = () => {
             formatter: (value) => { return Math.round(Number(value) || 0).toLocaleString() + ' ج'; }
           }
         },
-        grid: { borderColor: 'rgba(255,255,255,0.05)' },
-        tooltip: { theme: 'dark' },
-        legend: { position: 'top' }
+        grid: { borderColor: gridColor },
+        tooltip: { theme: tooltipTheme },
+        legend: { position: 'top' },
+        theme: { mode: themeMode }
       });
       charts.branchComparison.render();
     } catch(e) { console.error('branchComparisonChart error', e); }
@@ -1592,6 +1613,13 @@ watch([() => store.multiBranchActive, () => store.activeBranchFilter], () => {
     nextTick(() => {
       setTimeout(initCharts, 300);
     });
+  }
+});
+
+// Watch theme changes to re-render charts with correct contrast instantly
+watch(() => ui.theme, () => {
+  if (activeTab.value === 'analytics') {
+    initCharts();
   }
 });
 </script>

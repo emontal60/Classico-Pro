@@ -848,4 +848,20 @@ if (typeof window !== 'undefined') {
 .qty-input[type=number] {
   -moz-appearance: textfield;
 }
+
+/* Light Mode Overrides for Quantity Control */
+:global(.light-mode) .qty-control {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+:global(.light-mode) .qty-btn {
+  background: rgba(15, 23, 42, 0.04) !important;
+  color: #0891b2 !important;
+}
+:global(.light-mode) .qty-btn:hover:not(:disabled) {
+  background: rgba(8, 145, 178, 0.1) !important;
+}
+:global(.light-mode) .qty-input {
+  color: #0f172a !important;
+}
 </style>

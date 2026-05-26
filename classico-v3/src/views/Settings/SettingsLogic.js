@@ -826,7 +826,7 @@ export function useSettingsLogic() {
     if (!selectedStaffUsername.value) return;
     const amount = Number(salaryOp.amount);
     const user = store.users[selectedStaffUsername.value];
-    const remaining = (user.baseSalary || 0) - (user.currentBalance || 0);
+    const remaining = selectedStaffNetRemaining.value;
 
     if (type === 'withdrawal') {
       if (amount <= 0) { ui.showToast('يرجى إدخال مبلغ صحيح', 'error'); return; }

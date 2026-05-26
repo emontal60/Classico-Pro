@@ -399,10 +399,23 @@ export const useAppStore = defineStore('app', {
           this.lastJournalClosure = data.classico_last_journal_closure || "2024-01-01T00:00:00.000Z";
           this.appSettings = data.classico_app_settings || { appName: 'Classico', userId: 'USR-' + Math.random().toString(36).substr(2, 6).toUpperCase() };
           this.activityLog = data.classico_activity_log || [];
+          this.recalculateAllCurrentBalances();
         }
       } catch (err) {
         console.warn('[Sync] Local server unreachable, continuing with cached data:', err.message);
       }
+    },
+
+    recalculateAllCurrentBalances() {
+      Object.keys(this.users || {}).forEach(username => {
+        const user = this.users[username];
+        if (user) {
+          const activeTxs = (this.archivedSalaries || []).filter(t => t.username === username && !t.isSettled);
+          user.currentBalance = activeTxs
+            .filter(t => t.type === 'withdrawal' || t.type === 'settlement')
+            .reduce((sum, t) => sum + t.amount, 0);
+        }
+      });
     },
 
     // --- Actions for UI ---
@@ -453,23 +466,21 @@ export const useAppStore = defineStore('app', {
       };
       this.archivedSalaries.push(transaction);
 
-      // Update user balance (both withdrawals and settlements count as payouts in currentBalance)
-      const user = this.users[tx.username];
-      if (user && (tx.type === 'withdrawal' || tx.type === 'settlement')) {
-        user.currentBalance = (user.currentBalance || 0) + tx.amount;
-      }
+      // Dynamically recalculate all balances to ensure absolute consistency
+      this.recalculateAllCurrentBalances();
+
       this.addActivity('عملية مادية (مرتبات)', `تم تسجيل ${tx.type === 'withdrawal' ? 'سحب' : 'تصفية'} مبلغ ${tx.amount} ج للموظف ${tx.username}`);
       this.saveToDatabase();
     },
 
     deleteSalaryTransaction(username, id) {
       const tx = this.archivedSalaries.find(t => t.id === id);
-      if (tx && (tx.type === 'withdrawal' || tx.type === 'settlement')) {
-        const user = this.users[username];
-        if (user) user.currentBalance = Math.max(0, (user.currentBalance || 0) - tx.amount);
-      }
-      this.addActivity('حذف معاملة مالية', `تم حذف معاملة للموظف ${username} بقيمة ${tx?.amount} ج`);
       this.archivedSalaries = this.archivedSalaries.filter(t => t.id !== id);
+
+      // Dynamically recalculate all balances to ensure absolute consistency
+      this.recalculateAllCurrentBalances();
+
+      this.addActivity('حذف معاملة مالية', `تم حذف معاملة للموظف ${username} بقيمة ${tx?.amount} ج`);
       this.saveToDatabase();
     },
 
@@ -525,16 +536,26 @@ export const useAppStore = defineStore('app', {
       // Automatically clear and reset current active expenses
       this.expenses = [];
       
-      // Find all employees who had a settlement transaction registered during this shift (unsettled)
-      const settledUsernames = new Set();
-      this.archivedSalaries.forEach(t => {
-        if (t.type === 'settlement' && !t.isSettled) {
-          settledUsernames.add(t.username);
+      // Find all employees whose total active withdrawals (withdrawal + settlement) equal or exceed their base salary
+      const settledUsernames = [];
+      Object.keys(this.users || {}).forEach(username => {
+        const user = this.users[username];
+        if (user) {
+          // Sum up all active (unsettled) transactions for this employee
+          const activeTxs = this.archivedSalaries.filter(t => t.username === username && !t.isSettled);
+          const totalActiveWithdrawals = activeTxs
+            .filter(t => t.type === 'withdrawal' || t.type === 'settlement')
+            .reduce((sum, t) => sum + t.amount, 0);
+
+          // If the total active withdrawals matches their base salary, settle them!
+          if (totalActiveWithdrawals >= (user.baseSalary || 0) && (user.baseSalary || 0) > 0) {
+            settledUsernames.push(username);
+          }
         }
       });
 
       // Settle all transactions and reset balances for these employees
-      if (settledUsernames.size > 0) {
+      if (settledUsernames.length > 0) {
         settledUsernames.forEach(username => {
           const user = this.users[username];
           if (user) {
@@ -547,6 +568,9 @@ export const useAppStore = defineStore('app', {
           });
         });
       }
+      
+      // Re-evaluate all balances to ensure perfect consistency
+      this.recalculateAllCurrentBalances();
       
       this.saveToDatabase();
     },
