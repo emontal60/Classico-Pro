@@ -35,6 +35,7 @@
           <span class="icon">📦</span> الأرشيف
         </button>
       </router-link>
+
       <router-link v-if="store.appSettings.pageVisibility?.menu !== false && store.canAccess('menu', 'none')" to="/menu" v-slot="{ isActive }">
         <button class="nav-btn" :class="{ active: isActive }">
           <span class="icon">📜</span> قائمة الأسعار
@@ -257,7 +258,10 @@ const toggleFullscreen = () => {
 // Initial font size application
 onMounted(() => {
   if (ui.fontSize) {
-    document.documentElement.style.fontSize = ui.fontSize + '%';
+    // Use px units with !important to prevent color-scheme from resetting the value
+    const pct = parseFloat(ui.fontSize) || 100;
+    const px = (pct / 100) * 16;
+    document.documentElement.style.setProperty('font-size', px + 'px', 'important');
   }
 
   // Handle post-refresh toast
@@ -383,9 +387,49 @@ const vClickOutside = {
   background: rgba(45, 212, 191, 0.05);
   border-style: solid;
 }
+
+/* Light Mode Overrides for Zoom Popover and components */
+:global(.light-mode) .zoom-popover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+}
+
+:global(.light-mode) .zoom-title {
+  color: #1e293b !important;
+}
+
+:global(.light-mode) .zoom-btn {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+}
+
+:global(.light-mode) .zoom-btn:hover {
+  background: rgba(15, 23, 42, 0.08) !important;
+}
+
+:global(.light-mode) .zoom-btn.current {
+  background: #2563eb !important;
+  color: white !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.3) !important;
+}
+
+:global(.light-mode) .zoom-reset-btn {
+  color: #2563eb !important;
+  border-color: rgba(37, 99, 235, 0.5) !important;
+}
+
+:global(.light-mode) .zoom-reset-btn:hover {
+  background: rgba(37, 99, 235, 0.05) !important;
+  border-style: solid;
+}
 .nav-btn {
   flex-shrink: 0; /* Prevent buttons from shrinking/clipping */
   white-space: nowrap;
+  font-size: 0.95rem !important;
+  line-height: 1.2 !important;
 }
 
 .owner-btn-glow {

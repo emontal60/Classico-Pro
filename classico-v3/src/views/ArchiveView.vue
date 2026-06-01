@@ -52,6 +52,9 @@
             <button v-if="store.canAccess('archive_salaries', 'none')" @click="activeTab = 'salaries'" :class="['tab-item-mini', { active: activeTab === 'salaries' }]">
               <span class="icon">💰</span> المرتبات
             </button>
+            <button @click="activeTab = 'tournaments'" :class="['tab-item-mini', { active: activeTab === 'tournaments' }]">
+              <span class="icon">🏆</span> البطولات
+            </button>
             <button v-if="store.canAccess('archive_global', 'none')" @click="activeTab = 'global'" :class="['tab-item-mini', { active: activeTab === 'global' }]">
               <span class="icon">📋</span> الشامل
             </button>
@@ -274,6 +277,46 @@
             </div>
           </div>
 
+          <!-- 5b. Tournaments Archive Tab -->
+          <div v-if="activeTab === 'tournaments'" class="tab-content">
+            <div class="archive-header-row">
+              <button v-if="store.canAccess('archive_global', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="clearArchive('tournamentsHistory')" class="btn-clear-modern">🗑️ تفريغ أرشيف اشتراكات البطولات</button>
+            </div>
+            <div class="table-container" style="max-height: 60vh; overflow-y: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="text-align: right;">الوقت</th>
+                    <th style="text-align: center;">اللاعب</th>
+                    <th style="text-align: center;">الاسم الحركي</th>
+                    <th style="text-align: center;">البطولة</th>
+                    <th style="text-align: center;">قيمة الاشتراك</th>
+                    <th v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center;">الفرع</th>
+                    <th style="text-align: center;">المستلم</th>
+                    <th style="text-align: center;">إجراء</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="t in sortedTournamentsHistory" :key="t.id">
+                    <td style="text-align: right;">
+                      <div>{{ formatDate(t.timestamp) }}</div>
+                      <small style="color: var(--text-muted)">{{ formatTime(t.timestamp) }}</small>
+                    </td>
+                    <td style="text-align: center;">{{ t.playerName }}</td>
+                    <td style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ t.nickname || '---' }}</td>
+                    <td style="text-align: center;">{{ t.tournamentName }}</td>
+                    <td style="text-align: center; color: #10b981; font-weight: bold;">{{ formatCurrency(t.amount) }} ج</td>
+                    <td v-if="store.multiBranchActive && store.subscriptionData?.max_devices > 1" style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ t.branchName || 'الفرع الرئيسي' }}</td>
+                    <td style="text-align: center; color: var(--text-muted);">{{ t.processedBy || '---' }}</td>
+                    <td style="text-align: center;">
+                      <button v-if="store.canAccess('archive_global', 'edit') && (!store.multiBranchActive || store.activeBranchFilter === 'local')" @click="deleteRecord('tournamentsHistory', t)" class="btn danger-btn" style="padding: 0.3rem 0.7rem; font-size: 0.85rem; background: #ef4444 !important;">حذف</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- 6. Global Archive Tab -->
           <div v-if="activeTab === 'global'" class="tab-content">
             <div class="archive-header-row">
@@ -297,6 +340,7 @@
                   <option value="📒 عملاء">📒 أرشيف العملاء</option>
                   <option value="💸 مصروفات">💸 أرشيف المصروفات</option>
                   <option value="💰 مرتبات">💰 أرشيف المرتبات</option>
+                  <option value="🏆 بطولات">🏆 أرشيف البطولات</option>
                 </select>
               </div>
               <!-- Smart Sub-Filter for Archive -->
@@ -492,6 +536,7 @@ const loungeHistoryList = computed(() => resolveMultiBranchList(store.loungeHist
 const archivedCustomersList = computed(() => resolveMultiBranchList(store.archivedCustomers, 'archivedCustomers'));
 const archivedExpensesList = computed(() => resolveMultiBranchList(store.archivedExpenses, 'archivedExpenses'));
 const archivedSalariesList = computed(() => resolveMultiBranchList(store.archivedSalaries, 'archivedSalaries'));
+const tournamentsHistoryList = computed(() => resolveMultiBranchList(store.tournamentsHistory, 'tournamentsHistory'));
 
 onMounted(async () => {
   if (store.multiBranchActive) {
@@ -534,6 +579,7 @@ const sortedLounge = computed(() => [...loungeHistoryList.value].sort((a, b) => 
 const sortedCustomers = computed(() => [...archivedCustomersList.value].sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt)));
 const sortedExpenses = computed(() => [...archivedExpensesList.value].sort((a, b) => new Date(b.timestamp || b.archivedAt) - new Date(a.timestamp || a.archivedAt)));
 const sortedSalaries = computed(() => [...archivedSalariesList.value].filter(s => !s.isAdjustment).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+const sortedTournamentsHistory = computed(() => [...tournamentsHistoryList.value].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
 
 // Summary Totals
 const totalPSRevenue = computed(() => sortedHistory.value.reduce((sum, h) => sum + h.totalCost, 0));
@@ -541,20 +587,21 @@ const totalLoungeRevenue = computed(() => sortedLounge.value.reduce((sum, l) => 
 const totalCustomerRevenue = computed(() => sortedCustomers.value.reduce((sum, c) => sum + (c.settledAmount || 0), 0));
 const totalExpenseSum = computed(() => sortedExpenses.value.reduce((sum, e) => sum + e.amount, 0));
 const totalSalariesSum = computed(() => sortedSalaries.value.reduce((sum, s) => sum + s.amount, 0));
+const totalTournamentsRevenue = computed(() => sortedTournamentsHistory.value.reduce((sum, t) => sum + t.amount, 0));
 
 // Dynamic Header Logic
 const activeTabLabel = computed(() => {
-  const labels = { devices: 'إجمالي الأجهزة', lounge: 'إجمالي الصالة', customers: 'تحصيلات العملاء', expenses: 'إجمالي المصروفات', salaries: 'إجمالي المرتبات' };
+  const labels = { devices: 'إجمالي الأجهزة', lounge: 'إجمالي الصالة', customers: 'تحصيلات العملاء', expenses: 'إجمالي المصروفات', salaries: 'إجمالي المرتبات', tournaments: 'إجمالي اشتراكات البطولات' };
   return labels[activeTab.value] || '';
 });
 
 const activeTabTotal = computed(() => {
-  const totals = { devices: totalPSRevenue.value, lounge: totalLoungeRevenue.value, customers: totalCustomerRevenue.value, expenses: totalExpenseSum.value, salaries: totalSalariesSum.value };
+  const totals = { devices: totalPSRevenue.value, lounge: totalLoungeRevenue.value, customers: totalCustomerRevenue.value, expenses: totalExpenseSum.value, salaries: totalSalariesSum.value, tournaments: totalTournamentsRevenue.value };
   return totals[activeTab.value] || 0;
 });
 
 const activeTabColor = computed(() => {
-  const colors = { devices: 'neon-cyan', lounge: 'neon-green', customers: 'neon-yellow', expenses: 'neon-red', salaries: 'neon-purple' };
+  const colors = { devices: 'neon-cyan', lounge: 'neon-green', customers: 'neon-yellow', expenses: 'neon-red', salaries: 'neon-purple', tournaments: 'neon-gold' };
   return colors[activeTab.value] || 'neon-cyan';
 });
 
@@ -610,6 +657,15 @@ const globalData = computed(() => {
     });
   }
 
+  // Tournaments
+  tournamentsHistoryList.value.forEach(t => {
+    data.push({
+      ts: t.timestamp, dept: '🏆 بطولات', name: t.playerName, amount: t.amount,
+      note: `اشتراك لاعب: ${t.playerName} [${t.nickname || 'بلا لقب'}] في بطولة ${t.tournamentName}`, color: '#fbbf24', processedBy: t.processedBy,
+      branchName: t.branchName
+    });
+  });
+
   return data.sort((a, b) => new Date(b.ts) - new Date(a.ts));
 });
 
@@ -633,7 +689,7 @@ const globalTotal = computed(() => filteredGlobalData.value.reduce((sum, row) =>
 
 // Actions
 const clearArchive = async (type) => {
-  const titles = { history: 'أرشيف الأجهزة', loungeHistory: 'أرشيف الصالة', archivedCustomers: 'أرشيف العملاء', archivedExpenses: 'أرشيف المصروفات', archivedSalaries: 'أرشيف المرتبات' };
+  const titles = { history: 'أرشيف الأجهزة', loungeHistory: 'أرشيف الصالة', archivedCustomers: 'أرشيف العملاء', archivedExpenses: 'أرشيف المصروفات', archivedSalaries: 'أرشيف المرتبات', tournamentsHistory: 'أرشيف اشتراكات البطولات' };
   const confirmed = await ui.confirm({
     title: 'تفريغ الأرشيف',
     message: `تحذير: سيتم مسح ${titles[type]} بالكامل. هل أنت متأكد؟`,
@@ -648,11 +704,11 @@ const clearArchive = async (type) => {
 const clearAllArchives = async () => {
   const confirmed = await ui.confirm({
     title: 'مسح شامل للأرشيف',
-    message: 'تنبيه خطير: سيتم مسح كافة الأرشيفات بالكامل (أجهزة، صالة، مصروفات، عملاء، مرتبات). هل أنت متأكد تماماً؟',
+    message: 'تنبيه خطير: سيتم مسح كافة الأرشيفات بالكامل (أجهزة، صالة، مصروفات، عملاء، مرتبات، بطولات). هل أنت متأكد تماماً؟',
     type: 'danger'
   });
   if (confirmed) {
-    const archives = ['history', 'loungeHistory', 'archivedCustomers', 'archivedExpenses', 'archivedSalaries'];
+    const archives = ['history', 'loungeHistory', 'archivedCustomers', 'archivedExpenses', 'archivedSalaries', 'tournamentsHistory'];
     archives.forEach(type => store.clearArchiveData(type));
     ui.showToast('تم تصفير الأرشيف الشامل بالكامل بنجاح');
   }
@@ -670,6 +726,13 @@ const deleteRecord = async (type, record) => {
     if (type === 'archivedCustomers') store.deleteFromArchivedCustomers(record.archivedAt);
     if (type === 'archivedExpenses') store.deleteFromArchivedExpenses(record.id);
     if (type === 'archivedSalaries') store.deleteSalaryTransaction(record.username, record.id);
+    if (type === 'tournamentsHistory') {
+      const idx = store.tournamentsHistory.findIndex(t => t.id === record.id);
+      if (idx !== -1) {
+        store.tournamentsHistory.splice(idx, 1);
+        store.saveToDatabase();
+      }
+    }
     ui.showToast('تم حذف السجل بنجاح');
   }
 };

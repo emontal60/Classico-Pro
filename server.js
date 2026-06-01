@@ -909,6 +909,175 @@ app.get('/api/system/subscription-history', async (req, res) => {
     }
 });
 
+// --- CLOUD TUNNEL & LOCAL IP ENDPOINTS FOR PLAYSTATION TOURNAMENTS ---
+let tunnelProcess = null;
+let tunnelUrl = null;
+
+// Get Local IPv4 Address of PC
+app.get('/api/system/local-ip', (req, res) => {
+    try {
+        const os = require('os');
+        const interfaces = os.networkInterfaces();
+        let localIp = '127.0.0.1';
+        for (const name of Object.keys(interfaces)) {
+            for (const net of interfaces[name]) {
+                if (net.family === 'IPv4' && !net.internal) {
+                    localIp = net.address;
+                    break;
+                }
+            }
+        }
+        res.json({ ip: localIp });
+    } catch (err) {
+        console.error("[LocalIP] Failed to get IP:", err.message);
+        res.json({ ip: '127.0.0.1' });
+    }
+});
+
+// Check Cloud Tunnel Status
+app.get('/api/system/tunnel-status', (req, res) => {
+    res.json({ url: tunnelUrl });
+});
+
+// Start Cloud Tunnel (Hybrid System: SSH localhost.run with localtunnel fallback)
+app.post('/api/system/start-tunnel', (req, res) => {
+    if (tunnelUrl) {
+        return res.json({ success: true, url: tunnelUrl });
+    }
+
+    try {
+        const { spawn } = require('child_process');
+        console.log('[Tunnel] Starting SSH tunnel to localhost.run...');
+
+        // Spawn SSH client (Windows 10/11 default)
+        tunnelProcess = spawn('ssh', [
+            '-o', 'StrictHostKeyChecking=no',
+            '-o', 'UserKnownHostsFile=/dev/null',
+            '-R', '80:127.0.0.1:3000',
+            'nokey@localhost.run'
+        ]);
+
+        let urlFound = false;
+
+        tunnelProcess.stdout.on('data', (data) => {
+            const output = data.toString();
+            console.log(`[Tunnel SSH Log] ${output}`);
+            
+            // Match the generated lhr.life HTTPS URL
+            const match = output.match(/(https:\/\/[a-zA-Z0-9.-]+\.lhr\.life)/i);
+            if (match && match[1]) {
+                tunnelUrl = match[1].trim();
+                urlFound = true;
+                console.log(`[Tunnel SSH] Connected successfully! Public URL: ${tunnelUrl}`);
+            }
+        });
+
+        tunnelProcess.stderr.on('data', (data) => {
+            console.error(`[Tunnel SSH Error Log] ${data.toString()}`);
+        });
+
+        tunnelProcess.on('close', (code) => {
+            console.log(`[Tunnel SSH] Process closed with code ${code}`);
+            if (!urlFound) {
+                console.log('[Tunnel Fallback] SSH tunnel failed to start, falling back to localtunnel...');
+                startLocaltunnelFallback(res);
+            } else {
+                tunnelProcess = null;
+                tunnelUrl = null;
+            }
+        });
+
+        // Polling loop to wait for url detection up to 6 seconds
+        let checks = 0;
+        const checkInterval = setInterval(() => {
+            checks++;
+            if (tunnelUrl) {
+                clearInterval(checkInterval);
+                if (!res.headersSent) {
+                    return res.json({ success: true, url: tunnelUrl });
+                }
+            }
+            if (checks > 12) { // 6 seconds timeout
+                clearInterval(checkInterval);
+                if (!urlFound && !res.headersSent) {
+                    console.log('[Tunnel Fallback] SSH timeout, trying localtunnel fallback...');
+                    startLocaltunnelFallback(res);
+                }
+            }
+        }, 500);
+
+    } catch (err) {
+        console.error('[Tunnel] SSH Spawn error, falling back to localtunnel:', err.message);
+        startLocaltunnelFallback(res);
+    }
+});
+
+// Helper function for Localtunnel fallback
+async function startLocaltunnelFallback(res) {
+    if (tunnelUrl) {
+        if (!res.headersSent) res.json({ success: true, url: tunnelUrl });
+        return;
+    }
+    try {
+        console.log('[Tunnel Fallback] Starting localtunnel programmatically...');
+        const localtunnel = require('localtunnel');
+        const tunnel = await localtunnel({ port: 3000 });
+        
+        tunnelUrl = tunnel.url;
+        tunnelProcess = tunnel;
+
+        console.log(`[Tunnel Fallback] Connected programmatically! Public URL: ${tunnelUrl}`);
+
+        tunnel.on('close', () => {
+            console.log(`[Tunnel Fallback] Closed`);
+            tunnelProcess = null;
+            tunnelUrl = null;
+        });
+
+        tunnel.on('error', (err) => {
+            console.error('[Tunnel Fallback Error]', err);
+            tunnelProcess = null;
+            tunnelUrl = null;
+        });
+
+        if (!res.headersSent) {
+            res.json({ success: true, url: tunnelUrl });
+        }
+    } catch (err) {
+        console.error('[Tunnel Fallback] Failed:', err.message);
+        tunnelProcess = null;
+        tunnelUrl = null;
+        if (!res.headersSent) {
+            res.json({ success: false, error: 'فشل بدء جميع الاتصالات السحابية: ' + err.message });
+        }
+    }
+}
+
+// Stop Cloud Tunnel
+app.post('/api/system/stop-tunnel', (req, res) => {
+    if (tunnelProcess) {
+        try {
+            // Check if it's the SSH process or programmatic localtunnel
+            if (typeof tunnelProcess.kill === 'function') {
+                tunnelProcess.kill();
+                console.log('[Tunnel] Stopped SSH tunnel process.');
+            } else if (typeof tunnelProcess.close === 'function') {
+                tunnelProcess.close();
+                console.log('[Tunnel] Stopped programmatic localtunnel.');
+            }
+        } catch (e) {
+            console.error('[Tunnel] Stop error:', e.message);
+        }
+        tunnelProcess = null;
+        tunnelUrl = null;
+        res.json({ success: true });
+    } else {
+        res.json({ success: false, message: 'لا يوجد نفق نشط حالياً.' });
+    }
+});
+
+
+
 app.get('/api/admin/multi-branch-data', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase().trim();

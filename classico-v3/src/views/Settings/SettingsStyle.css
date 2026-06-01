@@ -38,6 +38,15 @@
   gap: 0.5rem;
 }
 
+.page-label-box {
+  font-size: 0.95rem;
+}
+
+.page-label-box .icon,
+.page-label-box .label {
+  font-size: 0.95rem;
+}
+
 .nav-divider-v3 {
   width: 1px;
   height: 40px;
