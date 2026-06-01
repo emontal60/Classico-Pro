@@ -159,6 +159,17 @@ ipcMain.on('exit_app', () => {
   app.quit();
 });
 
+// Handle theme change from renderer: update titleBarOverlay symbol color
+ipcMain.on('theme-changed', (event, theme) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setTitleBarOverlay({
+      color: 'rgba(0, 0, 0, 0)',
+      symbolColor: theme === 'light' ? '#0f172a' : '#ffffff',
+      height: 35
+    });
+  }
+});
+
 ipcMain.on('print-html', (event, html) => {
   let printWin = new BrowserWindow({ 
     show: false, 

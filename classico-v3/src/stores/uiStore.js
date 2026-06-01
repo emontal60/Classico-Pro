@@ -37,10 +37,23 @@ export const useUIStore = defineStore('ui', {
   }),
 
   actions: {
+    // Helper: converts % string (e.g. '110') to exact px value based on 16px base
+    _sizeToPx(size) {
+      const pct = parseFloat(size) || 100;
+      return (pct / 100) * 16; // 16px is the browser standard base font size
+    },
     setFontSize(size) {
       this.fontSize = size;
       localStorage.setItem('classico_font_size', size);
-      document.documentElement.style.fontSize = size + '%';
+      const px = this._sizeToPx(size);
+      // Use px instead of % so color-scheme changes cannot affect the base
+      document.documentElement.style.setProperty('font-size', px + 'px', 'important');
+      // Double rAF to ensure this overrides any post-paint browser recalculation
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.documentElement.style.setProperty('font-size', px + 'px', 'important');
+        });
+      });
     },
     setTheme(theme) {
       this.theme = theme;
@@ -49,6 +62,20 @@ export const useUIStore = defineStore('ui', {
         document.documentElement.classList.add('light-mode');
       } else {
         document.documentElement.classList.remove('light-mode');
+      }
+      // ✅ Re-apply font size after DOM update to prevent zoom-out effect
+      // Use px units (not %) so color-scheme change cannot affect the base value
+      const currentSize = this.fontSize || localStorage.getItem('classico_font_size') || '100';
+      const px = this._sizeToPx(currentSize);
+      document.documentElement.style.setProperty('font-size', px + 'px', 'important');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.documentElement.style.setProperty('font-size', px + 'px', 'important');
+        });
+      });
+      // ✅ Notify Electron to update titleBarOverlay colors for the new theme
+      if (window.electronAPI && typeof window.electronAPI.send === 'function') {
+        window.electronAPI.send('theme-changed', theme);
       }
     },
     toggleTheme() {

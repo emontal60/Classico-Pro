@@ -158,6 +158,10 @@
         <button v-if="store.canAccess('monitoring', 'edit')" @click="addCustomDevice" class="btn secondary-btn gray-btn">
           <span class="icon">🏠</span> أخرى
         </button>
+
+        <button v-if="store.canAccess('tournaments', 'none')" @click="showTournamentsOverlay = true" class="btn secondary-btn tournaments-btn" style="margin-inline-start: auto; min-width: 180px;">
+          <span class="icon">🏆</span> البطولات
+        </button>
       </div>
     </main>
 
@@ -264,6 +268,18 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showTournamentsOverlay" class="overlay" @click.self="showTournamentsOverlay = false">
+      <div class="modal glass-panel full-screen-modal" style="width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; padding: 0; overflow: hidden;">
+        <div class="modal-header" style="padding: 1rem 1.25rem; gap: 1rem; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border-color);">
+          <h2 style="margin: 0; font-size: 1.4rem; color: var(--accent-cyan);">🏆 البطولات</h2>
+          <button @click="showTournamentsOverlay = false" class="btn-icon">✖</button>
+        </div>
+        <div style="height: calc(100% - 4rem); overflow: auto; background: var(--bg-panel);">
+          <TournamentsView />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -272,6 +288,7 @@ import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
 import { useAppStore } from '../stores/appStore';
 import { useUIStore } from '../stores/uiStore';
 import { printUnifiedInvoice, printOrderBon } from '../utils/printSystem';
+import TournamentsView from './Tournaments/TournamentsView.vue';
 
 const store = useAppStore();
 const ui = useUIStore();
@@ -293,6 +310,7 @@ const showMenuDropdown = ref(false);
 
 const showInvoiceModal = ref(false);
 const showOrdersModal = ref(false);
+const showTournamentsOverlay = ref(false);
 const invoiceData = ref(null);
 const targetClientId = ref('');
 
@@ -792,6 +810,21 @@ if (typeof window !== 'undefined') {
 }
 .option-item:hover {
   background: var(--bg-hover);
+}
+.tournaments-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #fde68a 45%, #facc15 100%);
+  color: #091e42;
+  box-shadow: 0 16px 35px rgba(250, 204, 21, 0.22), 0 0 0 1px rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
+  transform: translateZ(0);
+}
+.tournaments-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fde68a 0%, #f59e0b 45%, #d97706 100%);
+  box-shadow: 0 18px 40px rgba(249, 115, 22, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.tournaments-btn .icon {
+  transform: translateY(1px);
 }
 .success-btn {
   background: var(--accent-success) !important;

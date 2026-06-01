@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = window.location.origin && !window.location.origin.includes('file://') && !window.location.origin.includes('vscode-webview')
+  ? `${window.location.origin}/api`
+  : 'http://localhost:3000/api';
 
 // Short timeout for all API calls to avoid long black screen waits on slow/no internet
 const api = axios.create({ baseURL: API_BASE, timeout: 5000 });
@@ -21,6 +23,8 @@ export const useAppStore = defineStore('app', {
     loungeHistory: [],
     expenses: [],
     archivedExpenses: [],
+    tournaments: [],
+    tournamentsHistory: [],
     lastJournalClosure: "2024-01-01T00:00:00.000Z",
     appSettings: {
       appName: 'Classico',
@@ -145,12 +149,24 @@ export const useAppStore = defineStore('app', {
         entries.push({ ts: s.timestamp, name: `موظف: ${s.username} (${s.note || ''})`, dept: 'موظف', in: 0, out: s.amount || 0, processedBy: s.processedBy || s.username });
       });
 
+      // 6. Tournament Payments
+      (state.tournamentsHistory || []).filter(t => new Date(t.timestamp) > lastClosure).forEach(t => {
+        entries.push({ 
+          ts: t.timestamp, 
+          name: `اشتراك بطولة: ${t.playerName} (${t.tournamentName})${t.nickname ? ' [' + t.nickname + ']' : ''}`, 
+          dept: 'بطولات', 
+          in: t.amount || 0, 
+          out: 0, 
+          processedBy: t.processedBy || 'System' 
+        });
+      });
+
       return entries.sort((a, b) => new Date(b.ts) - new Date(a.ts));
     },
 
     getShiftTotals: (state) => () => {
       const data = state.getShiftDetailedData();
-      let psRevenue = 0, loungeRevenue = 0, customerCollections = 0, expenseSum = 0, salarySum = 0;
+      let psRevenue = 0, loungeRevenue = 0, customerCollections = 0, expenseSum = 0, salarySum = 0, tournamentsRevenue = 0;
       let psDebt = 0, loungeDebt = 0;
 
       data.forEach(e => {
@@ -171,11 +187,14 @@ export const useAppStore = defineStore('app', {
         else if (e.dept === 'موظف') {
           salarySum += e.out;
         }
+        else if (e.dept === 'بطولات') {
+          tournamentsRevenue += e.in;
+        }
       });
 
-      // Expected Cash in Drawer = Cash from Devices + Cash from Lounge + Collected Debt - Expenses
+      // Expected Cash in Drawer = Cash from Devices + Cash from Lounge + Collected Debt + Tournaments - Expenses
       // To prevent double-counting, expectedCash counts only the actual cash transactions!
-      const expectedCash = (psRevenue + loungeRevenue + customerCollections) - expenseSum;
+      const expectedCash = (psRevenue + loungeRevenue + customerCollections + tournamentsRevenue) - expenseSum;
 
       return { 
         psRevenue: psRevenue + psDebt, // backward compatibility
@@ -183,11 +202,12 @@ export const useAppStore = defineStore('app', {
         customerCollections, 
         expenseSum, 
         salarySum, 
+        tournamentsRevenue,
         netProfit: expectedCash, // Bind netProfit to expectedCash for backward compatibility so the closed shift receipt displays the correct expected cash in the drawer!
         expectedCash,
         psDebt,
         loungeDebt,
-        totalSales: psRevenue + psDebt + loungeRevenue + loungeDebt
+        totalSales: psRevenue + psDebt + loungeRevenue + loungeDebt + tournamentsRevenue
       };
     }
   },
@@ -360,6 +380,8 @@ export const useAppStore = defineStore('app', {
           classico_lounge_history: this.loungeHistory,
           classico_expenses: this.expenses,
           classico_archived_expenses: this.archivedExpenses,
+          classico_tournaments: this.tournaments,
+          classico_tournaments_history: this.tournamentsHistory,
           classico_subscription: this.localSubscription || this.subscriptionData,
           classico_last_journal_closure: this.lastJournalClosure,
           classico_app_settings: this.appSettings,
@@ -392,6 +414,8 @@ export const useAppStore = defineStore('app', {
           this.loungeHistory = data.classico_lounge_history || [];
           this.expenses = data.classico_expenses || [];
           this.archivedExpenses = data.classico_archived_expenses || [];
+          this.tournaments = data.classico_tournaments || [];
+          this.tournamentsHistory = data.classico_tournaments_history || [];
           // Only update localSubscription if server returned one (preserve cached value otherwise)
           if (data.classico_subscription) {
             this.localSubscription = data.classico_subscription;
@@ -922,6 +946,147 @@ export const useAppStore = defineStore('app', {
       } catch (err) {
         console.error("Factory Reset API failed:", err);
         return this.saveToDatabase(false, true); // Fallback
+      }
+    },
+
+    // --- PLAYSTATION TOURNAMENTS OPERATIONS ---
+    createTournament(t) {
+      this.tournaments.push({
+        id: Date.now().toString(),
+        name: t.name,
+        fee: Number(t.fee) || 0,
+        maxPlayers: Number(t.maxPlayers) || 8,
+        type: t.type, // 'cup' or 'league'
+        prizes: t.prizes || '',
+        prizesList: t.prizesList || [],
+        status: 'registration',
+        players: [],
+        matches: [],
+        createdAt: new Date().toISOString()
+      });
+      this.addActivity('بطولة جديدة', `تم إنشاء بطولة جديدة باسم ${t.name}`);
+      this.saveToDatabase();
+    },
+
+    deleteTournament(id) {
+      const idx = this.tournaments.findIndex(t => t.id === id);
+      if (idx !== -1) {
+        const name = this.tournaments[idx].name;
+        this.tournaments.splice(idx, 1);
+        this.addActivity('حذف بطولة', `تم حذف البطولة ${name}`);
+        this.saveToDatabase();
+      }
+    },
+
+    registerPlayer(tournamentId, player) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const alreadyExists = t.players.some(p => p.phone === player.phone || p.nickname === player.nickname);
+        if (alreadyExists) return { success: false, message: 'رقم الهاتف أو الاسم الحركي مسجل بالفعل!' };
+
+        t.players.push({
+          id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+          fullName: player.fullName,
+          phone: player.phone,
+          nickname: player.nickname,
+          logoId: Number(player.logoId) || 0,
+          paid: false,
+          paidAt: null
+        });
+        this.addActivity('تسجيل لاعب', `تم تسجيل اللاعب ${player.nickname} في بطولة ${t.name}`);
+        this.saveToDatabase();
+        return { success: true };
+      }
+      return { success: false, message: 'البطولة غير موجودة!' };
+    },
+
+    removePlayer(tournamentId, playerId) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const idx = t.players.findIndex(p => p.id === playerId);
+        if (idx !== -1) {
+          const name = t.players[idx].nickname;
+          t.players.splice(idx, 1);
+          this.addActivity('إلغاء تسجيل لاعب', `تم إلغاء تسجيل اللاعب ${name} من بطولة ${t.name}`);
+          this.saveToDatabase();
+        }
+      }
+    },
+
+    markPlayerPaid(tournamentId, playerId) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const player = t.players.find(p => p.id === playerId);
+        if (player && !player.paid) {
+          player.paid = true;
+          player.paidAt = new Date().toISOString();
+
+          // Add to Tournaments history for financial auditing
+          this.tournamentsHistory.push({
+            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+            playerName: player.fullName,
+            nickname: player.nickname,
+            tournamentName: t.name,
+            amount: t.fee,
+            timestamp: new Date().toISOString(),
+            processedBy: this.session?.username || 'admin'
+          });
+
+          this.addActivity('سداد اشتراك بطولة', `تم سداد اشتراك اللاعب ${player.nickname} بقيمة ${t.fee} ج لبطولة ${t.name}`);
+          this.saveToDatabase();
+          return true;
+        }
+      }
+      return false;
+    },
+
+    startTournament(tournamentId, generatedMatches) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        t.status = 'active';
+        t.matches = generatedMatches;
+        this.addActivity('بدء بطولة', `تم بدء فعاليات بطولة ${t.name} وجدولة المواجهات`);
+        this.saveToDatabase();
+      }
+    },
+
+    updateMatchResult(tournamentId, matchId, score1, score2, winnerId, nextMatchesUpdates = []) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const match = t.matches.find(m => m.id === matchId);
+        if (match) {
+          match.player1Score = score1;
+          match.player2Score = score2;
+          match.winnerId = winnerId;
+          match.played = true;
+
+          // Apply any cascaded updates for next round slots
+          if (nextMatchesUpdates && nextMatchesUpdates.length > 0) {
+            nextMatchesUpdates.forEach(update => {
+              const target = t.matches.find(m => m.id === update.matchId);
+              if (target) {
+                if (update.slot === 1) {
+                  target.player1Id = update.playerId;
+                } else if (update.slot === 2) {
+                  target.player2Id = update.playerId;
+                }
+              }
+            });
+          }
+
+          this.addActivity('تحديث نتيجة مباراة', `تم تحديث مباراة في بطولة ${t.name}`);
+          this.saveToDatabase();
+        }
+      }
+    },
+
+    completeTournament(tournamentId, winners) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        t.status = 'completed';
+        t.winners = winners; // { first: id, second: id, third: id }
+        this.addActivity('انتهاء بطولة', `تم انتهاء بطولة ${t.name} وتتويج الأبطال`);
+        this.saveToDatabase();
       }
     }
   }

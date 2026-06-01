@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 import { watch } from 'vue';
 import { useAppStore } from '../stores/appStore';
 
@@ -15,6 +15,8 @@ import GamepadView from '../views/GamepadView.vue';
 import SubscriptionsView from '../views/SubscriptionsView.vue';
 import PaymentView from '../views/PaymentView.vue';
 import WaitingView from '../views/WaitingView.vue';
+import TournamentsView from '../views/Tournaments/TournamentsView.vue';
+import PublicRegister from '../views/Tournaments/PublicRegister.vue';
 
 const routes = [
   { path: '/login', name: 'Login', component: LoginView },
@@ -30,11 +32,13 @@ const routes = [
   { path: '/gamepad', name: 'Gamepad', component: GamepadView, meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/settings', name: 'Settings', component: SettingsView, meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/multi-device', name: 'MultiDevice', component: () => import('../views/Settings/MultiDeviceView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/tournaments', name: 'Tournaments', component: TournamentsView, meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/tournaments/register', name: 'TournamentRegister', component: PublicRegister },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 });
 

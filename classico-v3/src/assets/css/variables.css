@@ -6,6 +6,15 @@
     box-sizing: border-box;
 }
 
+/* ✅ CRITICAL: Reserve scrollbar space ALWAYS to prevent layout shift on theme toggle.
+   In Chromium/Electron, dark mode uses overlay scrollbars (0px width) while
+   light mode uses classic scrollbars (~15px wide). scrollbar-gutter:stable
+   forces a consistent reserved gutter in BOTH modes, eliminating the shift. */
+html {
+    scrollbar-gutter: stable both-edges;
+    overflow-y: scroll;
+}
+
 body, button, input, select, textarea {
     font-family: var(--font-main), sans-serif;
 }
@@ -52,14 +61,17 @@ body, button, input, select, textarea {
     --bi-kpi-profit-label: #f59e0b;
 
     --analytics-item-bg: rgba(255, 255, 255, 0.02);
+
+    /* ✅ Explicit color-scheme for consistent browser rendering */
+    color-scheme: dark;
 }
 
 .light-mode {
     /* Modern Light Theme Palette */
     --bg-dark: #f8fafc;
-    --bg-deep: #f1f5f9;
+    --bg-deep: #f8fafc; /* match bg-dark to make padding seamless */
     --bg-panel: rgba(255, 255, 255, 0.75);
-    --border-color: rgba(15, 23, 42, 0.08);
+    --border-color: rgba(255, 255, 255, 0.7); /* soft white border for glassmorphism */
 
     --text-main: #0f172a;
     --text-muted: #475569;
@@ -93,6 +105,27 @@ body, button, input, select, textarea {
     --bi-kpi-profit-label: #b45309;
 
     --analytics-item-bg: rgba(15, 23, 42, 0.03);
+
+    /* ✅ Explicit color-scheme for consistent browser rendering */
+    color-scheme: light;
+}
+
+/* ✅ Override light-mode scrollbar to match dark mode style exactly.
+   Chromium's native light scrollbar is ~15px; forcing webkit style to 6px
+   ensures zero size difference between modes → zero layout shift. */
+.light-mode ::-webkit-scrollbar {
+    width: 6px !important;
+    height: 6px !important;
+}
+.light-mode ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.04) !important;
+}
+.light-mode ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.18) !important;
+    border-radius: 3px !important;
+}
+.light-mode ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.3) !important;
 }
 
 .light-mode body {
@@ -116,7 +149,7 @@ body, button, input, select, textarea {
     background: rgba(255, 255, 255, 0.75) !important;
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -142,7 +175,7 @@ body, button, input, select, textarea {
 .light-mode .table-container,
 .light-mode .table-container-modern {
     background: #ffffff !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02) !important;
 }
 
@@ -218,7 +251,7 @@ body, button, input, select, textarea {
 .light-mode .card,
 .light-mode .glass-card {
     background: rgba(255, 255, 255, 0.75) !important;
-    border-color: rgba(15, 23, 42, 0.08) !important;
+    border-color: var(--border-color) !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -262,7 +295,7 @@ body, button, input, select, textarea {
     background: rgba(255, 255, 255, 0.75) !important;
     backdrop-filter: blur(15px) !important;
     -webkit-backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .light-mode .owner-info h3 {
@@ -275,7 +308,7 @@ body, button, input, select, textarea {
 
 .light-mode .owner-card-v3 {
     background: rgba(255, 255, 255, 0.75) !important;
-    border-color: rgba(15, 23, 42, 0.08) !important;
+    border-color: var(--border-color) !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -318,7 +351,7 @@ body, button, input, select, textarea {
 
 .light-mode .device-item-v3 {
     background: #ffffff !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
     color: #0f172a !important;
 }
@@ -338,7 +371,7 @@ body, button, input, select, textarea {
 
 .light-mode .owner-footer-v3 {
     background: rgba(255, 255, 255, 0.75) !important;
-    border-color: rgba(15, 23, 42, 0.08) !important;
+    border-color: var(--border-color) !important;
 }
 
 .light-mode .footer-note {
@@ -358,9 +391,8 @@ body, button, input, select, textarea {
 }
 
 /* Settings View Tab Overrides for High Contrast & Visual Splendor */
-.light-mode .main-area {
-    background: rgba(255, 255, 255, 0.75) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+.light-mode .main-area,
+.light-mode .main-area.glass-panel {
     color: #0f172a !important;
 }
 
@@ -391,7 +423,7 @@ body, button, input, select, textarea {
 /* Pages Visibility Control Center (Owner Portal/Settings) */
 .light-mode .vis-card {
     background: rgba(255, 255, 255, 0.8) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
 }
 .light-mode .vis-card:hover {
@@ -428,7 +460,7 @@ body, button, input, select, textarea {
 /* Salaries & Financial Action Panel */
 .light-mode .form-card-v3 {
     background: rgba(255, 255, 255, 0.8) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -477,7 +509,7 @@ body, button, input, select, textarea {
 /* Metrics Dashboard & General Cards */
 .light-mode .metrics-summary-box {
     background: rgba(255, 255, 255, 0.8) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
 }
 
@@ -499,7 +531,7 @@ body, button, input, select, textarea {
 
 .light-mode .table-frame-v3 {
     background: #ffffff !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .light-mode .table-watermark {
@@ -534,7 +566,7 @@ body, button, input, select, textarea {
 
 .light-mode .staff-summary-dashboard {
     background: rgba(255, 255, 255, 0.75) !important;
-    border-color: rgba(15, 23, 42, 0.08) !important;
+    border-color: var(--border-color) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -559,7 +591,7 @@ body, button, input, select, textarea {
 
 .light-mode .j-card {
     background: rgba(255, 255, 255, 0.8) !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    border: 1px solid var(--border-color) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
 }
 
