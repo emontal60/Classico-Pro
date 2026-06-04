@@ -71,8 +71,18 @@ function createWindow() {
     }
   });
 
+  // Open external links in the default system browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http:') || url.startsWith('https:')) {
+      require('electron').shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
+
   // Hide the default menu bar (File, Edit, etc.) to keep the title bar clean
   mainWindow.setMenuBarVisibility(false);
+
 
   // Clear browser/HTTP cache to ensure the latest version is loaded on startup
   mainWindow.webContents.session.clearCache().then(() => {

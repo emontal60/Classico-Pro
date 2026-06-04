@@ -17,7 +17,54 @@
         <p>جاري تحميل تفاصيل البطولة...</p>
       </div>
 
-      <!-- No Active Tournament State -->
+      <!-- Landing Page (Multiple Tournaments List) -->
+      <div v-else-if="!activeTournament && availableTournaments.length > 0" class="tournaments-landing-page animate-fade-in">
+        <div class="landing-hero glass-panel animate-scale-in" style="margin-bottom: 1.5rem; text-align: center; padding: 2rem 1.5rem;">
+          <div class="trophy-badge" style="font-size: 3.5rem; margin-bottom: 0.5rem;">🏆</div>
+          <h2 class="glow-text" style="font-size: 1.6rem; font-weight: 900; color: #fff;">البطولات والمسابقات النشطة</h2>
+          <p style="color: #94a3b8; font-size: 0.88rem; margin-top: 0.3rem;">اختر إحدى البطولات الجارية للتسجيل أو لمتابعة النتائج حياً 🎮</p>
+        </div>
+
+        <div class="tournaments-grid" style="display: flex; flex-direction: column; gap: 1.2rem;">
+          <div 
+            v-for="t in availableTournaments" 
+            :key="t.id" 
+            class="tournament-card glass-panel interactive-match-card animate-scale-in" 
+            style="padding: 1.2rem !important; cursor: pointer; transition: all 0.3s ease; position: relative;"
+            @click="selectTournament(t.id)"
+          >
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem;">
+              <span class="type-tag" :class="t.type">
+                {{ getTournamentTypeLabel(t.type) }}
+              </span>
+              <span class="status-tag" :class="t.status" style="font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 12px;">
+                {{ getStatusLabel(t.status) }}
+              </span>
+            </div>
+            
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin: 0 0 10px 0; text-align: right; text-shadow: 0 0 8px rgba(6,182,212,0.15);">{{ t.name }}</h3>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.18); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02);">
+              <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <span style="font-size: 0.68rem; color: #64748b;">سعر الاشتراك</span>
+                <span style="font-size: 0.9rem; font-weight: 900; color: #10b981;">{{ t.fee }} ج</span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <span style="font-size: 0.68rem; color: #64748b;">المشتركين</span>
+                <span style="font-size: 0.9rem; font-weight: 900; color: #06b6d4;">{{ t.players?.length || 0 }} / {{ t.maxPlayers }}</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 1rem; display: flex; justify-content: center;">
+              <button class="btn-submit-neon" style="margin: 0; padding: 0.6rem 1.5rem; font-size: 0.85rem; width: auto; border-radius: 10px;">
+                {{ t.status === 'registration' ? 'التسجيل في البطولة 📝' : 'عرض جدول الترتيب والمباريات 📊' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Tournaments State -->
       <div v-else-if="!activeTournament" class="no-tournament-card glass-panel animate-scale-in">
         <div class="warning-icon">🛑</div>
         <h2>لا توجد بطولات حالياً</h2>
@@ -27,11 +74,18 @@
 
       <!-- Main Content -->
       <div v-else>
+        <!-- Back button if multiple tournaments exist -->
+        <div v-if="availableTournaments.length > 1" style="margin-bottom: 1.2rem; display: flex; justify-content: flex-start;">
+          <button @click="backToLanding" class="btn secondary-btn" style="padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #94a3b8; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <span>← العودة لقائمة البطولات</span>
+          </button>
+        </div>
+
         <!-- Tournament Details Banner -->
         <div class="tournament-banner glass-panel animate-scale-in">
           <div class="banner-header">
             <span class="type-tag" :class="activeTournament.type">
-              {{ activeTournament.type === 'cup' ? 'كأس (خروج مغلوب)' : 'دوري (نقاط مواجهات)' }}
+              {{ getTournamentTypeLabel(activeTournament.type) }}
             </span>
             <span class="status-tag" :class="activeTournament.status">
               {{ getStatusLabel(activeTournament.status) }}
@@ -71,9 +125,20 @@
           
           <div v-if="registrationSuccess" class="success-message-card">
             <div class="success-icon">✅</div>
-            <h4>تم تسجيلك بنجاح!</h4>
-            <p>الاسم المستعار: <strong class="cyan-color">{{ form.nickname }}</strong></p>
-            <p class="paid-hint">يرجى دفع رسوم الاشتراك بقيمة ({{ activeTournament.fee }} ج) لإدارة الصالة لتأكيد اشتراكك في قرعة البطولة 💳.</p>
+            <h4>تم تسجيل البيانات بنجاح!</h4>
+            <p v-if="activeTournament.fee > 0" class="paid-hint" style="font-size: 0.9rem; border: 1px solid rgba(251, 191, 36, 0.25); background: rgba(251, 191, 36, 0.05); padding: 12px; border-radius: 12px; color: #fbbf24; line-height: 1.6; text-align: center; margin-top: 10px;">
+              ⏳ <strong>حالة الطلب: معلق بانتظار موافقة الإدارة</strong><br>
+              تم استلام تفاصيل سداد الاشتراك بنجاح (رقم العملية: <strong>{{ lastTxId }}</strong>).<br>
+              سيتم تأكيد وتفعيل اسمك بالبطولة فور مراجعة الإدارة للتحويل ومطابقته.
+            </p>
+            <p v-else class="paid-hint">🎉 تم تسجيلك وتأكيد اشتراكك بالبطولة مجاناً بنجاح!</p>
+          </div>
+
+          <!-- If tournament is full -->
+          <div v-else-if="activeTournament.players.length >= activeTournament.maxPlayers" class="success-message-card" style="padding: 1.5rem 0.5rem; text-align: center;">
+            <div class="success-icon" style="font-size: 3.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));">🛑</div>
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: #ef4444; margin-bottom: 10px;">عذراً، اكتمل العدد المطلوب للتسجيل!</h4>
+            <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
           </div>
 
           <form v-else @submit.prevent="submitRegistration" class="registration-form">
@@ -111,7 +176,8 @@
               >
             </div>
 
-            <!-- Avatar Selection (68 Curated esports team icons) -->
+            <!-- Avatar Selection -->
+            <!-- Avatar Selection -->
             <div class="input-group">
               <label class="avatar-header">
                 <span>اختر شعار فريقك الإلكتروني 🎨</span>
@@ -135,6 +201,105 @@
               </div>
             </div>
 
+            <!-- قسم السداد والدفع المالي للبطولة -->
+            <div v-if="activeTournament.fee > 0" class="payment-section-form glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(6, 182, 212, 0.25); background: rgba(6, 182, 212, 0.03); padding: 15px !important; border-radius: 14px; text-align: right;">
+              <h4 style="color: #06b6d4; font-weight: 800; font-size: 0.95rem; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                <span>💸 معلومات سداد قيمة الاشتراك</span>
+              </h4>
+              
+              <div style="background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1rem; font-size: 0.8rem; line-height: 1.5; color: #e2e8f0;">
+                <div>💰 <strong>رسوم الاشتراك:</strong> <span style="color: #10b981; font-weight: 900;">{{ activeTournament.fee }} ج</span></div>
+                
+                <!-- Display Instapay number if supported and selected -->
+                <div v-if="form.paymentMethod === 'instapay' && activeTournament.paymentNumberInstapay">
+                  ⚡ <strong>رقم/عنوان حساب انستا باي:</strong> 
+                  <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px;">{{ activeTournament.paymentNumberInstapay }}</span>
+                </div>
+                <!-- Display Wallet number if supported and selected -->
+                <div v-if="form.paymentMethod === 'wallet' && activeTournament.paymentNumberWallet">
+                  📱 <strong>رقم محفظة الكاش:</strong> 
+                  <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px;">{{ activeTournament.paymentNumberWallet }}</span>
+                </div>
+                <!-- Display Cash instructions if supported and selected -->
+                <div v-if="form.paymentMethod === 'cash' && activeTournament.paymentNumberCash">
+                  🏟️ <strong>تعليمات الدفع كاش:</strong> 
+                  <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.paymentNumberCash }}</span>
+                </div>
+              </div>
+
+              <div class="input-group" style="margin-bottom: 1rem;" v-if="activeTournament.paymentMethod === 'both'">
+                <label>وسيلة الدفع المفضلة 💳</label>
+                <select v-model="form.paymentMethod" class="premium-input" style="width: 100%; background: rgba(0,0,0,0.3); color: #fff;">
+                  <option value="instapay">انستا باى ⚡</option>
+                  <option value="wallet">محفظه كاش 📱</option>
+                </select>
+              </div>
+
+              <!-- خيار الدفع (كامل / جزئي) -->
+              <div class="input-group" style="margin-bottom: 1rem;">
+                <label>نوع السداد المالي 💳</label>
+                <div style="display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #fff; font-size: 0.82rem; font-weight: normal;">
+                    <input type="radio" v-model="form.paymentType" value="full" style="accent-color: #06b6d4;">
+                    <span>سداد الاشتراك كاملاً ({{ activeTournament.fee }} ج)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #fff; font-size: 0.82rem; font-weight: normal;">
+                    <input type="radio" v-model="form.paymentType" value="partial" style="accent-color: #06b6d4;">
+                    <span>سداد دفعة جزئية (مقدم) 💰</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- حقل إدخال المبلغ المدفوع (في حال اختيار الدفع الجزئي) -->
+              <div class="input-group animate-scale-in" v-if="form.paymentType === 'partial'" style="margin-bottom: 1rem;">
+                <label>المبلغ المراد دفعه (ج) 💸</label>
+                <input 
+                  type="number" 
+                  v-model.number="form.amountPaid" 
+                  :min="1" 
+                  :max="activeTournament.fee" 
+                  placeholder="اكتب القيمة المراد دفعها" 
+                  required
+                  class="premium-input"
+                  style="border-color: rgba(251, 191, 36, 0.4) !important;"
+                >
+                <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">يجب ألا يتجاوز المبلغ قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
+              </div>
+
+              <!-- حقول انستاباي الخاصة (تظهر فقط عند اختيار الدفع عبر انستاباي أو محفظة كاش) -->
+              <div v-if="form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet'" class="animate-scale-in" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- حقل رقم المحول منه -->
+                <div class="input-group" style="margin-bottom: 0;">
+                  <label v-if="form.paymentMethod === 'wallet'">رقم الهاتف المحول منه (محفظة كاش) 📱</label>
+                  <label v-else>رقم الهاتف/عنوان انستا باي المحول منه ⚡</label>
+                  <input 
+                    type="text" 
+                    v-model="form.senderNumber" 
+                    placeholder="رقم المحفظة 010xxxxxxxx أو اسم حساب انستاباي" 
+                    required
+                    class="premium-input"
+                  >
+                </div>
+
+                <!-- حقل رقم العملية -->
+                <div class="input-group" style="margin-bottom: 0;">
+                  <label>رقم العملية المرجعي للتحويل (Reference / TxID) 🔢</label>
+                  <input 
+                    type="text" 
+                    v-model="form.transactionId" 
+                    placeholder="أدخل كود تأكيد التحويل من رسالة المحول" 
+                    required
+                    class="premium-input"
+                  >
+                </div>
+              </div>
+              
+              <!-- رسالة توضيحية لدفعة الكاش بالصالة -->
+              <div v-else class="animate-scale-in" style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); text-align: center;">
+                📣 يرجى التوجه لموظف الكاونتر بالصالة لسداد الرسوم نقداً وتأكيد اشتراكك في أقرب وقت. طلبك سيكون معلقاً ⏳ حتى إتمام الدفع.
+              </div>
+            </div>
+
             <button 
               type="submit" 
               class="btn btn-submit-neon" 
@@ -142,41 +307,294 @@
             >
               <span v-if="submitting">جاري تسجيل البيانات... ⌛</span>
               <span v-else-if="activeTournament.players.length >= activeTournament.maxPlayers">عذراً، البطولة مكتملة العدد 🛑</span>
+              <span v-else-if="activeTournament.fee > 0">تأكيد تفاصيل الدفع والتسجيل المعلق 🏆</span>
               <span v-else>تأكيد وتسجيل الاشتراك بالبطولة 🏆</span>
             </button>
           </form>
         </div>
 
-        <!-- 2. Live Tournament Bracket View (If Active or Completed) -->
+        <!-- 2. Live Tournament View (If Active or Completed) -->
         <div v-if="activeTournament.status !== 'registration'" class="live-bracket-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
           <h3 class="panel-title">📊 خريطة وجدول مباريات البطولة حياً</h3>
           
-          <!-- Cup Bracket Rendering -->
-          <div v-if="activeTournament.type === 'cup'" class="bracket-viewer-scroller">
-            <div class="bracket-rounds-container">
-              <div v-for="round in cupRounds" :key="round.index" class="bracket-round-column">
-                <h4 class="round-title-banner">{{ round.name }}</h4>
-                
-                <div class="round-matches-list">
-                  <div v-for="match in round.matches" :key="match.id" class="bracket-match-node">
-                    <!-- Player 1 -->
-                    <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }">
-                      <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)">
-                        {{ getPlayerLogoSymbol(match.player1Id) }}
-                      </span>
-                      <span class="player-nick">{{ getPlayerNickname(match.player1Id) }}</span>
-                      <span class="player-score">{{ match.played ? match.player1Score : '-' }}</span>
+          <!-- Cup Bracket Rendering (Symmetric Layout) -->
+          <div v-if="activeTournament.type === 'cup'" class="symmetric-bracket-scroller">
+            <div v-if="symmetricCupRounds" class="symmetric-bracket-container">
+              <!-- Left Wing -->
+              <div class="bracket-wing left-wing" v-if="symmetricCupRounds.leftRounds.length > 0">
+                <div v-for="round in symmetricCupRounds.leftRounds" :key="'l-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
+                  <h4 class="round-title-banner">{{ round.name }}</h4>
+                  <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
+                    <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                      <!-- Player 1 -->
+                      <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                          {{ getPlayerLogoSymbol(match.player1Id) }}
+                        </span>
+                        <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player1Id) }}</span>
+                        <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player1Score : '-' }}</span>
+                      </div>
+                      <div class="vs-divider" style="font-size: 0.65rem; text-align: center; color: #475569; font-weight: bold; margin: 0.2rem 0;">ضد</div>
+                      <!-- Player 2 -->
+                      <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                          {{ getPlayerLogoSymbol(match.player2Id) }}
+                        </span>
+                        <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player2Id) }}</span>
+                        <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player2Score : '-' }}</span>
+                      </div>
                     </div>
+                  </div>
+                </div>
+              </div>
 
-                    <div class="vs-divider">ضد</div>
+              <!-- Center Wing (Trophy & Final) -->
+              <div class="bracket-center-column" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 230px; gap: 1rem;">
+                <div class="trophy-stage animate-pulse" style="text-align: center; margin-bottom: 0.5rem;">
+                  <span class="trophy-glow-icon" style="font-size: 4rem; filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));">🏆</span>
+                  <div class="trophy-title" style="color: #fbbf24; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-top: 5px;">كأس البطولة</div>
+                </div>
+                
+                <div class="final-round-title" style="color: #fbbf24; font-weight: 800; font-size: 0.9rem; text-align: center; margin-bottom: 0.2rem;">
+                  {{ symmetricCupRounds.finalRoundName }}
+                </div>
 
-                    <!-- Player 2 -->
-                    <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }">
-                      <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)">
-                        {{ getPlayerLogoSymbol(match.player2Id) }}
+                <div v-if="symmetricCupRounds.finalMatch" class="bracket-match-node final-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 220px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;">
+                  <!-- Player 1 -->
+                  <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                    <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                      {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player1Id) }}
+                    </span>
+                    <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player1Id) }}</span>
+                    <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player1Score : '-' }}</span>
+                  </div>
+                  <div class="vs-divider" style="color: #fbbf24; font-weight: 900; font-size: 0.75rem; text-align: center; margin: 0.2rem 0;">FINALS</div>
+                  <!-- Player 2 -->
+                  <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                    <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                      {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player2Id) }}
+                    </span>
+                    <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player2Id) }}</span>
+                    <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player2Score : '-' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Wing -->
+              <div class="bracket-wing right-wing" v-if="symmetricCupRounds.rightRoundsReversed.length > 0">
+                <div v-for="round in symmetricCupRounds.rightRoundsReversed" :key="'r-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
+                  <h4 class="round-title-banner">{{ round.name }}</h4>
+                  <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
+                    <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                      <!-- Player 1 -->
+                      <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                          {{ getPlayerLogoSymbol(match.player1Id) }}
+                        </span>
+                        <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player1Id) }}</span>
+                        <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player1Score : '-' }}</span>
+                      </div>
+                      <div class="vs-divider" style="font-size: 0.65rem; text-align: center; color: #475569; font-weight: bold; margin: 0.2rem 0;">ضد</div>
+                      <!-- Player 2 -->
+                      <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                          {{ getPlayerLogoSymbol(match.player2Id) }}
+                        </span>
+                        <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player2Id) }}</span>
+                        <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player2Score : '-' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Group Stage + Knockouts Rendering -->
+          <div v-else-if="activeTournament.type === 'groups_knockout'" class="groups-stage-container">
+            <!-- Tabs Header if Knockout has started -->
+            <div v-if="activeTournament.stage === 'knockout'" class="groups-tabs-header" style="display: flex; gap: 10px; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+              <button 
+                @click="groupsStageTab = 'knockout'" 
+                :class="['tab-btn', { active: groupsStageTab === 'knockout' }]"
+                style="flex: 1; padding: 8px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s; background: none; color: #94a3b8;"
+              >
+                🏆 الأدوار الإقصائية
+              </button>
+              <button 
+                @click="groupsStageTab = 'groups'" 
+                :class="['tab-btn', { active: groupsStageTab === 'groups' }]"
+                style="flex: 1; padding: 8px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s; background: none; color: #94a3b8;"
+              >
+                📊 دور المجموعات
+              </button>
+            </div>
+
+            <!-- Group Stage Content -->
+            <div v-if="activeTournament.stage === 'groups' || groupsStageTab === 'groups'" class="groups-grid-layout" style="display: flex; flex-direction: column; gap: 2rem;">
+              <div 
+                v-for="(playersInGroup, groupName) in groupStandings" 
+                :key="groupName" 
+                class="group-section glass-panel"
+                style="padding: 1rem !important; border-radius: 16px; background: rgba(30, 41, 59, 0.45); border: 1px solid rgba(255,255,255,0.05);"
+              >
+                <h3 class="highlight" style="font-size: 1.1rem; text-align: center; margin-bottom: 1rem; color: #fbbf24; margin-top: 0;">🏆 المجموعة {{ groupName }}</h3>
+                
+                <!-- Group Table -->
+                <div class="table-frame-v3" style="width: 100%; overflow-x: auto; margin-bottom: 1rem;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+                    <thead>
+                      <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: #64748b;">
+                        <th style="text-align: center; padding: 6px 4px;">م</th>
+                        <th style="text-align: right; padding: 6px 4px;">اللاعب</th>
+                        <th style="text-align: center; padding: 6px 4px;">لعب</th>
+                        <th style="text-align: center; padding: 6px 4px;">فاز</th>
+                        <th style="text-align: center; padding: 6px 4px;">تعادل</th>
+                        <th style="text-align: center; padding: 6px 4px;">أهداف</th>
+                        <th style="text-align: center; padding: 6px 4px;">نقاط</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(p, rank) in playersInGroup" :key="p.id" style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                        <td style="text-align: center; font-weight: bold; padding: 8px 4px;">
+                          <span :style="rank < 2 ? 'color: #fbbf24;' : 'color: #94a3b8;'">{{ rank + 1 }}</span>
+                        </td>
+                        <td style="text-align: right; display: flex; align-items: center; gap: 6px; font-weight: bold; padding: 8px 4px;">
+                          <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)" style="width: 18px; height: 18px; font-size: 0.65rem;">
+                            {{ getPlayerLogoSymbol(p.id) }}
+                          </span>
+                          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90px; color: #fff;">{{ p.nickname }}</span>
+                        </td>
+                        <td style="text-align: center; padding: 8px 4px; color: #e2e8f0;">{{ p.played }}</td>
+                        <td style="text-align: center; color: #10b981; padding: 8px 4px;">{{ p.won }}</td>
+                        <td style="text-align: center; color: #94a3b8; padding: 8px 4px;">{{ p.drawn }}</td>
+                        <td style="text-align: center; font-family: monospace; padding: 8px 4px; color: #cbd5e1;">{{ p.goalsFor }}:{{ p.goalsAgainst }}</td>
+                        <td style="text-align: center; color: #fbbf24; font-weight: bold; padding: 8px 4px;">{{ p.points }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Group Matches -->
+                <h4 style="font-size: 0.8rem; color: #94a3b8; margin: 12px 0 6px 0; border-right: 2px solid #06b6d4; padding-right: 6px;">📅 مواجهات المجموعة</h4>
+                <div class="group-matches-list" style="display: flex; flex-direction: column; gap: 8px;">
+                  <div 
+                    v-for="match in groupMatchesByGroup[groupName]" 
+                    :key="match.id" 
+                    class="bracket-match-node" 
+                    style="padding: 6px 10px !important; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);"
+                  >
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                      <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 16px; height: 16px; font-size: 0.6rem;">
+                          {{ getPlayerLogoSymbol(match.player1Id) }}
+                        </span>
+                        <span style="font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1;">{{ getPlayerNickname(match.player1Id) }}</span>
+                      </div>
+                      
+                      <span style="font-family: monospace; font-size: 0.8rem; font-weight: bold; color: #fbbf24; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 6px;">
+                        {{ match.played ? `${match.player1Score} - ${match.player2Score}` : 'VS' }}
                       </span>
-                      <span class="player-nick">{{ getPlayerNickname(match.player2Id) }}</span>
-                      <span class="player-score">{{ match.played ? match.player2Score : '-' }}</span>
+                      
+                      <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; justify-content: flex-end;">
+                        <span style="font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; color: #cbd5e1;">{{ getPlayerNickname(match.player2Id) }}</span>
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 16px; height: 16px; font-size: 0.6rem;">
+                          {{ getPlayerLogoSymbol(match.player2Id) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group Stage Knockout Content (Symmetric Bracket) -->
+            <div v-if="activeTournament.stage === 'knockout' && groupsStageTab === 'knockout'" class="knockout-bracket-wrapper">
+              <div v-if="symmetricCupRounds" class="symmetric-bracket-container">
+                <!-- Left Wing -->
+                <div class="bracket-wing left-wing" v-if="symmetricCupRounds.leftRounds.length > 0">
+                  <div v-for="round in symmetricCupRounds.leftRounds" :key="'l-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
+                    <h4 class="round-title-banner">{{ round.name }}</h4>
+                    <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
+                      <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Player 1 -->
+                        <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                          <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                            {{ getPlayerLogoSymbol(match.player1Id) }}
+                          </span>
+                          <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player1Id) }}</span>
+                          <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player1Score : '-' }}</span>
+                        </div>
+                        <div class="vs-divider" style="font-size: 0.65rem; text-align: center; color: #475569; font-weight: bold; margin: 0.2rem 0;">ضد</div>
+                        <!-- Player 2 -->
+                        <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                          <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                            {{ getPlayerLogoSymbol(match.player2Id) }}
+                          </span>
+                          <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player2Id) }}</span>
+                          <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player2Score : '-' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Center Wing (Trophy & Final) -->
+                <div class="bracket-center-column" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 230px; gap: 1rem;">
+                  <div class="trophy-stage animate-pulse" style="text-align: center; margin-bottom: 0.5rem;">
+                    <span class="trophy-glow-icon" style="font-size: 4rem; filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));">🏆</span>
+                    <div class="trophy-title" style="color: #fbbf24; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; margin-top: 5px;">كأس البطولة</div>
+                  </div>
+                  
+                  <div class="final-round-title" style="color: #fbbf24; font-weight: 800; font-size: 0.9rem; text-align: center; margin-bottom: 0.2rem;">
+                    {{ symmetricCupRounds.finalRoundName }}
+                  </div>
+
+                  <div v-if="symmetricCupRounds.finalMatch" class="bracket-match-node final-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 220px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;">
+                    <!-- Player 1 -->
+                    <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                      <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                        {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player1Id) }}
+                      </span>
+                      <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player1Id) }}</span>
+                      <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player1Score : '-' }}</span>
+                    </div>
+                    <div class="vs-divider" style="color: #fbbf24; font-weight: 900; font-size: 0.75rem; text-align: center; margin: 0.2rem 0;">FINALS</div>
+                    <!-- Player 2 -->
+                    <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                      <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                        {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player2Id) }}
+                      </span>
+                      <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player2Id) }}</span>
+                      <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player2Score : '-' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Wing -->
+                <div class="bracket-wing right-wing" v-if="symmetricCupRounds.rightRoundsReversed.length > 0">
+                  <div v-for="round in symmetricCupRounds.rightRoundsReversed" :key="'r-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
+                    <h4 class="round-title-banner">{{ round.name }}</h4>
+                    <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
+                      <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Player 1 -->
+                        <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                          <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                            {{ getPlayerLogoSymbol(match.player1Id) }}
+                          </span>
+                          <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player1Id) }}</span>
+                          <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player1Score : '-' }}</span>
+                        </div>
+                        <div class="vs-divider" style="font-size: 0.65rem; text-align: center; color: #475569; font-weight: bold; margin: 0.2rem 0;">ضد</div>
+                        <!-- Player 2 -->
+                        <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
+                          <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
+                            {{ getPlayerLogoSymbol(match.player2Id) }}
+                          </span>
+                          <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player2Id) }}</span>
+                          <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player2Score : '-' }}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -244,8 +662,11 @@
               </span>
               <div class="p-info">
                 <span class="p-nick">{{ p.nickname }}</span>
-                <span class="p-status" :class="{ paid: p.paid }">
-                  {{ p.paid ? 'مؤكد السداد' : 'بانتظار الدفع' }}
+                <span v-if="p.isPendingApproval" class="p-status" style="color: #fbbf24; font-weight: bold;">
+                  معلق قيد التأكيد ⏳
+                </span>
+                <span v-else class="p-status" :class="{ paid: p.paid }">
+                  {{ p.paid ? 'مؤكد السداد ✅' : (p.amountConfirmed > 0 ? `تم دفع ${p.amountConfirmed} ج 💰` : 'بانتظار الدفع 💳') }}
                 </span>
               </div>
             </div>
@@ -257,7 +678,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue';
+import { ref, computed, reactive, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAppStore } from '../../stores/appStore';
 
@@ -265,101 +686,103 @@ const store = useAppStore();
 
 const submitting = ref(false);
 const registrationSuccess = ref(false);
+const lastTxId = ref('');
 
 const form = reactive({
   fullName: '',
   nickname: '',
   phone: '',
-  logoId: 0
+  logoId: 0,
+  paymentType: 'full',
+  amountPaid: 0,
+  paymentMethod: 'cash',
+  senderNumber: '',
+  transactionId: ''
 });
 
-// Curated 68 esports gaming logo symbols with distinct neon glowing backgrounds
-// 68 Modern Football / Soccer themed club logos with professional gradients
+watch(activeTournament, (newVal) => {
+  if (newVal) {
+    if (newVal.paymentMethod === 'instapay') {
+      form.paymentMethod = 'instapay';
+    } else if (newVal.paymentMethod === 'wallet') {
+      form.paymentMethod = 'wallet';
+    } else if (newVal.paymentMethod === 'both') {
+      form.paymentMethod = 'instapay';
+    } else {
+      form.paymentMethod = 'cash';
+    }
+  }
+}, { immediate: true });
+
+// landing page state
+const selectedTid = ref(null);
+const groupsStageTab = ref('groups');
+
+const backToLanding = () => {
+  selectedTid.value = null;
+  cloudTournament.value = null;
+};
+
+// Curated 68 esports gaming logo symbols
+// 36 highly curated football clubs, national teams and soccer elements
 const CURATED_LOGOS = [
-  { symbol: '⚽', name: 'الكرة المشتعلة 🔥' },
-  { symbol: '👑', name: 'الملكي المدريدي ⚪' },
-  { symbol: '🔴🔵', name: 'البلوغرانا الكتالوني 🏟️' },
-  { symbol: '🔴🦁', name: 'المارد الأحمر (الأهلي) 🦅' },
-  { symbol: '⚪🏹', name: 'الفارس الأبيض (الزمالك) 🏹' },
-  { symbol: '🔴🦅', name: 'الريدز الإنجليزي (ليفربول) 🔴' },
-  { symbol: '🔵🦁', name: 'البلوز اللندني (تشيلسي) 🦁' },
-  { symbol: '🔴😈', name: 'الشياطين الحمر (مانشستر) 😈' },
-  { symbol: '🔵⚡', name: 'السيتي السماوي (مانشستر سيتي) ⚡' },
-  { symbol: '🔴⚪🦁', name: 'البافاري الألماني (بايرن ميونخ) 🦁' },
-  { symbol: '⚪⚫🦓', name: 'اليوفي الإيطالي (يوفنتوس) 🦓' },
-  { symbol: '🔵🔴🗼', name: 'سان جيرمان الباريسي (باريس) 🗼' },
-  { symbol: '🟡⚫🐯', name: 'النمور الاتحادية (الاتحاد) 🐯' },
-  { symbol: '🟡🔵🌍', name: 'العالمي النصراوي (النصر) 🟡🔵' },
-  { symbol: '🔵👑🦁', name: 'الزعيم الهلالي (الهلال) 🦁' },
-  { symbol: '🔴🦁⚔️', name: 'الليث الشبابي (الشباب) ⚔️' },
-  { symbol: '🟢🦅💚', name: 'الكواسر الخضراء (المصري) 💚' },
-  { symbol: '🟡🐊💛', name: 'الدراويش الصفراء (الإسماعيلي) 🐊' },
-  { symbol: 'Sneakers 👟', name: 'الحذاء الذهبي الكلاسيكي' },
-  { symbol: '🥅', name: 'شباك المرمى التكتيكية' },
-  { symbol: '🏟️', name: 'ملعب الأبطال النيون' },
-  { symbol: '📋', name: 'الخطط التكتيكية للمدرب' },
-  { symbol: '📢', name: 'صافرة الحكم النارية' },
-  { symbol: '🚩', name: 'راية الركنية المشتعلة' },
-  { symbol: '🧤', name: 'قفاز الحارس الأخطبوط' },
-  { symbol: '🏆', name: 'كأس دوري أبطال أوروبا' },
-  { symbol: '🥇', name: 'ميدالية المركز الأول' },
-  { symbol: '🥈', name: 'ميدالية المركز الثاني' },
-  { symbol: '🥉', name: 'ميدالية المركز الثالث' },
+  // 1. Balls & Gear
+  { symbol: '⚽🔥', name: 'الكرة النارية المشتعلة' },
   { symbol: '⚽⚡', name: 'كرة البرق الصاعقة' },
-  { symbol: '⚽🔥', name: 'الكرة المشتعلة بالنار' },
-  { symbol: '⚽❄️', name: 'كرة الصقيع الجليدية' },
-  { symbol: '⚽💫', name: 'الكرة الذهبية الفلكية' },
-  { symbol: '🔵⚪🐺', name: 'ذئاب الملاعب الزرقاء' },
-  { symbol: '🔴⚪🦅', name: 'النسور الحمراء الكاسرة' },
-  { symbol: '🟢⚪🐉', name: 'تنين كلاسيكو الأخضر' },
-  { symbol: '🟡🔴☄️', name: 'النيزك الذهبي الساقط' },
-  { symbol: '🏆🔥', name: 'الكأس الملتهب بالأمجاد' },
-  { symbol: '🛡️', name: 'درع دفاع الأبطال' },
-  { symbol: '⚔️', name: 'دربي الغضب الأبدي' },
-  { symbol: '⭐', name: 'نجم الكلاسيكو الخماسي' },
-  { symbol: '💎', name: 'الماسة الكروية المتوهجة' },
-  { symbol: '🚀', name: 'صاروخ المهاجم السريع' },
-  { symbol: '🎴🔴', name: 'البطاقة الحمراء (الطرد)' },
-  { symbol: '🎴🟡', name: 'البطاقة الصفراء (الإنذار)' },
-  { symbol: '🏁', name: 'راية النصر البيضاء والسوداء' },
-  { symbol: '🔵⚫', name: 'الإنتر نيراتزوري الإيطالي' },
-  { symbol: '🔴⚫', name: 'الروسونيري الإيطالي (ميلان)' },
-  { symbol: '🟡🔴🐺', name: 'ذئاب العاصمة (روما)' },
-  { symbol: '🔵⚪⭐', name: 'راقصي التانجو (الأرجنتين)' },
-  { symbol: '🟡🟢🏆', name: 'سحرة السامبا (البرازيل)' },
-  { symbol: '🔴⚪🐂', name: 'ثيران الماتادور (إسبانيا)' },
-  { symbol: '🔵⚪ Rooster 🐓', name: 'الديوك الفرنسية الزرقاء' },
-  { symbol: '⚪⚫🦅', name: 'الماكينات الألمانية القوية' },
-  { symbol: '🔴🟢🦅', name: 'أسود الأطلس المغربية 🇲🇦' },
-  { symbol: '🟢⚪🦅', name: 'محاربي الصحراء الجزائرية 🇩🇿' },
-  { symbol: '🔴⚪🦅', name: 'نسور قرطاج التونسية 🇹🇳' },
-  { symbol: '🟢⚪⭐', name: 'الصقور الخضراء السعودية 🇸🇦' },
-  { symbol: '⚽🎯', name: 'التسديدة القاتلة في الزاوية' },
-  { symbol: '🧤🥅', name: 'السد المنيع وحارس العمر' },
-  { symbol: '🔀', name: 'مهندس اللعب وصانع الألعاب' },
-  { symbol: '⏱️', name: 'دقيقة الوقت القاتل (90+)' },
-  { symbol: '🥅⚡', name: 'شبكة المرمى الصاعقة' },
-  { symbol: '🔥⚽', name: 'هجوم النيران الكاسح' },
-  { symbol: '🟢⚪🛡️', name: 'صخرة الدفاع الأخضر' },
-  { symbol: '🔵⚪🥅', name: 'عرين الأسد الحصين' },
-  { symbol: '🟡⚫⚡', name: 'الهجوم المرتد الصاعق' },
-  { symbol: '🏆👑', name: 'تاج أبطال الكلاسيكو' }
+  { symbol: '⚽❄️', name: 'كرة الجليد المبردة' },
+  { symbol: '⚽👑', name: 'الكرة الذهبية الملكية' },
+  { symbol: '⚽💫', name: 'الكرة الكونية المتوهجة' },
+  { symbol: '🏆✨', name: 'كأس الكلاسيكو الذهبي' },
+  { symbol: '🏟️✨', name: 'ملعب الأبطال النيون' },
+  { symbol: '👟✨', name: 'حذاء الهداف الذهبي' },
+  { symbol: '🧤🥅', name: 'عرين الحارس الأخطبوط' },
+  { symbol: '📢⚽', name: 'صافرة الحكم النارية' },
+  { symbol: '🚩⚽', name: 'راية الركنية المشتعلة' },
+  { symbol: '🎴🔴', name: 'بطاقة الطرد الحمراء' },
+  // 2. European Clubs
+  { symbol: '⚪👑', name: 'الملكي المدريدي (ريال مدريد)' },
+  { symbol: '🔵🔴', name: 'البلوغرانا الكتالوني (برشلونة)' },
+  { symbol: '🔴⚽', name: 'الريدز الإنجليزي (ليفربول)' },
+  { symbol: '🔵⚡', name: 'السيتي السماوي (مانشستر سيتي)' },
+  { symbol: '🔴😈', name: 'الشياطين الحمر (مانشستر يونايتد)' },
+  { symbol: '🔴⚪🦁', name: 'البافاري الألماني (بايرن ميونخ)' },
+  { symbol: '🔴⚫', name: 'الروسونيري الإيطالي (إيه سي ميلان)' },
+  { symbol: '🔵⚫', name: 'النيراتزوري الإيطالي (إنتر ميلان)' },
+  { symbol: '🔵🔴🗼', name: 'باريس سان جيرمان الفرنسي' },
+  { symbol: '⚪⚫🦓', name: 'اليوفي الإيطالي (يوفنتوس)' },
+  { symbol: '🔴⚪🔫', name: 'المدفعجية الإنجليزي (أرسنال)' },
+  { symbol: '🔵🦁', name: 'البلوز اللندني (تشيلسي)' },
+  // 3. Egyptian & Arab Clubs
+  { symbol: '🔴🦅', name: 'المارد الأحمر (النادي الأهلي)' },
+  { symbol: '🏹⚪', name: 'الفارس الأبيض (نادي الزمالك)' },
+  { symbol: '🔵👑🦁', name: 'الزعيم الهلالي (الهلال)' },
+  { symbol: '🟡🔵🌍', name: 'العالمي النصراوي (النصر)' },
+  { symbol: '🟡⚫🐯', name: 'النمور الاتحادية (الاتحاد)' },
+  { symbol: '🟣🏰', name: 'البنفسج العيناوي (نادي العين)' },
+  // 4. National Teams
+  { symbol: '🇪🇬🦅', name: 'الفراعنة المصريين (منتخب مصر)' },
+  { symbol: '🇲🇦🦁', name: 'أسود الأطلس (منتخب المغرب)' },
+  { symbol: '🇸🇦💚', name: 'الصقور الخضراء (منتخب السعودية)' },
+  { symbol: '🇧🇷⚽', name: 'سحرة السامبا (منتخب البرازيل)' },
+  { symbol: '🇦🇷⚽', name: 'راقصو التانغو (منتخب الأرجنتين)' },
+  { symbol: '🇫🇷🐓', name: 'الديوك الفرنسية (منتخب فرنسا)' }
 ];
+
 
 // Curated 12 distinct esports neon glowing gradients
 const GRADIENTS = [
-  'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)', // cyan
-  'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)', // red/pink
-  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // purple
-  'linear-gradient(135deg, #f6d365 0%, #fda085 100%)', // orange
-  'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)', // sunset
-  'linear-gradient(135deg, #f6d365 0%, #b45309 100%)', // gold
-  'linear-gradient(135deg, #10b981 0%, #059669 100%)', // green
-  'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)', // pink/purple
-  'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)', // deep blue
-  'linear-gradient(135deg, #f97316 0%, #ef4444 100%)', // lava orange/red
-  'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', // cyan dark
-  'linear-gradient(135deg, #8b5cf6 0%, #4c1d95 100%)'  // violet
+  'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)',
+  'linear-gradient(135deg, #ff0844 0%, #ffb199 100%)',
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+  'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)',
+  'linear-gradient(135deg, #f6d365 0%, #b45309 100%)',
+  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+  'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
+  'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+  'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
+  'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+  'linear-gradient(135deg, #8b5cf6 0%, #4c1d95 100%)'
 ];
 
 const GLOWS = [
@@ -377,7 +800,6 @@ const GLOWS = [
   'rgba(139, 92, 246, 0.45)'
 ];
 
-// Helper styles for logo grids
 const getLogoStyle = (idx) => {
   const gIdx = idx % 12;
   return {
@@ -395,17 +817,49 @@ const getLogoSymbol = (idx) => {
 const isCloudMode = ref(false);
 const cloudMachineId = ref(null);
 const cloudTournament = ref(null);
-const fullCloudDataPayload = ref(null); // Keep full backup payload to avoid dropping other salon tables
+const fullCloudDataPayload = ref(null);
 
-// Fetch current active registration tournament
-const activeTournament = computed(() => {
-  if (isCloudMode.value) {
-    return cloudTournament.value;
-  }
-  if (!store.tournaments || store.tournaments.length === 0) return null;
-  // Get active or registration tournament
-  return store.tournaments.find(t => t.status === 'registration' || t.status === 'active') || store.tournaments[store.tournaments.length - 1];
+const availableTournaments = computed(() => {
+  const list = isCloudMode.value
+    ? (fullCloudDataPayload.value?.classico_tournaments || [])
+    : (store.tournaments || []);
+  
+  const statusOrder = { 'registration': 0, 'active': 1, 'completed': 2 };
+  return [...list].sort((a, b) => {
+    return (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3);
+  });
 });
+
+const activeTournament = computed(() => {
+  const list = isCloudMode.value
+    ? (fullCloudDataPayload.value?.classico_tournaments || [])
+    : (store.tournaments || []);
+
+  if (list.length === 0) return null;
+
+  if (selectedTid.value) {
+    return list.find(t => t.id === selectedTid.value) || null;
+  }
+  
+  if (list.length === 1) {
+    // Auto-select if there is only 1 tournament
+    return list[0];
+  }
+
+  return null;
+});
+
+const selectTournament = (id) => {
+  selectedTid.value = id;
+  if (isCloudMode.value && fullCloudDataPayload.value) {
+    const list = fullCloudDataPayload.value.classico_tournaments || [];
+    cloudTournament.value = list.find(t => t.id === id) || null;
+  }
+  // Reset tab to default stage phase
+  if (activeTournament.value) {
+    groupsStageTab.value = activeTournament.value.stage === 'knockout' ? 'knockout' : 'groups';
+  }
+};
 
 const getStatusLabel = (status) => {
   const labels = {
@@ -416,11 +870,28 @@ const getStatusLabel = (status) => {
   return labels[status] || status;
 };
 
-// Tournament Bracket rounds for Cup system
+const getTournamentTypeLabel = (type) => {
+  const labels = {
+    cup: 'كأس (تصفيات خروج المغلوب)',
+    league: 'دوري (نقاط مواجهات)',
+    groups_knockout: 'مجموعات + تصفيات إقصائية 🏆'
+  };
+  return labels[type] || type;
+};
+
+// Cup Brackets rounds
 const cupRounds = computed(() => {
-  if (!activeTournament.value || activeTournament.value.type !== 'cup' || !activeTournament.value.matches.length) return [];
+  if (!activeTournament.value || !activeTournament.value.matches.length) return [];
   
-  const matches = activeTournament.value.matches;
+  const isCup = activeTournament.value.type === 'cup';
+  const isGroupsKo = activeTournament.value.type === 'groups_knockout' && activeTournament.value.stage === 'knockout';
+  
+  if (!isCup && !isGroupsKo) return [];
+  
+  // Filter matches to only knockout matches
+  const matches = activeTournament.value.matches.filter(m => !m.isGroupStage);
+  if (matches.length === 0) return [];
+  
   const maxRound = Math.max(...matches.map(m => m.roundIndex));
   
   const rounds = [];
@@ -437,6 +908,48 @@ const cupRounds = computed(() => {
     });
   }
   return rounds;
+});
+
+// Symmetric bracket tree structure
+const symmetricCupRounds = computed(() => {
+  const rounds = cupRounds.value;
+  if (rounds.length === 0) return null;
+  
+  const maxRoundIdx = rounds.length - 1;
+  const finalRound = rounds[maxRoundIdx];
+  const finalMatch = finalRound?.matches[0] || null;
+  
+  const leftRounds = [];
+  const rightRounds = [];
+  
+  for (let r = 0; r < maxRoundIdx; r++) {
+    const round = rounds[r];
+    const totalMatches = round.matches.length;
+    
+    const leftMatches = round.matches.filter(m => m.matchIndex < totalMatches / 2);
+    const rightMatches = round.matches.filter(m => m.matchIndex >= totalMatches / 2);
+    
+    leftRounds.push({
+      index: r,
+      name: round.name,
+      matches: leftMatches
+    });
+    
+    rightRounds.push({
+      index: r,
+      name: round.name,
+      matches: rightMatches
+    });
+  }
+  
+  const rightRoundsReversed = [...rightRounds].reverse();
+  
+  return {
+    leftRounds,
+    rightRoundsReversed,
+    finalMatch,
+    finalRoundName: finalRound?.name || 'المباراة النهائية'
+  };
 });
 
 // League Leaderboard calculation
@@ -472,13 +985,83 @@ const leagueLeaderboard = computed(() => {
     };
   });
 
-  // Sort by points (desc)
   return stats.sort((a, b) => b.points - a.points);
 });
 
-// Helpers to get player name, nicknames and styles
+// Group stage calculations
+const groupStandings = computed(() => {
+  if (!activeTournament.value || activeTournament.value.type !== 'groups_knockout') return {};
+  
+  const groups = activeTournament.value.groups || {};
+  const matches = activeTournament.value.matches || [];
+  
+  const standings = {};
+  
+  Object.keys(groups).forEach(groupName => {
+    const playersInGroup = groups[groupName];
+    
+    standings[groupName] = playersInGroup.map(p => {
+      const pMatches = matches.filter(m => m.isGroupStage && m.groupName === groupName && m.played && (m.player1Id === p.id || m.player2Id === p.id));
+      let won = 0, drawn = 0, lost = 0, points = 0, goalsFor = 0, goalsAgainst = 0;
+      
+      pMatches.forEach(m => {
+        const isPlayer1 = m.player1Id === p.id;
+        const pScore = isPlayer1 ? m.player1Score : m.player2Score;
+        const oppScore = isPlayer1 ? m.player2Score : m.player1Score;
+        
+        goalsFor += Number(pScore) || 0;
+        goalsAgainst += Number(oppScore) || 0;
+        
+        if (m.winnerId === 'draw') {
+          drawn++;
+          points += 1;
+        } else if (m.winnerId === p.id) {
+          won++;
+          points += 3;
+        } else {
+          lost++;
+        }
+      });
+      
+      return {
+        ...p,
+        played: pMatches.length,
+        won,
+        drawn,
+        lost,
+        goalsFor,
+        goalsAgainst,
+        gd: goalsFor - goalsAgainst,
+        points
+      };
+    }).sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      return b.goalsFor - a.goalsFor;
+    });
+  });
+  
+  return standings;
+});
+
+const groupMatchesByGroup = computed(() => {
+  if (!activeTournament.value || activeTournament.value.type !== 'groups_knockout') return {};
+  
+  const matches = activeTournament.value.matches || [];
+  const grouped = {};
+  
+  matches.filter(m => m.isGroupStage).forEach(m => {
+    const gn = m.groupName || 'A';
+    if (!grouped[gn]) grouped[gn] = [];
+    grouped[gn].push(m);
+  });
+  
+  return grouped;
+});
+
+// Helpers to get player nickname, logo symbols and styles
 const getPlayerNickname = (id) => {
-  if (id === 'bye' || !id) return 'تأهل تلقائي ⭐️';
+  if (id === 'bye' || !id) return 'تأهل تلقائي ⭐';
   const player = activeTournament.value?.players.find(p => p.id === id);
   return player ? player.nickname : '---';
 };
@@ -510,10 +1093,43 @@ const submitRegistration = async () => {
   }
 
   // Duplicate Check
-  const dup = activeTournament.value.players.find(p => p.nickname.toLowerCase() === form.nickname.trim().toLowerCase());
+  const dup = activeTournament.value.players.find(p => p.nickname && p.nickname.toLowerCase() === form.nickname.trim().toLowerCase());
   if (dup) {
     alert('هذا الاسم المستعار مسجل بالفعل! يرجى اختيار اسم مستعار آخر.');
     return;
+  }
+
+  const dupPhone = activeTournament.value.players.find(p => p.phone && p.phone.trim() === form.phone.trim());
+  if (dupPhone) {
+    alert('رقم الهاتف هذا مسجل بالفعل في هذه البطولة!');
+    return;
+  }
+
+  const fee = activeTournament.value.fee || 0;
+  const isPending = fee > 0;
+  let finalAmountPaid = 0;
+
+  if (isPending) {
+    if (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') {
+      if (!form.senderNumber || !form.senderNumber.trim()) {
+        alert(form.paymentMethod === 'wallet' ? 'يرجى إدخال رقم الهاتف المحول منه لمطابقة عملية الدفع!' : 'يرجى إدخال رقم الهاتف أو الحساب المحول منه لمطابقة عملية الدفع!');
+        return;
+      }
+      if (!form.transactionId || !form.transactionId.trim()) {
+        alert('يرجى إدخال رقم العملية/التحويل المرجعي لتأكيد سداد الرسوم!');
+        return;
+      }
+      lastTxId.value = form.transactionId.trim();
+    } else {
+      // Cash payment
+      lastTxId.value = 'CASH-' + Date.now().toString().slice(-6);
+    }
+    
+    finalAmountPaid = form.paymentType === 'full' ? fee : Number(form.amountPaid);
+    if (isNaN(finalAmountPaid) || finalAmountPaid <= 0 || finalAmountPaid > fee) {
+      alert(`يرجى كتابةسداد قيمة اشتراك صحيحة لا تزيد عن قيمة الاشتراك (${fee} ج)!`);
+      return;
+    }
   }
 
   submitting.value = true;
@@ -526,8 +1142,17 @@ const submitRegistration = async () => {
         nickname: form.nickname.trim(),
         phone: form.phone.trim(),
         logoId: Number(form.logoId),
-        paid: false,
-        paidAt: null,
+        paid: !isPending,
+        paidAt: !isPending ? new Date().toISOString() : null,
+        isPendingApproval: isPending,
+        paymentType: isPending ? form.paymentType : 'full',
+        paymentMethod: form.paymentMethod || 'cash',
+        amountPaid: finalAmountPaid,
+        senderNumber: isPending && (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') ? form.senderNumber.trim() : 'الدفع كاش بالصالة',
+        transactionId: isPending ? lastTxId.value : '',
+        amountConfirmed: 0,
+        amountArchived: 0,
+        remainingAmount: fee,
         joinedAt: new Date().toISOString()
       };
 
@@ -559,6 +1184,12 @@ const submitRegistration = async () => {
       registrationSuccess.value = true;
       form.fullName = '';
       form.phone = '';
+      form.nickname = '';
+      form.logoId = 0;
+      form.paymentType = 'full';
+      form.amountPaid = 0;
+      form.senderNumber = '';
+      form.transactionId = '';
 
     } else {
       // WiFi local server mode
@@ -566,13 +1197,25 @@ const submitRegistration = async () => {
         fullName: form.fullName.trim(),
         nickname: form.nickname.trim(),
         phone: form.phone.trim(),
-        logoId: Number(form.logoId)
+        logoId: Number(form.logoId),
+        isPendingApproval: isPending,
+        paymentType: isPending ? form.paymentType : 'full',
+        paymentMethod: form.paymentMethod,
+        amountPaid: finalAmountPaid,
+        senderNumber: isPending && (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') ? form.senderNumber.trim() : 'الدفع كاش بالصالة',
+        transactionId: isPending ? lastTxId.value : ''
       });
 
       if (res.success) {
         registrationSuccess.value = true;
         form.fullName = '';
         form.phone = '';
+        form.nickname = '';
+        form.logoId = 0;
+        form.paymentType = 'full';
+        form.amountPaid = 0;
+        form.senderNumber = '';
+        form.transactionId = '';
       } else {
         alert(res.message || 'فشل التسجيل بالبطولة.');
       }
@@ -588,18 +1231,21 @@ const submitRegistration = async () => {
 onMounted(async () => {
   const route = useRoute();
   let mid = route.query.mid || route.query.MID;
+  let tid = route.query.tid || route.query.TID;
 
   // Fallback 1: Parse from hash route manually if route.query is not ready
-  if (!mid && window.location.hash.includes('?')) {
+  if ((!mid || !tid) && window.location.hash.includes('?')) {
     const hashQuery = window.location.hash.split('?')[1];
     const params = new URLSearchParams(hashQuery);
-    mid = params.get('mid') || params.get('MID');
+    if (!mid) mid = params.get('mid') || params.get('MID');
+    if (!tid) tid = params.get('tid') || params.get('TID');
   }
 
   // Fallback 2: Parse from window.location.search directly
-  if (!mid) {
+  if (!mid || !tid) {
     const params = new URLSearchParams(window.location.search);
-    mid = params.get('mid') || params.get('MID');
+    if (!mid) mid = params.get('mid') || params.get('MID');
+    if (!tid) tid = params.get('tid') || params.get('TID');
   }
 
   if (mid) {
@@ -622,9 +1268,22 @@ onMounted(async () => {
       if (data && data.data) {
         fullCloudDataPayload.value = data.data;
         const tournamentsList = data.data.classico_tournaments || [];
-        // Find active/registration tournament
-        const active = tournamentsList.find(t => t.status === 'registration' || t.status === 'active') || tournamentsList[tournamentsList.length - 1];
-        cloudTournament.value = active || null;
+        
+        // Find tournament matching the query tid
+        let selected = null;
+        if (tid) {
+          selected = tournamentsList.find(t => t.id && t.id.toString() === tid.toString());
+        }
+        
+        // Fallback to active/registration or last one if not found or no tid specified
+        if (!selected) {
+          selected = tournamentsList.find(t => t.status === 'registration' || t.status === 'active') || tournamentsList[tournamentsList.length - 1];
+        }
+        
+        if (selected) {
+          selectedTid.value = selected.id;
+          cloudTournament.value = selected;
+        }
       }
     } catch (err) {
       console.error('[Cloud Load Error]', err.message);
@@ -636,9 +1295,16 @@ onMounted(async () => {
     // WiFi Local server mode
     try {
       await store.syncFromServer();
+      if (tid) {
+        const selected = store.tournaments.find(t => t.id && t.id.toString() === tid.toString());
+        if (selected) {
+          selectedTid.value = selected.id;
+        }
+      }
     } catch(e) {}
   }
 });
+
 </script>
 
 <style>
@@ -1110,5 +1776,90 @@ onMounted(async () => {
 .logo-scroll-grid::-webkit-scrollbar-thumb:hover,
 .bracket-viewer-scroller::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Symmetric Bracket Styling */
+.symmetric-bracket-scroller {
+  overflow-x: auto;
+  width: 100%;
+  padding: 1.5rem 0;
+  direction: ltr; /* Ensure layout remains left-to-right */
+}
+.symmetric-bracket-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  min-width: max-content;
+  padding: 0 1rem;
+}
+.bracket-wing {
+  display: flex;
+  gap: 1.5rem;
+}
+.left-wing {
+  direction: rtl; /* Arabic text alignment */
+}
+.right-wing {
+  direction: rtl; /* Arabic text alignment */
+}
+.bracket-center-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 240px;
+  gap: 1rem;
+}
+.trophy-stage {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.trophy-glow-icon {
+  font-size: 4rem;
+  filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));
+}
+.trophy-title {
+  color: #fbbf24;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+.final-match-node {
+  width: 220px;
+}
+
+/* Group Tabs Styling */
+.groups-tabs-header .tab-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+}
+.groups-tabs-header .tab-btn.active {
+  background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%);
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+/* Type tag overrides for groups_knockout */
+.type-tag.groups_knockout {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+/* Interactive Landing cards */
+.tournaments-landing-page {
+  padding: 0.5rem 0;
+}
+.tournament-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tournament-card:hover {
+  transform: translateY(-4px);
+  border-color: #06b6d4 !important;
+  box-shadow: 0 10px 25px rgba(6, 182, 212, 0.25) !important;
 }
 </style>

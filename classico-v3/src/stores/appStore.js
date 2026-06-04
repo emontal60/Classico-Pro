@@ -216,6 +216,13 @@ export const useAppStore = defineStore('app', {
     async init() {
       this.isLoading = true;
       try {
+        // If running on GitHub Pages (or any static cloud host), skip local server initialization
+        if (window.location.hostname && window.location.hostname.includes('github.io')) {
+          console.log('[Init] Running on GitHub Pages, skipping local server API calls.');
+          this.isLoading = false;
+          return;
+        }
+
         // Step 1: Verify local subscription IMMEDIATELY from cached data (offline-safe)
         this.verifyLocalSubscription();
 
@@ -951,14 +958,28 @@ export const useAppStore = defineStore('app', {
 
     // --- PLAYSTATION TOURNAMENTS OPERATIONS ---
     createTournament(t) {
+      const type = t.type || 'cup';
+      const maxPlayers = type === 'groups_knockout'
+        ? (Number(t.groupsCount) || 4) * (Number(t.playersPerGroup) || 4)
+        : (Number(t.maxPlayers) || 8);
+
       this.tournaments.push({
         id: Date.now().toString(),
         name: t.name,
         fee: Number(t.fee) || 0,
-        maxPlayers: Number(t.maxPlayers) || 8,
-        type: t.type, // 'cup' or 'league'
+        maxPlayers: maxPlayers,
+        type: type, // 'cup', 'league', or 'groups_knockout'
+        groupsCount: Number(t.groupsCount) || 4,
+        playersPerGroup: Number(t.playersPerGroup) || 4,
+        stage: type === 'groups_knockout' ? 'groups' : '',
+        groups: {},
         prizes: t.prizes || '',
         prizesList: t.prizesList || [],
+        paymentNumber: t.paymentNumber || '',
+        paymentNumberInstapay: t.paymentNumberInstapay || '',
+        paymentNumberWallet: t.paymentNumberWallet || '',
+        paymentNumberCash: t.paymentNumberCash || '',
+        paymentMethod: t.paymentMethod || 'both', // 'cash', 'instapay', 'both'
         status: 'registration',
         players: [],
         matches: [],
@@ -981,23 +1002,151 @@ export const useAppStore = defineStore('app', {
     registerPlayer(tournamentId, player) {
       const t = this.tournaments.find(x => x.id === tournamentId);
       if (t) {
-        const alreadyExists = t.players.some(p => p.phone === player.phone || p.nickname === player.nickname);
+        if (t.players.length >= t.maxPlayers) {
+          return { success: false, message: 'البطولة مكتملة العدد بالفعل!' };
+        }
+        const alreadyExists = t.players.some(p => 
+          (p.phone && player.phone && p.phone.trim() === player.phone.trim()) || 
+          (p.nickname && player.nickname && p.nickname.trim().toLowerCase() === player.nickname.trim().toLowerCase())
+        );
         if (alreadyExists) return { success: false, message: 'رقم الهاتف أو الاسم الحركي مسجل بالفعل!' };
 
+        const isPending = player.isPendingApproval || false;
+        const amtPaid = Number(player.amountPaid) || 0;
+        const amtConfirmed = !isPending ? (player.paymentType === 'partial' ? amtPaid : (player.paid ? t.fee : 0)) : 0;
+        const remaining = Math.max(0, t.fee - amtConfirmed);
+
         t.players.push({
-          id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+          id: 'PLR-' + Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
           fullName: player.fullName,
           phone: player.phone,
           nickname: player.nickname,
           logoId: Number(player.logoId) || 0,
-          paid: false,
-          paidAt: null
+          paid: !isPending && (player.paid || (player.paymentType === 'partial' && amtConfirmed >= t.fee)),
+          paidAt: !isPending && (player.paid || player.paymentType === 'partial') ? new Date().toISOString() : null,
+          isPendingApproval: isPending,
+          paymentType: player.paymentType || 'full',
+          amountPaid: amtPaid,
+          senderNumber: player.senderNumber || '',
+          transactionId: player.transactionId || '',
+          amountConfirmed: amtConfirmed,
+          amountArchived: 0,
+          remainingAmount: remaining
         });
-        this.addActivity('تسجيل لاعب', `تم تسجيل اللاعب ${player.nickname} في بطولة ${t.name}`);
+
+        // Record confirmed cash in hand right away to Daily Journal if not pending
+        if (!isPending && amtConfirmed > 0) {
+          this.tournamentsHistory.push({
+            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+            playerName: player.fullName,
+            nickname: player.nickname,
+            tournamentName: t.name,
+            amount: amtConfirmed,
+            timestamp: new Date().toISOString(),
+            processedBy: this.session?.username || 'admin'
+          });
+        }
+
+        this.addActivity('تسجيل لاعب', `تم تسجيل اللاعب ${player.nickname} (${isPending ? 'معلق ومحجوز مؤقتاً' : 'مؤكد'}) في بطولة ${t.name}`);
         this.saveToDatabase();
         return { success: true };
       }
       return { success: false, message: 'البطولة غير موجودة!' };
+    },
+
+    confirmPlayerPayment(tournamentId, playerId, confirmedAmount) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const player = t.players.find(p => p.id === playerId);
+        if (player) {
+          const amt = Number(confirmedAmount) || 0;
+          player.isPendingApproval = false;
+          player.amountConfirmed = amt;
+          player.remainingAmount = Math.max(0, t.fee - amt);
+          player.paid = (player.amountConfirmed >= t.fee);
+          player.paidAt = new Date().toISOString();
+
+          // Add to tournamentsHistory to feed the Daily Journal/Safe account in Classico App
+          this.tournamentsHistory.push({
+            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+            playerName: player.fullName,
+            nickname: player.nickname,
+            tournamentName: t.name,
+            amount: amt,
+            timestamp: new Date().toISOString(),
+            processedBy: this.session?.username || 'admin'
+          });
+
+          this.addActivity('تأكيد سداد لاعب', `تم تأكيد سداد اللاعب ${player.nickname} بقيمة ${amt} ج لبطولة ${t.name}`);
+          this.saveToDatabase();
+          return true;
+        }
+      }
+      return false;
+    },
+
+    collectRemainingPayment(tournamentId, playerId, amount) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const player = t.players.find(p => p.id === playerId);
+        if (player) {
+          const amt = Number(amount) || 0;
+          player.amountConfirmed = (player.amountConfirmed || 0) + amt;
+          player.remainingAmount = Math.max(0, t.fee - player.amountConfirmed);
+          player.paid = (player.amountConfirmed >= t.fee);
+          player.paidAt = new Date().toISOString();
+
+          // Feed additional incoming funds to tournamentsHistory Daily Shift Ledger
+          this.tournamentsHistory.push({
+            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+            playerName: player.fullName,
+            nickname: player.nickname,
+            tournamentName: t.name,
+            amount: amt,
+            timestamp: new Date().toISOString(),
+            processedBy: this.session?.username || 'admin'
+          });
+
+          this.addActivity('سداد متبقي لاعب', `تم سداد متبقي اشتراك اللاعب ${player.nickname} بقيمة ${amt} ج لبطولة ${t.name}`);
+          this.saveToDatabase();
+          return true;
+        }
+      }
+      return false;
+    },
+
+    rejectPendingPlayer(tournamentId, playerId) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        const idx = t.players.findIndex(p => p.id === playerId);
+        if (idx !== -1) {
+          const nickname = t.players[idx].nickname;
+          t.players.splice(idx, 1);
+          this.addActivity('رفض تسجيل لاعب', `تم رفض وإلغاء تسجيل العميل المعلق ${nickname} في بطولة ${t.name}`);
+          this.saveToDatabase();
+          return true;
+        }
+      }
+      return false;
+    },
+
+    archiveConfirmedPayments(tournamentId) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        let archivedCount = 0;
+        t.players.forEach(p => {
+          if (p.amountConfirmed > 0 && p.amountConfirmed > (p.amountArchived || 0)) {
+            p.amountArchived = p.amountConfirmed;
+            archivedCount++;
+          }
+        });
+        if (archivedCount > 0) {
+          this.addActivity('أرشفة حسابات البطولة', `تم أرشفة وتثبيت مبالغ البطولة المؤكدة لـ ${archivedCount} لاعب في بطولة ${t.name}`);
+          this.saveToDatabase();
+          return true;
+        }
+      }
+      return false;
     },
 
     removePlayer(tournamentId, playerId) {
@@ -1044,12 +1193,28 @@ export const useAppStore = defineStore('app', {
       return false;
     },
 
-    startTournament(tournamentId, generatedMatches) {
+    startTournament(tournamentId, generatedMatches, groups = null) {
       const t = this.tournaments.find(x => x.id === tournamentId);
       if (t) {
         t.status = 'active';
         t.matches = generatedMatches;
+        if (groups) {
+          t.groups = groups;
+        }
         this.addActivity('بدء بطولة', `تم بدء فعاليات بطولة ${t.name} وجدولة المواجهات`);
+        this.saveToDatabase();
+      }
+    },
+
+    advanceToKnockout(tournamentId, generatedKoMatches) {
+      const t = this.tournaments.find(x => x.id === tournamentId);
+      if (t) {
+        t.stage = 'knockout';
+        t.matches = [
+          ...t.matches,
+          ...generatedKoMatches
+        ];
+        this.addActivity('تصعيد للأدوار الإقصائية', `تم توليد مواجهات خروج المغلوب لبطولة ${t.name}`);
         this.saveToDatabase();
       }
     },
