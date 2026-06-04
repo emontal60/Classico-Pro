@@ -1007,6 +1007,10 @@ export const useAppStore = defineStore('app', {
         if (idx !== -1) {
           const name = t.players[idx].nickname;
           t.players.splice(idx, 1);
+          
+          if (!t.deletedPlayerIds) t.deletedPlayerIds = [];
+          t.deletedPlayerIds.push(playerId);
+          
           this.addActivity('إلغاء تسجيل لاعب', `تم إلغاء تسجيل اللاعب ${name} من بطولة ${t.name}`);
           this.saveToDatabase();
         }

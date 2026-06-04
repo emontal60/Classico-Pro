@@ -258,6 +258,7 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAppStore } from '../../stores/appStore';
 
 const store = useAppStore();
@@ -585,8 +586,21 @@ const submitRegistration = async () => {
 };
 
 onMounted(async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const mid = urlParams.get('mid');
+  const route = useRoute();
+  let mid = route.query.mid || route.query.MID;
+
+  // Fallback 1: Parse from hash route manually if route.query is not ready
+  if (!mid && window.location.hash.includes('?')) {
+    const hashQuery = window.location.hash.split('?')[1];
+    const params = new URLSearchParams(hashQuery);
+    mid = params.get('mid') || params.get('MID');
+  }
+
+  // Fallback 2: Parse from window.location.search directly
+  if (!mid) {
+    const params = new URLSearchParams(window.location.search);
+    mid = params.get('mid') || params.get('MID');
+  }
 
   if (mid) {
     const uppercaseMid = mid.toUpperCase().trim();

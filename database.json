@@ -695,7 +695,7 @@
   "classico_archived_expenses": [],
   "classico_tournaments": [
     {
-      "id": "1780350079610",
+      "id": "1780599429652",
       "name": "الفراعنه",
       "fee": 50,
       "maxPlayers": 16,
@@ -718,7 +718,7 @@
       "status": "registration",
       "players": [],
       "matches": [],
-      "createdAt": "2026-06-01T21:41:19.610Z"
+      "createdAt": "2026-06-04T18:57:09.652Z"
     }
   ],
   "classico_tournaments_history": [],
@@ -732,7 +732,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-06-01T23:02:35.435Z"
+    "last_online_check": "2026-06-04T18:59:17.422Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -751,6 +751,55 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1780599429652.218,
+      "timestamp": "2026-06-04T18:57:09.652Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه"
+    },
+    {
+      "id": 1780599408319.7312,
+      "timestamp": "2026-06-04T18:56:48.319Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1780599344894.8777,
+      "timestamp": "2026-06-04T18:55:44.894Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه"
+    },
+    {
+      "id": 1780599315080.0813,
+      "timestamp": "2026-06-04T18:55:15.080Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه"
+    },
+    {
+      "id": 1780599301879.6453,
+      "timestamp": "2026-06-04T18:55:01.879Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه"
+    },
+    {
+      "id": 1780598281172.7534,
+      "timestamp": "2026-06-04T18:38:01.172Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1780422610023.5217,
+      "timestamp": "2026-06-02T17:50:10.023Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
     {
       "id": 1780350079610.9324,
       "timestamp": "2026-06-01T21:41:19.610Z",
@@ -838,5 +887,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-01T23:02:35.118Z"
+  "last_seen_time": "2026-06-04T18:59:17.069Z"
 }

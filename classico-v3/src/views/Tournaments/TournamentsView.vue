@@ -111,11 +111,16 @@
           <div class="main-column">
             <!-- 3. Registered Players Management panel -->
             <div v-if="activeTournament && activeTournament.status === 'registration'" class="form-card-v3 animate-scale-in">
-              <div class="form-header-v3" style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="form-header-v3" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                 <span>👤 المشتركين المسجلين حالياً ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }})</span>
-                <button @click="showAddPlayerModal = true" class="btn secondary-btn btn-manual-player" style="padding: 0.3rem 0.8rem; font-size: 0.85rem; font-weight: bold;">
-                  + تسجيل لاعب يدوياً
-                </button>
+                <div style="display: flex; gap: 8px;">
+                  <button @click="manualSyncCloudPlayers" class="btn secondary-btn" style="padding: 0.3rem 0.8rem; font-size: 0.85rem; font-weight: bold; background: #06b6d4 !important; color: black !important; border: 1px solid rgba(6, 182, 212, 0.2) !important;">
+                    🔄 جلب التسجيلات أونلاين
+                  </button>
+                  <button @click="showAddPlayerModal = true" class="btn secondary-btn btn-manual-player" style="padding: 0.3rem 0.8rem; font-size: 0.85rem; font-weight: bold;">
+                    + تسجيل لاعب يدوياً
+                  </button>
+                </div>
               </div>
 
               <div class="table-container" style="max-height: 40vh; overflow-y: auto; margin-bottom: 1.5rem;">
@@ -460,7 +465,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue';
+import { ref, computed, reactive, onMounted, onUnmounted } from 'vue';
 import { useAppStore } from '../../stores/appStore';
 import { useUIStore } from '../../stores/uiStore';
 import axios from 'axios';
@@ -1180,6 +1185,69 @@ const archiveAndResetTournament = async () => {
   }
 };
 
+const syncCloudPlayers = async (silent = false) => {
+  if (!activeTournament.value || activeTournament.value.status !== 'registration') return;
+  try {
+    const res = await axios.get(`${API_BASE}/system/cloud-restore`);
+    if (res.data && res.data.classico_tournaments) {
+      const cloudTournaments = res.data.classico_tournaments;
+      const cloudT = cloudTournaments.find(t => t.id === activeTournament.value.id);
+      
+      if (cloudT && Array.isArray(cloudT.players)) {
+        let mergedCount = 0;
+        const localPlayers = [...activeTournament.value.players];
+        const localDeletedIds = activeTournament.value.deletedPlayerIds || [];
+        
+        cloudT.players.forEach(cloudP => {
+          const existsLocally = localPlayers.some(p => 
+            p.id === cloudP.id || 
+            p.phone === cloudP.phone || 
+            (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase())
+          );
+          const isDeletedLocally = localDeletedIds.includes(cloudP.id);
+          
+          if (!existsLocally && !isDeletedLocally) {
+            localPlayers.push(cloudP);
+            mergedCount++;
+          }
+        });
+        
+        if (mergedCount > 0) {
+          activeTournament.value.players = localPlayers;
+          await store.saveToDatabase();
+          if (!silent) {
+            ui.showToast(`تم مزامنة وجلب ${mergedCount} لاعبين جدد من التسجيل السحابي! 👥`, 'success');
+          }
+        } else {
+          await store.syncFromServer();
+          if (!silent) {
+            ui.showToast('بيانات اللاعبين متزامنة بالفعل.', 'info');
+          }
+        }
+      } else {
+        await store.syncFromServer();
+        if (!silent) {
+          ui.showToast('لا توجد تسجيلات جديدة على السحابة.', 'info');
+        }
+      }
+    } else {
+      await store.syncFromServer();
+    }
+  } catch (err) {
+    console.error('[Sync Players Cloud Error]', err);
+    await store.syncFromServer();
+    if (!silent) {
+      ui.showToast('خطأ أثناء جلب التسجيلات من السحابة. تم جلب البيانات المحلية.', 'warning');
+    }
+  }
+};
+
+const manualSyncCloudPlayers = async () => {
+  await syncCloudPlayers(false);
+};
+
+let syncInterval = null;
+
 onMounted(async () => {
   // Get IP
   try {
@@ -1189,6 +1257,20 @@ onMounted(async () => {
 
   // Get status
   await fetchTunnelStatus();
+
+  // Start polling online players if registration is active
+  if (activeTournament.value && activeTournament.value.status === 'registration') {
+    syncCloudPlayers(true);
+    syncInterval = setInterval(() => {
+      syncCloudPlayers(true);
+    }, 10000);
+  }
+});
+
+onUnmounted(() => {
+  if (syncInterval) {
+    clearInterval(syncInterval);
+  }
 });
 </script>
 

@@ -546,8 +546,48 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
 
                 // Cloud Upsert logic
                 try {
-                    const existing = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=machine_id`);
-                    if (existing && existing.length > 0) {
+                    const existing = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=data`);
+                    const hasBackup = existing && existing.length > 0;
+                    
+                    if (hasBackup && existing[0].data) {
+                        const cloudData = existing[0].data;
+                        let mergedAny = false;
+                        
+                        if (data.classico_tournaments && cloudData.classico_tournaments) {
+                            data.classico_tournaments.forEach(localT => {
+                                if (localT.status === 'registration') {
+                                    const cloudT = cloudData.classico_tournaments.find(t => t.id === localT.id);
+                                    if (cloudT && Array.isArray(cloudT.players)) {
+                                        const localDeletedIds = localT.deletedPlayerIds || [];
+                                        cloudT.players.forEach(cloudP => {
+                                            const existsLocally = localT.players.some(p => 
+                                                p.id === cloudP.id || 
+                                                p.phone === cloudP.phone || 
+                                                (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase())
+                                            );
+                                            const isDeletedLocally = localDeletedIds.includes(cloudP.id);
+                                            
+                                            if (!existsLocally && !isDeletedLocally) {
+                                                localT.players.push(cloudP);
+                                                mergedAny = true;
+                                                console.log(`[Sync Merge] Merged cloud-registered player ${cloudP.nickname} into local tournament ${localT.name}`);
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        
+                        if (mergedAny) {
+                            try {
+                                fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+                            } catch (writeErr) {
+                                console.error("[Sync Merge] Failed to write merged database.json:", writeErr.message);
+                            }
+                        }
+                    }
+
+                    if (hasBackup) {
                         await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, {
                             data,
                             updated_at: new Date().toISOString()
