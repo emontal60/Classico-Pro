@@ -693,7 +693,78 @@
   "classico_lounge_history": [],
   "classico_expenses": [],
   "classico_archived_expenses": [],
-  "classico_tournaments": [],
+  "classico_tournaments": [
+    {
+      "id": "1780615798547",
+      "name": "مومو",
+      "fee": 200,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "0987665 / 98989798798",
+      "paymentNumberInstapay": "0987665",
+      "paymentNumberWallet": "98989798798",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "both",
+      "status": "registration",
+      "players": [],
+      "matches": [],
+      "createdAt": "2026-06-04T23:29:58.547Z"
+    },
+    {
+      "id": "1780615807825",
+      "name": "صاصا",
+      "fee": 200,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "0987665 / 98989798798",
+      "paymentNumberInstapay": "0987665",
+      "paymentNumberWallet": "98989798798",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "both",
+      "status": "registration",
+      "players": [],
+      "matches": [],
+      "createdAt": "2026-06-04T23:30:07.825Z"
+    }
+  ],
   "classico_tournaments_history": [
     {
       "id": "1780603342736-311g",
@@ -724,7 +795,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-06-04T22:54:30.063Z"
+    "last_online_check": "2026-06-04T23:36:50.603Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -743,6 +814,76 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1780615807825.7244,
+      "timestamp": "2026-06-04T23:30:07.825Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم صاصا"
+    },
+    {
+      "id": 1780615798547.6245,
+      "timestamp": "2026-06-04T23:29:58.547Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم مومو"
+    },
+    {
+      "id": 1780615778122.11,
+      "timestamp": "2026-06-04T23:29:38.122Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة فراعنه"
+    },
+    {
+      "id": 1780615769358.5867,
+      "timestamp": "2026-06-04T23:29:29.358Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة ميمو"
+    },
+    {
+      "id": 1780615137340.1887,
+      "timestamp": "2026-06-04T23:18:57.340Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ميمو"
+    },
+    {
+      "id": 1780615117565.613,
+      "timestamp": "2026-06-04T23:18:37.565Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم فراعنه"
+    },
+    {
+      "id": 1780615097592.1548,
+      "timestamp": "2026-06-04T23:18:17.592Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة صاصا"
+    },
+    {
+      "id": 1780615091639.3591,
+      "timestamp": "2026-06-04T23:18:11.639Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه2"
+    },
+    {
+      "id": 1780614284852.5063,
+      "timestamp": "2026-06-04T23:04:44.852Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم صاصا"
+    },
+    {
+      "id": 1780614272275.963,
+      "timestamp": "2026-06-04T23:04:32.275Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه2"
+    },
     {
       "id": 1780613543581.3052,
       "timestamp": "2026-06-04T22:52:23.581Z",
@@ -1271,5 +1412,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-04T22:54:29.066Z"
+  "last_seen_time": "2026-06-04T23:38:12.076Z"
 }
