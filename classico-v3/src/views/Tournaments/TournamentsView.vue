@@ -1439,9 +1439,9 @@ const cloudPagesUrl = computed(() => {
 const activeTournament = computed(() => {
   if (!store.tournaments || store.tournaments.length === 0) return null;
   if (selectedTournamentId.value) {
-    return store.tournaments.find(t => t.id === selectedTournamentId.value) || null;
+    return store.tournaments.find(t => t && t.id === selectedTournamentId.value) || null;
   }
-  const def = store.tournaments.find(t => t.status === 'registration' || t.status === 'active') || store.tournaments[store.tournaments.length - 1];
+  const def = store.tournaments.find(t => t && (t.status === 'registration' || t.status === 'active')) || store.tournaments[store.tournaments.length - 1];
   if (def) {
     selectedTournamentId.value = def.id;
   }
@@ -1451,19 +1451,19 @@ const activeTournament = computed(() => {
 const getPlayerNickname = (id) => {
   if (id === 'bye') return 'تأهل تلقائي ⭐';
   if (!id) return '---';
-  const player = activeTournament.value?.players.find(p => p.id === id);
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? player.nickname : '---';
 };
 
 const getPlayerLogoSymbol = (id) => {
   if (id === 'bye' || !id) return '⭐';
-  const player = activeTournament.value?.players.find(p => p.id === id);
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? getLogoSymbol(player.logoId) : '❓';
 };
 
 const getPlayerLogoStyle = (id) => {
   if (id === 'bye' || !id) return { background: 'rgba(255,255,255,0.05)', boxShadow: 'none' };
-  const player = activeTournament.value?.players.find(p => p.id === id);
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? getLogoStyle(player.logoId) : {};
 };
 
@@ -1948,8 +1948,8 @@ const handleStartTournament = async () => {
         let score2 = null;
 
         // Pull parents match indices
-        const parentMatch1 = generatedMatches.find(m => m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2);
-        const parentMatch2 = generatedMatches.find(m => m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2 + 1);
+        const parentMatch1 = generatedMatches.find(m => m && m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2);
+        const parentMatch2 = generatedMatches.find(m => m && m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2 + 1);
 
         if (parentMatch1 && parentMatch1.played) p1Id = parentMatch1.winnerId;
         if (parentMatch2 && parentMatch2.played) p2Id = parentMatch2.winnerId;
@@ -2130,7 +2130,7 @@ const advanceToKnockoutStage = async () => {
 
   // Retrieve actual player objects
   const selectedPlayers = selectedPlayersIds
-    .map(id => activeTournament.value.players.find(p => p.id === id))
+    .map(id => activeTournament.value.players.find(p => p && p.id === id))
     .filter(Boolean);
 
   // Shuffle selected players to randomize the seeding
@@ -2195,8 +2195,8 @@ const advanceToKnockoutStage = async () => {
       let score2 = null;
 
       // Pull parents match indices
-      const parentMatch1 = generatedMatches.find(m => m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2);
-      const parentMatch2 = generatedMatches.find(m => m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2 + 1);
+      const parentMatch1 = generatedMatches.find(m => m && m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2);
+      const parentMatch2 = generatedMatches.find(m => m && m.roundIndex === roundIdx - 1 && m.matchIndex === i * 2 + 1);
 
       if (parentMatch1 && parentMatch1.played) p1Id = parentMatch1.winnerId;
       if (parentMatch2 && parentMatch2.played) p2Id = parentMatch2.winnerId;
@@ -2281,7 +2281,7 @@ const submitMatchScore = () => {
     });
 
     // Check if next round match has "Bye" as the opposite slot, cascade auto win if so!
-    const targetMatch = activeTournament.value.matches.find(m => m.id === targetMatchId);
+    const targetMatch = activeTournament.value.matches.find(m => m && m.id === targetMatchId);
     if (targetMatch) {
       const oppPlayerId = targetSlot === 1 ? targetMatch.player2Id : targetMatch.player1Id;
       if (oppPlayerId === 'bye') {
@@ -2319,8 +2319,8 @@ const checkTournamentCompletion = () => {
     let first = '', second = '', third = '';
 
     if (activeTournament.value.type === 'cup') {
-      const maxRound = Math.max(...matches.map(m => m.roundIndex));
-      const finalMatch = matches.find(m => m.roundIndex === maxRound);
+      const maxRound = Math.max(...matches.map(m => m && m.roundIndex));
+      const finalMatch = matches.find(m => m && m.roundIndex === maxRound);
       if (finalMatch && finalMatch.played) {
         first = finalMatch.winnerId;
         second = finalMatch.winnerId === finalMatch.player1Id ? finalMatch.player2Id : finalMatch.player1Id;
@@ -2372,22 +2372,32 @@ const archiveAndResetTournament = async () => {
 
 const syncCloudPlayers = async (silent = false) => {
   if (!activeTournament.value || activeTournament.value.status !== 'registration') return;
+  
+  // If we are offline, skip cloud api request to prevent console spam
+  if (navigator.onLine === false) {
+    await store.syncFromServer();
+    return;
+  }
+
   try {
     const res = await axios.get(`${API_BASE}/system/cloud-restore`);
-    if (res.data && res.data.classico_tournaments) {
+    if (res.data && Array.isArray(res.data.classico_tournaments)) {
       const cloudTournaments = res.data.classico_tournaments;
-      const cloudT = cloudTournaments.find(t => t.id === activeTournament.value.id);
+      const cloudT = cloudTournaments.find(t => t && t.id === activeTournament.value.id);
       
       if (cloudT && Array.isArray(cloudT.players)) {
         let mergedCount = 0;
-        const localPlayers = [...activeTournament.value.players];
+        const localPlayers = Array.isArray(activeTournament.value.players) 
+          ? [...activeTournament.value.players] 
+          : [];
         const localDeletedIds = activeTournament.value.deletedPlayerIds || [];
         
         cloudT.players.forEach(cloudP => {
+          if (!cloudP || !cloudP.id) return;
           const existsLocally = localPlayers.some(p => 
-            p.id === cloudP.id || 
+            p && (p.id === cloudP.id || 
             p.phone === cloudP.phone || 
-            (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase())
+            (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase()))
           );
           const isDeletedLocally = localDeletedIds.includes(cloudP.id);
           
@@ -2419,11 +2429,11 @@ const syncCloudPlayers = async (silent = false) => {
       await store.syncFromServer();
     }
   } catch (err) {
-    console.error('[Sync Players Cloud Error]', err);
-    await store.syncFromServer();
     if (!silent) {
+      console.error('[Sync Players Cloud Error]', err);
       ui.showToast('خطأ أثناء جلب التسجيلات من السحابة. تم جلب البيانات المحلية.', 'warning');
     }
+    await store.syncFromServer();
   }
 };
 

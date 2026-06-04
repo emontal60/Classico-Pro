@@ -811,7 +811,7 @@ const activeTournament = computed(() => {
   if (list.length === 0) return null;
 
   if (selectedTid.value) {
-    return list.find(t => t.id === selectedTid.value) || null;
+    return list.find(t => t && t.id === selectedTid.value) || null;
   }
   
   if (list.length === 1) {
@@ -826,7 +826,7 @@ const selectTournament = (id) => {
   selectedTid.value = id;
   if (isCloudMode.value && fullCloudDataPayload.value) {
     const list = fullCloudDataPayload.value.classico_tournaments || [];
-    cloudTournament.value = list.find(t => t.id === id) || null;
+    cloudTournament.value = list.find(t => t && t.id === id) || null;
   }
   // Reset tab to default stage phase
   if (activeTournament.value) {
@@ -1035,13 +1035,13 @@ const groupMatchesByGroup = computed(() => {
 // Helpers to get player nickname, logo symbols and styles
 const getPlayerNickname = (id) => {
   if (id === 'bye' || !id) return 'تأهل تلقائي ⭐';
-  const player = activeTournament.value?.players.find(p => p.id === id);
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? player.nickname : '---';
 };
 
 const getPlayerLogoSymbol = (id) => {
   if (id === 'bye' || !id) return '⭐';
-  const player = activeTournament.value?.players.find(p => p.id === id);
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? getLogoSymbol(player.logoId) : '❓';
 };
 
@@ -1052,7 +1052,7 @@ const getPlayerLogoStyle = (id) => {
       boxShadow: 'none'
     };
   }
-  const player = activeTournament.value?.players.find(p => p.id === id);
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? getLogoStyle(player.logoId) : {};
 };
 
@@ -1066,13 +1066,13 @@ const submitRegistration = async () => {
   }
 
   // Duplicate Check
-  const dup = activeTournament.value.players.find(p => p.nickname && p.nickname.toLowerCase() === form.nickname.trim().toLowerCase());
+  const dup = activeTournament.value.players.find(p => p && p.nickname && p.nickname.toLowerCase() === form.nickname.trim().toLowerCase());
   if (dup) {
     alert('هذا الاسم المستعار مسجل بالفعل! يرجى اختيار اسم مستعار آخر.');
     return;
   }
 
-  const dupPhone = activeTournament.value.players.find(p => p.phone && p.phone.trim() === form.phone.trim());
+  const dupPhone = activeTournament.value.players.find(p => p && p.phone && p.phone.trim() === form.phone.trim());
   if (dupPhone) {
     alert('رقم الهاتف هذا مسجل بالفعل في هذه البطولة!');
     return;
@@ -1248,12 +1248,12 @@ watch(
           // Find tournament matching the query tid
           let selected = null;
           if (tid) {
-            selected = tournamentsList.find(t => t.id && t.id.toString() === tid.toString());
+            selected = tournamentsList.find(t => t && t.id && t.id.toString() === tid.toString());
           }
           
           // Fallback to active/registration or last one if not found or no tid specified
           if (!selected) {
-            selected = tournamentsList.find(t => t.status === 'registration' || t.status === 'active') || tournamentsList[tournamentsList.length - 1];
+            selected = tournamentsList.find(t => t && (t.status === 'registration' || t.status === 'active')) || tournamentsList[tournamentsList.length - 1];
           }
           
           if (selected) {
@@ -1272,7 +1272,7 @@ watch(
       try {
         await store.syncFromServer();
         if (tid) {
-          const selected = store.tournaments.find(t => t.id && t.id.toString() === tid.toString());
+          const selected = store.tournaments.find(t => t && t.id && t.id.toString() === tid.toString());
           if (selected) {
             selectedTid.value = selected.id;
           }

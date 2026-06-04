@@ -555,19 +555,23 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
                         
                         if (data.classico_tournaments && cloudData.classico_tournaments) {
                             data.classico_tournaments.forEach(localT => {
-                                if (localT.status === 'registration') {
-                                    const cloudT = cloudData.classico_tournaments.find(t => t.id === localT.id);
+                                if (localT && localT.status === 'registration') {
+                                    const cloudT = cloudData.classico_tournaments.find(t => t && t.id === localT.id);
                                     if (cloudT && Array.isArray(cloudT.players)) {
                                         const localDeletedIds = localT.deletedPlayerIds || [];
                                         cloudT.players.forEach(cloudP => {
-                                            const existsLocally = localT.players.some(p => 
-                                                p.id === cloudP.id || 
+                                            if (!cloudP) return;
+                                            const existsLocally = Array.isArray(localT.players) && localT.players.some(p => 
+                                                p && (p.id === cloudP.id || 
                                                 p.phone === cloudP.phone || 
-                                                (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase())
+                                                (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase()))
                                             );
                                             const isDeletedLocally = localDeletedIds.includes(cloudP.id);
                                             
                                             if (!existsLocally && !isDeletedLocally) {
+                                                if (!Array.isArray(localT.players)) {
+                                                    localT.players = [];
+                                                }
                                                 localT.players.push(cloudP);
                                                 mergedAny = true;
                                                 console.log(`[Sync Merge] Merged cloud-registered player ${cloudP.nickname} into local tournament ${localT.name}`);
