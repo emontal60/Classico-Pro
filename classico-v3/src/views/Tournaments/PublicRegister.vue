@@ -177,12 +177,12 @@
             </div>
 
             <!-- Avatar Selection -->
-            <!-- Avatar Selection -->
             <div class="input-group">
-              <label class="avatar-header">
-                <span>اختر شعار فريقك الإلكتروني 🎨</span>
-                <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null">
-                  معاينة الشعار: <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)">{{ getLogoSymbol(form.logoId) }}</span>
+              <label class="avatar-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span>اختر شعار فريقك (أندية ومنتخبات) ⚽</span>
+                <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null" style="font-size: 0.78rem;">
+                  الشعار المحدد: <span style="color: #fbbf24; font-weight: bold;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
+                  <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)">{{ getLogoSymbol(form.logoId) }}</span>
                 </span>
               </label>
               
@@ -235,52 +235,24 @@
                 </select>
               </div>
 
-              <!-- خيار الدفع (كامل / جزئي) -->
+              <!-- حقل إدخال المبلغ المحوّل (واجب إدخاله كلياً أو جزئياً) -->
               <div class="input-group" style="margin-bottom: 1rem;">
-                <label>نوع السداد المالي 💳</label>
-                <div style="display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap;">
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #fff; font-size: 0.82rem; font-weight: normal;">
-                    <input type="radio" v-model="form.paymentType" value="full" style="accent-color: #06b6d4;">
-                    <span>سداد الاشتراك كاملاً ({{ activeTournament.fee }} ج)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #fff; font-size: 0.82rem; font-weight: normal;">
-                    <input type="radio" v-model="form.paymentType" value="partial" style="accent-color: #06b6d4;">
-                    <span>سداد دفعة جزئية (مقدم) 💰</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- حقل إدخال المبلغ المدفوع (في حال اختيار الدفع الجزئي) -->
-              <div class="input-group animate-scale-in" v-if="form.paymentType === 'partial'" style="margin-bottom: 1rem;">
-                <label>المبلغ المراد دفعه (ج) 💸</label>
+                <label>المبلغ الذي قمت بتحويله (ج) 💸</label>
                 <input 
                   type="number" 
                   v-model.number="form.amountPaid" 
                   :min="1" 
                   :max="activeTournament.fee" 
-                  placeholder="اكتب القيمة المراد دفعها" 
+                  placeholder="اكتب المبلغ الذي قمت بتحويله بالكامل أو جزء منه" 
                   required
                   class="premium-input"
                   style="border-color: rgba(251, 191, 36, 0.4) !important;"
                 >
-                <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">يجب ألا يتجاوز المبلغ قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
+                <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">سداد قيمة الاشتراك صحيحة لا تزيد عن قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
               </div>
 
               <!-- حقول انستاباي الخاصة (تظهر فقط عند اختيار الدفع عبر انستاباي أو محفظة كاش) -->
               <div v-if="form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet'" class="animate-scale-in" style="display: flex; flex-direction: column; gap: 1rem;">
-                <!-- حقل رقم المحول منه -->
-                <div class="input-group" style="margin-bottom: 0;">
-                  <label v-if="form.paymentMethod === 'wallet'">رقم الهاتف المحول منه (محفظة كاش) 📱</label>
-                  <label v-else>رقم الهاتف/عنوان انستا باي المحول منه ⚡</label>
-                  <input 
-                    type="text" 
-                    v-model="form.senderNumber" 
-                    placeholder="رقم المحفظة 010xxxxxxxx أو اسم حساب انستاباي" 
-                    required
-                    class="premium-input"
-                  >
-                </div>
-
                 <!-- حقل رقم العملية -->
                 <div class="input-group" style="margin-bottom: 0;">
                   <label>رقم العملية المرجعي للتحويل (Reference / TxID) 🔢</label>
@@ -645,15 +617,15 @@
 
         <!-- 3. Registered Players Board -->
         <div class="registered-players-board glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-          <h3 class="panel-title">👥 اللاعبين المسجلين حالياً ({{ activeTournament.players.length }})</h3>
+          <h3 class="panel-title">👥 اللاعبين المسجلين حالياً ({{ activeTournament.players.filter(p => !p.isPendingApproval).length }})</h3>
           
-          <div v-if="activeTournament.players.length === 0" class="empty-players-hint">
+          <div v-if="activeTournament.players.filter(p => !p.isPendingApproval).length === 0" class="empty-players-hint">
             لا يوجد لاعبين مسجلين بعد. كن أول من يسجل بالبطولة! 🏆
           </div>
           
           <div v-else class="players-badges-grid">
             <div 
-              v-for="p in activeTournament.players" 
+              v-for="p in activeTournament.players.filter(p => !p.isPendingApproval)" 
               :key="p.id" 
               class="player-badge-card"
             >
@@ -662,10 +634,7 @@
               </span>
               <div class="p-info">
                 <span class="p-nick">{{ p.nickname }}</span>
-                <span v-if="p.isPendingApproval" class="p-status" style="color: #fbbf24; font-weight: bold;">
-                  معلق قيد التأكيد ⏳
-                </span>
-                <span v-else class="p-status" :class="{ paid: p.paid }">
+                <span class="p-status" :class="{ paid: p.paid }">
                   {{ p.paid ? 'مؤكد السداد ✅' : (p.amountConfirmed > 0 ? `تم دفع ${p.amountConfirmed} ج 💰` : 'بانتظار الدفع 💳') }}
                 </span>
               </div>
@@ -711,6 +680,7 @@ watch(activeTournament, (newVal) => {
     } else {
       form.paymentMethod = 'cash';
     }
+    form.amountPaid = newVal.fee || 0;
   }
 }, { immediate: true });
 
@@ -726,46 +696,49 @@ const backToLanding = () => {
 // Curated 68 esports gaming logo symbols
 // 36 highly curated football clubs, national teams and soccer elements
 const CURATED_LOGOS = [
-  // 1. Balls & Gear
-  { symbol: '⚽🔥', name: 'الكرة النارية المشتعلة' },
-  { symbol: '⚽⚡', name: 'كرة البرق الصاعقة' },
-  { symbol: '⚽❄️', name: 'كرة الجليد المبردة' },
-  { symbol: '⚽👑', name: 'الكرة الذهبية الملكية' },
-  { symbol: '⚽💫', name: 'الكرة الكونية المتوهجة' },
-  { symbol: '🏆✨', name: 'كأس الكلاسيكو الذهبي' },
-  { symbol: '🏟️✨', name: 'ملعب الأبطال النيون' },
+  // 1. European Clubs
+  { symbol: '🇪🇸👑', name: 'ريال مدريد (Real Madrid)' },
+  { symbol: '🇪🇸🔵', name: 'برشلونة (FC Barcelona)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🔴', name: 'ليفربول (Liverpool)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🔵', name: 'مانشستر سيتي (Manchester City)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿😈', name: 'مانشستر يونايتد (Manchester United)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🦁', name: 'تشيلسي (Chelsea)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🔫', name: 'أرسنال (Arsenal)' },
+  { symbol: '🇩🇪🦁', name: 'بايرن ميونخ (Bayern Munich)' },
+  { symbol: '🇮🇹🔴', name: 'ميلان (AC Milan)' },
+  { symbol: '🇮🇹🔵', name: 'إنتر ميلان (Inter Milan)' },
+  { symbol: '🇮🇹🦓', name: 'يوفنتوس (Juventus)' },
+  { symbol: '🇫🇷🗼', name: 'باريس سان جيرمان (PSG)' },
+  
+  // 2. Egyptian & Arab Clubs
+  { symbol: '🇪🇬🦅', name: 'الأهلي المصري (Al Ahly)' },
+  { symbol: '🇪🇬🏹', name: 'الزمالك المصري (Zamalek)' },
+  { symbol: '🇸🇦🔵', name: 'الهلال السعودي (Al Hilal)' },
+  { symbol: '🇸🇦🟡', name: 'النصر السعودي (Al Nassr)' },
+  { symbol: '🇸🇦🐯', name: 'الاتحاد السعودي (Al Ittihad)' },
+  { symbol: '🇦🇪🏰', name: 'العين الإماراتي (Al Ain)' },
+  
+  // 3. National Teams
+  { symbol: '🇪🇬🏆', name: 'منتخب مصر (Egypt)' },
+  { symbol: '🇲🇦🦁', name: 'منتخب المغرب (Morocco)' },
+  { symbol: '🇸🇦💚', name: 'منتخب السعودية (Saudi Arabia)' },
+  { symbol: '🇧🇷⚽', name: 'منتخب البرازيل (Brazil)' },
+  { symbol: '🇦🇷⭐', name: 'منتخب الأرجنتين (Argentina)' },
+  { symbol: '🇫🇷🐓', name: 'منتخب فرنسا (France)' },
+  { symbol: '🇩🇪⚽', name: 'منتخب ألمانيا (Germany)' },
+  { symbol: '🇪🇸🏆', name: 'منتخب إسبانيا (Spain)' },
+  { symbol: '🇮🇹🛡️', name: 'منتخب إيطاليا (Italy)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🦁', name: 'منتخب إنجلترا (England)' },
+  { symbol: '🇵🇹⚡', name: 'منتخب البرتغال (Portugal)' },
+  { symbol: '🇳🇱🇳🇱', name: 'منتخب هولندا (Netherlands)' },
+  
+  // 4. Special Football Symbols
+  { symbol: '⚽🔥', name: 'الكرة النارية' },
+  { symbol: '⚽⚡', name: 'كرة البرق' },
+  { symbol: '⚽👑', name: 'الكرة الذهبية' },
+  { symbol: '🏆✨', name: 'كأس كلاسيكو الذهبي' },
   { symbol: '👟✨', name: 'حذاء الهداف الذهبي' },
-  { symbol: '🧤🥅', name: 'عرين الحارس الأخطبوط' },
-  { symbol: '📢⚽', name: 'صافرة الحكم النارية' },
-  { symbol: '🚩⚽', name: 'راية الركنية المشتعلة' },
-  { symbol: '🎴🔴', name: 'بطاقة الطرد الحمراء' },
-  // 2. European Clubs
-  { symbol: '⚪👑', name: 'الملكي المدريدي (ريال مدريد)' },
-  { symbol: '🔵🔴', name: 'البلوغرانا الكتالوني (برشلونة)' },
-  { symbol: '🔴⚽', name: 'الريدز الإنجليزي (ليفربول)' },
-  { symbol: '🔵⚡', name: 'السيتي السماوي (مانشستر سيتي)' },
-  { symbol: '🔴😈', name: 'الشياطين الحمر (مانشستر يونايتد)' },
-  { symbol: '🔴⚪🦁', name: 'البافاري الألماني (بايرن ميونخ)' },
-  { symbol: '🔴⚫', name: 'الروسونيري الإيطالي (إيه سي ميلان)' },
-  { symbol: '🔵⚫', name: 'النيراتزوري الإيطالي (إنتر ميلان)' },
-  { symbol: '🔵🔴🗼', name: 'باريس سان جيرمان الفرنسي' },
-  { symbol: '⚪⚫🦓', name: 'اليوفي الإيطالي (يوفنتوس)' },
-  { symbol: '🔴⚪🔫', name: 'المدفعجية الإنجليزي (أرسنال)' },
-  { symbol: '🔵🦁', name: 'البلوز اللندني (تشيلسي)' },
-  // 3. Egyptian & Arab Clubs
-  { symbol: '🔴🦅', name: 'المارد الأحمر (النادي الأهلي)' },
-  { symbol: '🏹⚪', name: 'الفارس الأبيض (نادي الزمالك)' },
-  { symbol: '🔵👑🦁', name: 'الزعيم الهلالي (الهلال)' },
-  { symbol: '🟡🔵🌍', name: 'العالمي النصراوي (النصر)' },
-  { symbol: '🟡⚫🐯', name: 'النمور الاتحادية (الاتحاد)' },
-  { symbol: '🟣🏰', name: 'البنفسج العيناوي (نادي العين)' },
-  // 4. National Teams
-  { symbol: '🇪🇬🦅', name: 'الفراعنة المصريين (منتخب مصر)' },
-  { symbol: '🇲🇦🦁', name: 'أسود الأطلس (منتخب المغرب)' },
-  { symbol: '🇸🇦💚', name: 'الصقور الخضراء (منتخب السعودية)' },
-  { symbol: '🇧🇷⚽', name: 'سحرة السامبا (منتخب البرازيل)' },
-  { symbol: '🇦🇷⚽', name: 'راقصو التانغو (منتخب الأرجنتين)' },
-  { symbol: '🇫🇷🐓', name: 'الديوك الفرنسية (منتخب فرنسا)' }
+  { symbol: '🧤🥅', name: 'قفاز الحارس الذهبي' }
 ];
 
 
@@ -1111,8 +1084,8 @@ const submitRegistration = async () => {
 
   if (isPending) {
     if (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') {
-      if (!form.senderNumber || !form.senderNumber.trim()) {
-        alert(form.paymentMethod === 'wallet' ? 'يرجى إدخال رقم الهاتف المحول منه لمطابقة عملية الدفع!' : 'يرجى إدخال رقم الهاتف أو الحساب المحول منه لمطابقة عملية الدفع!');
+      if (!form.phone || !form.phone.trim()) {
+        alert('يرجى إدخال رقم الهاتف الخاص بك أولاً!');
         return;
       }
       if (!form.transactionId || !form.transactionId.trim()) {
@@ -1125,12 +1098,14 @@ const submitRegistration = async () => {
       lastTxId.value = 'CASH-' + Date.now().toString().slice(-6);
     }
     
-    finalAmountPaid = form.paymentType === 'full' ? fee : Number(form.amountPaid);
+    finalAmountPaid = Number(form.amountPaid);
     if (isNaN(finalAmountPaid) || finalAmountPaid <= 0 || finalAmountPaid > fee) {
-      alert(`يرجى كتابةسداد قيمة اشتراك صحيحة لا تزيد عن قيمة الاشتراك (${fee} ج)!`);
+      alert(`يرجى كتابة سداد قيمة اشتراك صحيحة لا تزيد عن قيمة الاشتراك (${fee} ج)!`);
       return;
     }
   }
+
+  const finalPaymentType = isPending ? (finalAmountPaid >= fee ? 'full' : 'partial') : 'full';
 
   submitting.value = true;
   try {
@@ -1145,10 +1120,10 @@ const submitRegistration = async () => {
         paid: !isPending,
         paidAt: !isPending ? new Date().toISOString() : null,
         isPendingApproval: isPending,
-        paymentType: isPending ? form.paymentType : 'full',
+        paymentType: finalPaymentType,
         paymentMethod: form.paymentMethod || 'cash',
         amountPaid: finalAmountPaid,
-        senderNumber: isPending && (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') ? form.senderNumber.trim() : 'الدفع كاش بالصالة',
+        senderNumber: isPending && (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') ? form.phone.trim() : 'الدفع كاش بالصالة',
         transactionId: isPending ? lastTxId.value : '',
         amountConfirmed: 0,
         amountArchived: 0,
@@ -1199,10 +1174,10 @@ const submitRegistration = async () => {
         phone: form.phone.trim(),
         logoId: Number(form.logoId),
         isPendingApproval: isPending,
-        paymentType: isPending ? form.paymentType : 'full',
+        paymentType: finalPaymentType,
         paymentMethod: form.paymentMethod,
         amountPaid: finalAmountPaid,
-        senderNumber: isPending && (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') ? form.senderNumber.trim() : 'الدفع كاش بالصالة',
+        senderNumber: isPending && (form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') ? form.phone.trim() : 'الدفع كاش بالصالة',
         transactionId: isPending ? lastTxId.value : ''
       });
 
@@ -1228,82 +1203,85 @@ const submitRegistration = async () => {
   }
 };
 
-onMounted(async () => {
-  const route = useRoute();
-  let mid = route.query.mid || route.query.MID;
-  let tid = route.query.tid || route.query.TID;
+watch(
+  () => [route.query.mid, route.query.tid],
+  async ([newMid, newTid]) => {
+    let mid = newMid || route.query.MID;
+    let tid = newTid || route.query.TID;
 
-  // Fallback 1: Parse from hash route manually if route.query is not ready
-  if ((!mid || !tid) && window.location.hash.includes('?')) {
-    const hashQuery = window.location.hash.split('?')[1];
-    const params = new URLSearchParams(hashQuery);
-    if (!mid) mid = params.get('mid') || params.get('MID');
-    if (!tid) tid = params.get('tid') || params.get('TID');
-  }
-
-  // Fallback 2: Parse from window.location.search directly
-  if (!mid || !tid) {
-    const params = new URLSearchParams(window.location.search);
-    if (!mid) mid = params.get('mid') || params.get('MID');
-    if (!tid) tid = params.get('tid') || params.get('TID');
-  }
-
-  if (mid) {
-    const uppercaseMid = mid.toUpperCase().trim();
-    console.log(`[Registration] Cloud Mode detected for Machine ID: ${uppercaseMid}`);
-    isCloudMode.value = true;
-    cloudMachineId.value = uppercaseMid;
-    store.isLoading = true;
-
-    try {
-      const { supabase } = await import('../../utils/supabase');
-      const { data, error } = await supabase
-        .from('cloud_backups')
-        .select('data')
-        .eq('machine_id', uppercaseMid)
-        .single();
-
-      if (error) throw error;
-
-      if (data && data.data) {
-        fullCloudDataPayload.value = data.data;
-        const tournamentsList = data.data.classico_tournaments || [];
-        
-        // Find tournament matching the query tid
-        let selected = null;
-        if (tid) {
-          selected = tournamentsList.find(t => t.id && t.id.toString() === tid.toString());
-        }
-        
-        // Fallback to active/registration or last one if not found or no tid specified
-        if (!selected) {
-          selected = tournamentsList.find(t => t.status === 'registration' || t.status === 'active') || tournamentsList[tournamentsList.length - 1];
-        }
-        
-        if (selected) {
-          selectedTid.value = selected.id;
-          cloudTournament.value = selected;
-        }
-      }
-    } catch (err) {
-      console.error('[Cloud Load Error]', err.message);
-      alert('حدث خطأ أثناء تحميل بيانات البطولة من السحابة. تأكد من صحة الرابط أو جودة الاتصال.');
-    } finally {
-      store.isLoading = false;
+    // Fallback 1: Parse from hash route manually if route.query is not ready
+    if ((!mid || !tid) && window.location.hash.includes('?')) {
+      const hashQuery = window.location.hash.split('?')[1];
+      const params = new URLSearchParams(hashQuery);
+      if (!mid) mid = params.get('mid') || params.get('MID');
+      if (!tid) tid = params.get('tid') || params.get('TID');
     }
-  } else {
-    // WiFi Local server mode
-    try {
-      await store.syncFromServer();
-      if (tid) {
-        const selected = store.tournaments.find(t => t.id && t.id.toString() === tid.toString());
-        if (selected) {
-          selectedTid.value = selected.id;
+
+    // Fallback 2: Parse from window.location.search directly
+    if (!mid || !tid) {
+      const params = new URLSearchParams(window.location.search);
+      if (!mid) mid = params.get('mid') || params.get('MID');
+      if (!tid) tid = params.get('tid') || params.get('TID');
+    }
+
+    if (mid) {
+      const uppercaseMid = mid.toUpperCase().trim();
+      console.log(`[Registration] Cloud Mode detected for Machine ID: ${uppercaseMid}`);
+      isCloudMode.value = true;
+      cloudMachineId.value = uppercaseMid;
+      store.isLoading = true;
+
+      try {
+        const { supabase } = await import('../../utils/supabase');
+        const { data, error } = await supabase
+          .from('cloud_backups')
+          .select('data')
+          .eq('machine_id', uppercaseMid)
+          .single();
+
+        if (error) throw error;
+
+        if (data && data.data) {
+          fullCloudDataPayload.value = data.data;
+          const tournamentsList = data.data.classico_tournaments || [];
+          
+          // Find tournament matching the query tid
+          let selected = null;
+          if (tid) {
+            selected = tournamentsList.find(t => t.id && t.id.toString() === tid.toString());
+          }
+          
+          // Fallback to active/registration or last one if not found or no tid specified
+          if (!selected) {
+            selected = tournamentsList.find(t => t.status === 'registration' || t.status === 'active') || tournamentsList[tournamentsList.length - 1];
+          }
+          
+          if (selected) {
+            selectedTid.value = selected.id;
+            cloudTournament.value = selected;
+          }
         }
+      } catch (err) {
+        console.error('[Cloud Load Error]', err.message);
+        alert('حدث خطأ أثناء تحميل بيانات البطولة من السحابة. تأكد من صحة الرابط أو جودة الاتصال.');
+      } finally {
+        store.isLoading = false;
       }
-    } catch(e) {}
-  }
-});
+    } else {
+      // WiFi Local server mode
+      try {
+        await store.syncFromServer();
+        if (tid) {
+          const selected = store.tournaments.find(t => t.id && t.id.toString() === tid.toString());
+          if (selected) {
+            selectedTid.value = selected.id;
+          }
+        }
+      } catch(e) {}
+    }
+  },
+  { immediate: true }
+);
 
 </script>
 

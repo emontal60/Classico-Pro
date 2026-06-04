@@ -847,7 +847,8 @@
             <label style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
               <span>اختر شعار الفريق والرمز 🎨</span>
               <span v-if="manualPlayerForm.logoId !== null" style="font-size: 0.75rem; color: var(--accent-success); display: flex; align-items: center; gap: 5px;">
-                معاينة الشعار: <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)">{{ getLogoSymbol(manualPlayerForm.logoId) }}</span>
+                الشعار المحدد: <span style="color: #fbbf24; font-weight: bold; margin-left: 5px;">{{ CURATED_LOGOS[manualPlayerForm.logoId]?.name }}</span>
+                <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)">{{ getLogoSymbol(manualPlayerForm.logoId) }}</span>
               </span>
             </label>
             <div class="logo-scroll-grid" style="grid-template-columns: repeat(8, 1fr); max-height: 120px; margin-bottom: 1rem;">
@@ -1342,46 +1343,49 @@ const matchScore = reactive({
 
 // 36 highly curated football clubs, national teams and soccer elements
 const CURATED_LOGOS = [
-  // 1. Balls & Gear
-  { symbol: '⚽🔥', name: 'الكرة النارية المشتعلة' },
-  { symbol: '⚽⚡', name: 'كرة البرق الصاعقة' },
-  { symbol: '⚽❄️', name: 'كرة الجليد المبردة' },
-  { symbol: '⚽👑', name: 'الكرة الذهبية الملكية' },
-  { symbol: '⚽💫', name: 'الكرة الكونية المتوهجة' },
-  { symbol: '🏆✨', name: 'كأس الكلاسيكو الذهبي' },
-  { symbol: '🏟️✨', name: 'ملعب الأبطال النيون' },
+  // 1. European Clubs
+  { symbol: '🇪🇸👑', name: 'ريال مدريد (Real Madrid)' },
+  { symbol: '🇪🇸🔵', name: 'برشلونة (FC Barcelona)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🔴', name: 'ليفربول (Liverpool)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🔵', name: 'مانشستر سيتي (Manchester City)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿😈', name: 'مانشستر يونايتد (Manchester United)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🦁', name: 'تشيلسي (Chelsea)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🔫', name: 'أرسنال (Arsenal)' },
+  { symbol: '🇩🇪🦁', name: 'بايرن ميونخ (Bayern Munich)' },
+  { symbol: '🇮🇹🔴', name: 'ميلان (AC Milan)' },
+  { symbol: '🇮🇹🔵', name: 'إنتر ميلان (Inter Milan)' },
+  { symbol: '🇮🇹🦓', name: 'يوفنتوس (Juventus)' },
+  { symbol: '🇫🇷🗼', name: 'باريس سان جيرمان (PSG)' },
+  
+  // 2. Egyptian & Arab Clubs
+  { symbol: '🇪🇬🦅', name: 'الأهلي المصري (Al Ahly)' },
+  { symbol: '🇪🇬🏹', name: 'الزمالك المصري (Zamalek)' },
+  { symbol: '🇸🇦🔵', name: 'الهلال السعودي (Al Hilal)' },
+  { symbol: '🇸🇦🟡', name: 'النصر السعودي (Al Nassr)' },
+  { symbol: '🇸🇦🐯', name: 'الاتحاد السعودي (Al Ittihad)' },
+  { symbol: '🇦🇪🏰', name: 'العين الإماراتي (Al Ain)' },
+  
+  // 3. National Teams
+  { symbol: '🇪🇬🏆', name: 'منتخب مصر (Egypt)' },
+  { symbol: '🇲🇦🦁', name: 'منتخب المغرب (Morocco)' },
+  { symbol: '🇸🇦💚', name: 'منتخب السعودية (Saudi Arabia)' },
+  { symbol: '🇧🇷⚽', name: 'منتخب البرازيل (Brazil)' },
+  { symbol: '🇦🇷⭐', name: 'منتخب الأرجنتين (Argentina)' },
+  { symbol: '🇫🇷🐓', name: 'منتخب فرنسا (France)' },
+  { symbol: '🇩🇪⚽', name: 'منتخب ألمانيا (Germany)' },
+  { symbol: '🇪🇸🏆', name: 'منتخب إسبانيا (Spain)' },
+  { symbol: '🇮🇹🛡️', name: 'منتخب إيطاليا (Italy)' },
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🦁', name: 'منتخب إنجلترا (England)' },
+  { symbol: '🇵🇹⚡', name: 'منتخب البرتغال (Portugal)' },
+  { symbol: '🇳🇱🇳🇱', name: 'منتخب هولندا (Netherlands)' },
+  
+  // 4. Special Football Symbols
+  { symbol: '⚽🔥', name: 'الكرة النارية' },
+  { symbol: '⚽⚡', name: 'كرة البرق' },
+  { symbol: '⚽👑', name: 'الكرة الذهبية' },
+  { symbol: '🏆✨', name: 'كأس كلاسيكو الذهبي' },
   { symbol: '👟✨', name: 'حذاء الهداف الذهبي' },
-  { symbol: '🧤🥅', name: 'عرين الحارس الأخطبوط' },
-  { symbol: '📢⚽', name: 'صافرة الحكم النارية' },
-  { symbol: '🚩⚽', name: 'راية الركنية المشتعلة' },
-  { symbol: '🎴🔴', name: 'بطاقة الطرد الحمراء' },
-  // 2. European Clubs
-  { symbol: '⚪👑', name: 'الملكي المدريدي (ريال مدريد)' },
-  { symbol: '🔵🔴', name: 'البلوغرانا الكتالوني (برشلونة)' },
-  { symbol: '🔴⚽', name: 'الريدز الإنجليزي (ليفربول)' },
-  { symbol: '🔵⚡', name: 'السيتي السماوي (مانشستر سيتي)' },
-  { symbol: '🔴😈', name: 'الشياطين الحمر (مانشستر يونايتد)' },
-  { symbol: '🔴⚪🦁', name: 'البافاري الألماني (بايرن ميونخ)' },
-  { symbol: '🔴⚫', name: 'الروسونيري الإيطالي (إيه سي ميلان)' },
-  { symbol: '🔵⚫', name: 'النيراتزوري الإيطالي (إنتر ميلان)' },
-  { symbol: '🔵🔴🗼', name: 'باريس سان جيرمان الفرنسي' },
-  { symbol: '⚪⚫🦓', name: 'اليوفي الإيطالي (يوفنتوس)' },
-  { symbol: '🔴⚪🔫', name: 'المدفعجية الإنجليزي (أرسنال)' },
-  { symbol: '🔵🦁', name: 'البلوز اللندني (تشيلسي)' },
-  // 3. Egyptian & Arab Clubs
-  { symbol: '🔴🦅', name: 'المارد الأحمر (النادي الأهلي)' },
-  { symbol: '🏹⚪', name: 'الفارس الأبيض (نادي الزمالك)' },
-  { symbol: '🔵👑🦁', name: 'الزعيم الهلالي (الهلال)' },
-  { symbol: '🟡🔵🌍', name: 'العالمي النصراوي (النصر)' },
-  { symbol: '🟡⚫🐯', name: 'النمور الاتحادية (الاتحاد)' },
-  { symbol: '🟣🏰', name: 'البنفسج العيناوي (نادي العين)' },
-  // 4. National Teams
-  { symbol: '🇪🇬🦅', name: 'الفراعنة المصريين (منتخب مصر)' },
-  { symbol: '🇲🇦🦁', name: 'أسود الأطلس (منتخب المغرب)' },
-  { symbol: '🇸🇦💚', name: 'الصقور الخضراء (منتخب السعودية)' },
-  { symbol: '🇧🇷⚽', name: 'سحرة السامبا (منتخب البرازيل)' },
-  { symbol: '🇦🇷⚽', name: 'راقصو التانغو (منتخب الأرجنتين)' },
-  { symbol: '🇫🇷🐓', name: 'الديوك الفرنسية (منتخب فرنسا)' }
+  { symbol: '🧤🥅', name: 'قفاز الحارس الذهبي' }
 ];
 
 

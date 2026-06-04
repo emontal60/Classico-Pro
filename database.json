@@ -695,9 +695,9 @@
   "classico_archived_expenses": [],
   "classico_tournaments": [
     {
-      "id": "1780610528556",
-      "name": "الفراعنه",
-      "fee": 200,
+      "id": "1780611132145",
+      "name": "كلاسيك",
+      "fee": 196,
       "maxPlayers": 8,
       "type": "cup",
       "groupsCount": 4,
@@ -719,44 +719,78 @@
           "value": "250 ج"
         }
       ],
-      "paymentNumber": "01094877332 / 01098276555",
+      "paymentNumber": "01092982828 / 01088276255",
+      "paymentNumberInstapay": "01092982828",
+      "paymentNumberWallet": "01088276255",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "both",
+      "status": "registration",
+      "players": [
+        {
+          "id": "PLR-1780611170042-kpf0",
+          "paid": false,
+          "phone": "0100092882",
+          "logoId": 0,
+          "paidAt": null,
+          "fullName": "ايمن حافظ",
+          "joinedAt": "2026-06-04T22:12:50.042Z",
+          "nickname": "ميم"
+        },
+        {
+          "id": "PLR-1780611765460-0dqa",
+          "fullName": "ااا",
+          "phone": "0107667676",
+          "nickname": "تمنن",
+          "logoId": 0,
+          "paid": true,
+          "paidAt": "2026-06-04T22:22:45.460Z",
+          "isPendingApproval": false,
+          "paymentType": "full",
+          "amountPaid": 196,
+          "senderNumber": "",
+          "transactionId": "",
+          "amountConfirmed": 196,
+          "amountArchived": 0,
+          "remainingAmount": 0
+        }
+      ],
+      "matches": [],
+      "createdAt": "2026-06-04T22:12:12.145Z"
+    },
+    {
+      "id": "1780611811077",
+      "name": "كلاسيك بروو",
+      "fee": 196,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "01092982828 / 01088276255",
+      "paymentNumberInstapay": "01092982828",
+      "paymentNumberWallet": "01088276255",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
       "paymentMethod": "both",
       "status": "registration",
       "players": [],
       "matches": [],
-      "createdAt": "2026-06-04T22:02:08.556Z"
-    },
-    {
-      "id": "1780610586761",
-      "name": "النادى",
-      "fee": 200,
-      "maxPlayers": 8,
-      "type": "cup",
-      "groupsCount": 4,
-      "playersPerGroup": 4,
-      "stage": "",
-      "groups": {},
-      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
-      "prizesList": [
-        {
-          "label": "المركز الأول 🥇",
-          "value": "1000 ج + الميدالية الذهبية"
-        },
-        {
-          "label": "المركز الثاني 🥈",
-          "value": "500 ج"
-        },
-        {
-          "label": "المركز الثالث 🥉",
-          "value": "250 ج"
-        }
-      ],
-      "paymentNumber": "01094877332",
-      "paymentMethod": "instapay",
-      "status": "registration",
-      "players": [],
-      "matches": [],
-      "createdAt": "2026-06-04T22:03:06.761Z"
+      "createdAt": "2026-06-04T22:23:31.077Z"
     }
   ],
   "classico_tournaments_history": [
@@ -767,6 +801,15 @@
       "tournamentName": "الفراعنه",
       "amount": 50,
       "timestamp": "2026-06-04T20:02:22.736Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1780611765460-sv7i",
+      "playerName": "ااا",
+      "nickname": "تمنن",
+      "tournamentName": "كلاسيك",
+      "amount": 196,
+      "timestamp": "2026-06-04T22:22:45.460Z",
       "processedBy": "admin"
     }
   ],
@@ -780,7 +823,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-06-04T22:06:15.013Z"
+    "last_online_check": "2026-06-04T22:28:13.281Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -799,6 +842,41 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1780611811077.455,
+      "timestamp": "2026-06-04T22:23:31.077Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم كلاسيك بروو"
+    },
+    {
+      "id": 1780611765460.8645,
+      "timestamp": "2026-06-04T22:22:45.460Z",
+      "user": "admin",
+      "action": "تسجيل لاعب",
+      "details": "تم تسجيل اللاعب تمنن (مؤكد) في بطولة كلاسيك"
+    },
+    {
+      "id": 1780611132145.6428,
+      "timestamp": "2026-06-04T22:12:12.145Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم كلاسيك"
+    },
+    {
+      "id": 1780610974391.8506,
+      "timestamp": "2026-06-04T22:09:34.391Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة النادى"
+    },
+    {
+      "id": 1780610966443.068,
+      "timestamp": "2026-06-04T22:09:26.443Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه"
+    },
     {
       "id": 1780610586762.2935,
       "timestamp": "2026-06-04T22:03:06.762Z",
@@ -1229,5 +1307,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-04T22:07:12.067Z"
+  "last_seen_time": "2026-06-04T22:28:12.066Z"
 }
