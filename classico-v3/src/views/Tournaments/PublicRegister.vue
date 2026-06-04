@@ -64,6 +64,16 @@
         </div>
       </div>
 
+      <!-- Tournament Not Found State (tid was specified but not found in cloud) -->
+      <div v-else-if="tournamentNotFound" class="no-tournament-card glass-panel animate-scale-in" style="border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+        <div class="warning-icon">⚠️</div>
+        <h2 style="color: #ef4444;">البطولة غير متاحة</h2>
+        <p style="color: #94a3b8;">البيانات لم تصل بعد إلى السحابة، يرجى الانتظار دقيقة ثم تحديث الصفحة.</p>
+        <button @click="window.location.reload()" style="margin-top: 1rem; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #ef4444; padding: 0.6rem 1.5rem; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: bold;">
+          🔄 تحديث الصفحة
+        </button>
+      </div>
+
       <!-- No Tournaments State -->
       <div v-else-if="!activeTournament" class="no-tournament-card glass-panel animate-scale-in">
         <div class="warning-icon">🛑</div>
@@ -687,6 +697,7 @@ watch(activeTournament, (newVal) => {
 // landing page state
 const selectedTid = ref(null);
 const groupsStageTab = ref('groups');
+const tournamentNotFound = ref(false);
 
 const backToLanding = () => {
   selectedTid.value = null;
@@ -1206,6 +1217,12 @@ const submitRegistration = async () => {
 watch(
   () => [route.query.mid, route.query.tid],
   async ([newMid, newTid]) => {
+    // Reset state on every route param change to prevent stale data from previous tournament
+    selectedTid.value = null;
+    cloudTournament.value = null;
+    fullCloudDataPayload.value = null;
+    tournamentNotFound.value = false;
+
     let mid = newMid || route.query.MID;
     let tid = newTid || route.query.TID;
 
@@ -1243,17 +1260,23 @@ watch(
 
         if (data && data.data) {
           fullCloudDataPayload.value = data.data;
-          const tournamentsList = data.data.classico_tournaments || [];
+          const tournamentsList = (data.data.classico_tournaments || []).filter(t => t && t.id);
           
-          // Find tournament matching the query tid
+          // Find tournament matching the query tid STRICTLY
           let selected = null;
           if (tid) {
-            selected = tournamentsList.find(t => t && t.id && t.id.toString() === tid.toString());
-          }
-          
-          // Fallback to active/registration or last one if not found or no tid specified
-          if (!selected) {
-            selected = tournamentsList.find(t => t && (t.status === 'registration' || t.status === 'active')) || tournamentsList[tournamentsList.length - 1];
+            selected = tournamentsList.find(t => t.id.toString() === tid.toString());
+            if (!selected) {
+              // tid was specified but not found in cloud data - show not found
+              console.warn(`[Registration] Tournament tid=${tid} not found in cloud backup. Data may not be synced yet.`);
+              tournamentNotFound.value = true;
+            }
+          } else {
+            // No tid specified, pick the first registration/active tournament
+            selected = tournamentsList.find(t => t.status === 'registration' || t.status === 'active');
+            if (!selected && tournamentsList.length > 0) {
+              selected = tournamentsList[tournamentsList.length - 1];
+            }
           }
           
           if (selected) {
@@ -1275,6 +1298,8 @@ watch(
           const selected = store.tournaments.find(t => t && t.id && t.id.toString() === tid.toString());
           if (selected) {
             selectedTid.value = selected.id;
+          } else {
+            tournamentNotFound.value = true;
           }
         }
       } catch(e) {}
