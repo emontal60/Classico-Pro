@@ -912,6 +912,7 @@ const route = useRoute();
 const submitting = ref(false);
 const registrationSuccess = ref(false);
 const lastTxId = ref('');
+const viewMode = ref('register');
 
 const form = reactive({
   fullName: '',
@@ -2124,5 +2125,59 @@ watch(
   transform: translateY(-4px);
   border-color: #06b6d4 !important;
   box-shadow: 0 10px 25px rgba(6, 182, 212, 0.25) !important;
+}
+
+/* Modern Trophy SVG Header styles */
+.modern-trophy-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem auto 1rem auto;
+  width: 90px;
+  height: 90px;
+}
+.modern-trophy-svg {
+  width: 80px;
+  height: 80px;
+  filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));
+  z-index: 2;
+  position: relative;
+}
+.trophy-glow-halo {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, transparent 70%);
+  filter: blur(10px);
+  z-index: 1;
+}
+
+/* Navigation tabs styling */
+.view-mode-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.view-mode-tabs .tab-btn {
+  flex: 1;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: none;
+  color: #94a3b8;
+}
+.view-mode-tabs .tab-btn.active {
+  background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
 }
 </style>
