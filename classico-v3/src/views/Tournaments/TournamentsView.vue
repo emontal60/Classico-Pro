@@ -1163,6 +1163,19 @@ const selectedLeagueRound = ref(0);
 // Selection state for multiple tournaments sidebar
 const selectedTournamentId = ref(null);
 const showCreateForm = ref(false);
+
+// Fetch active tournament
+const activeTournament = computed(() => {
+  if (!store.tournaments || store.tournaments.length === 0) return null;
+  if (selectedTournamentId.value) {
+    return store.tournaments.find(t => t && t.id === selectedTournamentId.value) || null;
+  }
+  const def = store.tournaments.find(t => t && (t.status === 'registration' || t.status === 'active')) || store.tournaments[store.tournaments.length - 1];
+  if (def) {
+    selectedTournamentId.value = def.id;
+  }
+  return def || null;
+});
 const tournamentNameInputRef = ref(null);
 const isNameInputFlashing = ref(false);
 const groupsStageTab = ref('groups');
@@ -1482,19 +1495,6 @@ const localWifiUrl = computed(() => {
 const cloudPagesUrl = computed(() => {
   if (!store.machineId || !activeTournament.value) return '';
   return `https://emontal60.github.io/Classico-Pro/#/tournaments/register?mid=${encodeURIComponent(store.machineId.toUpperCase().trim())}&tid=${activeTournament.value.id}`;
-});
-
-// Fetch active tournament
-const activeTournament = computed(() => {
-  if (!store.tournaments || store.tournaments.length === 0) return null;
-  if (selectedTournamentId.value) {
-    return store.tournaments.find(t => t && t.id === selectedTournamentId.value) || null;
-  }
-  const def = store.tournaments.find(t => t && (t.status === 'registration' || t.status === 'active')) || store.tournaments[store.tournaments.length - 1];
-  if (def) {
-    selectedTournamentId.value = def.id;
-  }
-  return def || null;
 });
 
 const getPlayerNickname = (id) => {

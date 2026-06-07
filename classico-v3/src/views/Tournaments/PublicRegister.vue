@@ -930,6 +930,32 @@ const selectedTid = ref(null);
 const groupsStageTab = ref('groups');
 const tournamentNotFound = ref(false);
 
+// Cloud Mode State
+const isCloudMode = ref(false);
+const cloudMachineId = ref(null);
+const cloudTournament = ref(null);
+const fullCloudDataPayload = ref(null);
+
+// Fetch active tournament
+const activeTournament = computed(() => {
+  const list = isCloudMode.value
+    ? (fullCloudDataPayload.value?.classico_tournaments || [])
+    : (store.tournaments || []);
+
+  if (list.length === 0) return null;
+
+  if (selectedTid.value) {
+    return list.find(t => t && t.id === selectedTid.value) || null;
+  }
+  
+  if (list.length === 1) {
+    // Auto-select if there is only 1 tournament
+    return list[0];
+  }
+
+  return null;
+});
+
 const backToLanding = () => {
   selectedTid.value = null;
   cloudTournament.value = null;
@@ -1057,12 +1083,6 @@ const getLogoSymbol = (idx) => {
   return CURATED_LOGOS[idx].symbol;
 };
 
-// Cloud Mode State
-const isCloudMode = ref(false);
-const cloudMachineId = ref(null);
-const cloudTournament = ref(null);
-const fullCloudDataPayload = ref(null);
-
 const currentAppName = computed(() => {
   return activeTournament.value?.appName || 'كلاسيكو';
 });
@@ -1082,25 +1102,6 @@ const availableTournaments = computed(() => {
   return [...list].sort((a, b) => {
     return (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3);
   });
-});
-
-const activeTournament = computed(() => {
-  const list = isCloudMode.value
-    ? (fullCloudDataPayload.value?.classico_tournaments || [])
-    : (store.tournaments || []);
-
-  if (list.length === 0) return null;
-
-  if (selectedTid.value) {
-    return list.find(t => t && t.id === selectedTid.value) || null;
-  }
-  
-  if (list.length === 1) {
-    // Auto-select if there is only 1 tournament
-    return list[0];
-  }
-
-  return null;
 });
 
 watch(activeTournament, (newVal) => {
