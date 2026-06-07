@@ -1110,6 +1110,14 @@ watch(activeTournament, (newVal) => {
   }
 }, { immediate: true });
 
+const getMedalEmoji = (idx, label = '') => {
+  const lbl = String(label || '');
+  if (idx === 0 || lbl.includes('الأول') || lbl.includes('الاول')) return '🥇';
+  if (idx === 1 || lbl.includes('الثاني') || lbl.includes('الثانى')) return '🥈';
+  if (idx === 2 || lbl.includes('الثالث')) return '🥉';
+  return '🏆';
+};
+
 const selectTournament = (id) => {
   selectedTid.value = id;
   if (isCloudMode.value && fullCloudDataPayload.value) {
