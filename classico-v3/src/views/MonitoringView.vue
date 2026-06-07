@@ -271,7 +271,7 @@
 
     <div v-if="showTournamentsOverlay" class="overlay" @click.self="showTournamentsOverlay = false">
       <div class="modal glass-panel full-screen-modal" style="width: 100%; height: 100%; max-width: none; max-height: none; border-radius: 0; padding: 0; overflow: hidden;">
-        <div class="modal-header" style="padding: 1rem 1.25rem; gap: 1rem; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border-color);">
+        <div class="modal-header" style="padding: 1rem 1.25rem; gap: 1rem; background: var(--bg-navbar); border-bottom: 1px solid var(--border-color);">
           <h2 style="margin: 0; font-size: 1.4rem; color: var(--accent-cyan);">🏆 البطولات</h2>
           <button @click="showTournamentsOverlay = false" class="btn-icon">✖</button>
         </div>
