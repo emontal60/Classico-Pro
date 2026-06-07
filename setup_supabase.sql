@@ -415,4 +415,4 @@ BEGIN
         )
     );
 END;
-$$ LANGUAGE pgsql;
+$$ LANGUAGE plpgsql;
