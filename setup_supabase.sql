@@ -338,6 +338,7 @@ BEGIN
     RETURN jsonb_build_object(
         'id', found_tour->'id',
         'name', found_tour->'name',
+        'appName', COALESCE(backup_data->'classico_app_settings'->>'appName', 'كلاسيكو'),
         'fee', found_tour->'fee',
         'maxPlayers', found_tour->'maxPlayers',
         'type', found_tour->'type',
@@ -461,6 +462,7 @@ BEGIN
         'tournament', jsonb_build_object(
             'id', tour_item->'id',
             'name', tour_item->'name',
+            'appName', COALESCE(backup_data->'classico_app_settings'->>'appName', 'كلاسيكو'),
             'fee', tour_item->'fee',
             'maxPlayers', tour_item->'maxPlayers',
             'type', tour_item->'type',

@@ -1063,6 +1063,16 @@ const cloudMachineId = ref(null);
 const cloudTournament = ref(null);
 const fullCloudDataPayload = ref(null);
 
+const currentAppName = computed(() => {
+  return activeTournament.value?.appName || 'كلاسيكو';
+});
+
+watch(currentAppName, (newVal) => {
+  if (newVal) {
+    document.title = `بطولات ${newVal} - التسجيل والاشتراك المباشر`;
+  }
+}, { immediate: true });
+
 const availableTournaments = computed(() => {
   const list = isCloudMode.value
     ? (fullCloudDataPayload.value?.classico_tournaments || [])
