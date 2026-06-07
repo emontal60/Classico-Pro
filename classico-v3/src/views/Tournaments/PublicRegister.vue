@@ -1118,6 +1118,11 @@ const getMedalEmoji = (idx, label = '') => {
   return '🏆';
 };
 
+const isLogoTaken = (logoIdx) => {
+  if (!activeTournament.value?.players) return false;
+  return activeTournament.value.players.some(p => p && Number(p.logoId) === Number(logoIdx));
+};
+
 const selectTournament = (id) => {
   selectedTid.value = id;
   if (isCloudMode.value && fullCloudDataPayload.value) {
