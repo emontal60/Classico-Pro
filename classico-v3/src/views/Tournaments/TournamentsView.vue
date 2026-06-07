@@ -856,12 +856,14 @@
                 type="button"
                 v-for="(logo, idx) in CURATED_LOGOS"
                 :key="idx"
-                :class="['logo-select-btn', { active: manualPlayerForm.logoId === idx }]"
+                :class="['logo-select-btn', { active: manualPlayerForm.logoId === idx, 'logo-taken': isLogoTaken(idx) && manualPlayerForm.logoId !== idx }]"
                 :style="getLogoStyle(idx)"
+                :disabled="isLogoTaken(idx) && manualPlayerForm.logoId !== idx"
                 @click="manualPlayerForm.logoId = idx"
                 style="width: 32px; height: 32px; font-size: 1.1rem;"
+                :title="isLogoTaken(idx) ? 'هذا الشعار محجوز بالفعل 🔒' : logo.name"
               >
-                {{ logo.symbol }}
+                {{ isLogoTaken(idx) && manualPlayerForm.logoId !== idx ? '🔒' : logo.symbol }}
               </button>
             </div>
           </div>
@@ -1138,7 +1140,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue';
 import { useAppStore } from '../../stores/appStore';
 import { useUIStore } from '../../stores/uiStore';
 import axios from 'axios';
@@ -1341,7 +1343,7 @@ const matchScore = reactive({
   winnerId: ''
 });
 
-// 36 highly curated football clubs, national teams and soccer elements
+// Curated 64 professional logo symbols (European clubs, Arab clubs, national teams, esports)
 const CURATED_LOGOS = [
   // 1. European Clubs
   { symbol: '🇪🇸👑', name: 'ريال مدريد (Real Madrid)' },
@@ -1356,7 +1358,13 @@ const CURATED_LOGOS = [
   { symbol: '🇮🇹🔵', name: 'إنتر ميلان (Inter Milan)' },
   { symbol: '🇮🇹🦓', name: 'يوفنتوس (Juventus)' },
   { symbol: '🇫🇷🗼', name: 'باريس سان جيرمان (PSG)' },
-  
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🐓', name: 'توتنهام (Tottenham)' },
+  { symbol: '🇪🇸🦇', name: 'أتلتيكو مدريد (Atletico Madrid)' },
+  { symbol: '🇩🇪🐝', name: 'بوروسيا دورتموند (Dortmund)' },
+  { symbol: '🇮🇹🦅', name: 'لاتسيو (Lazio)' },
+  { symbol: '🇮🇹🐺', name: 'روما (AS Roma)' },
+  { symbol: '🇵🇹🦅', name: 'بنفيكا (Benfica)' },
+
   // 2. Egyptian & Arab Clubs
   { symbol: '🇪🇬🦅', name: 'الأهلي المصري (Al Ahly)' },
   { symbol: '🇪🇬🏹', name: 'الزمالك المصري (Zamalek)' },
@@ -1364,7 +1372,13 @@ const CURATED_LOGOS = [
   { symbol: '🇸🇦🟡', name: 'النصر السعودي (Al Nassr)' },
   { symbol: '🇸🇦🐯', name: 'الاتحاد السعودي (Al Ittihad)' },
   { symbol: '🇦🇪🏰', name: 'العين الإماراتي (Al Ain)' },
-  
+  { symbol: '🇪🇬⚽', name: 'بيراميدز (Pyramids FC)' },
+  { symbol: '🇸🇦🟢', name: 'الأهلي السعودي (Al Ahli)' },
+  { symbol: '🇸🇦🦁', name: 'الشباب السعودي (Al Shabab)' },
+  { symbol: '🇲🇦🔴', name: 'الوداد المغربي (Wydad)' },
+  { symbol: '🇲🇦🟢', name: 'الرجاء المغربي (Raja)' },
+  { symbol: '🇹🇳🔴', name: 'الترجي التونسي (Esperance)' },
+
   // 3. National Teams
   { symbol: '🇪🇬🏆', name: 'منتخب مصر (Egypt)' },
   { symbol: '🇲🇦🦁', name: 'منتخب المغرب (Morocco)' },
@@ -1378,14 +1392,30 @@ const CURATED_LOGOS = [
   { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🦁', name: 'منتخب إنجلترا (England)' },
   { symbol: '🇵🇹⚡', name: 'منتخب البرتغال (Portugal)' },
   { symbol: '🇳🇱🇳🇱', name: 'منتخب هولندا (Netherlands)' },
-  
-  // 4. Special Football Symbols
+  { symbol: '🇩🇿🦊', name: 'منتخب الجزائر (Algeria)' },
+  { symbol: '🇹🇳🦅', name: 'منتخب تونس (Tunisia)' },
+  { symbol: '🇸🇪🟡', name: 'منتخب السويد (Sweden)' },
+  { symbol: '🇧🇪😈', name: 'منتخب بلجيكا (Belgium)' },
+  { symbol: '🇺🇾⭐', name: 'منتخب أوروغواي (Uruguay)' },
+  { symbol: '🇭🇷⚡', name: 'منتخب كرواتيا (Croatia)' },
+  { symbol: '🇯🇵🇯🇵', name: 'منتخب اليابان (Japan)' },
+  { symbol: '🇰🇷🇰🇷', name: 'منتخب كوريا الجنوبية (South Korea)' },
+  { symbol: '🇸🇳🦁', name: 'منتخب السنغال (Senegal)' },
+  { symbol: '🇨🇲🦁', name: 'منتخب الكاميرون (Cameroon)' },
+
+  // 4. Special Football & eSports Symbols
   { symbol: '⚽🔥', name: 'الكرة النارية' },
   { symbol: '⚽⚡', name: 'كرة البرق' },
   { symbol: '⚽👑', name: 'الكرة الذهبية' },
   { symbol: '🏆✨', name: 'كأس كلاسيكو الذهبي' },
   { symbol: '👟✨', name: 'حذاء الهداف الذهبي' },
-  { symbol: '🧤🥅', name: 'قفاز الحارس الذهبي' }
+  { symbol: '🧤🥅', name: 'قفاز الحارس الذهبي' },
+  { symbol: '🎮🔥', name: 'الألعاب النارية' },
+  { symbol: '🎮⚡', name: 'الألعاب الصاعقة' },
+  { symbol: '👑✨', name: 'تاج البطولة' },
+  { symbol: '🐉🔥', name: 'التنين الأحمر' },
+  { symbol: '🦅⚡', name: 'الصقر الإلكتروني' },
+  { symbol: '🦁👑', name: 'الأسد الملك' }
 ];
 
 
@@ -1420,6 +1450,25 @@ const getLogoSymbol = (idx) => {
   if (idx === null || idx === undefined || idx < 0 || idx >= CURATED_LOGOS.length) return '🏆';
   return CURATED_LOGOS[idx].symbol;
 };
+
+const isLogoTaken = (logoIdx) => {
+  if (!activeTournament.value?.players) return false;
+  return activeTournament.value.players.some(p => p && Number(p.logoId) === Number(logoIdx));
+};
+
+watch(showAddPlayerModal, (newVal) => {
+  if (newVal && activeTournament.value) {
+    const takenLogos = new Set((activeTournament.value.players || []).map(p => Number(p.logoId)));
+    let firstAvail = 0;
+    for (let i = 0; i < CURATED_LOGOS.length; i++) {
+      if (!takenLogos.has(i)) {
+        firstAvail = i;
+        break;
+      }
+    }
+    manualPlayerForm.logoId = firstAvail;
+  }
+});
 
 // URL endpoints mapping
 const API_BASE = window.location.origin && !window.location.origin.includes('file://') 
@@ -1716,14 +1765,94 @@ const handleCreateTournament = () => {
 };
 
 const handleDeleteTournament = async () => {
+  if (!activeTournament.value) return;
+
+  const players = activeTournament.value.players || [];
+  const paidPlayers = players.filter(p => p && p.amountConfirmed > 0);
+  let warningMessage = 'تنبيه خطير: هل أنت متأكد تماماً من رغبتك في إلغاء وحذف هذه البطولة وكافة بيانات اللاعبين المسجلين نهائياً؟';
+  let hasPaidPlayers = paidPlayers.length > 0;
+
+  if (hasPaidPlayers) {
+    const totalRefund = paidPlayers.reduce((sum, p) => sum + (p.amountConfirmed || 0), 0);
+    const playersListText = paidPlayers.map(p => `- ${p.nickname} (سدد: ${p.amountConfirmed} ج)`).join('\n');
+    warningMessage = `تنبيه مالي ⚠️: هذه البطولة تحتوي على مبالغ تم تحصيلها بالفعل بقيمة إجمالية قدرها [ ${totalRefund} ج ] لـ ${paidPlayers.length} لاعبين:\n${playersListText}\n\nهل تريد حذف البطولة وتأكيد ترحيل هذه المبالغ كمرتجع مالي لخصمها من خزينة الوردية الحالية؟ (اختر إلغاء إذا كنت تريد الحذف فقط دون ترحيل المرتجع المالي)`;
+  }
+
   const confirmed = await ui.confirm({
-    title: 'إلغاء وحذف البطولة',
-    message: 'تنبيه خطير: هل أنت متأكد تماماً من رغبتك في إلغاء وحذف هذه البطولة وكافة بيانات اللاعبين المسجلين نهائياً؟',
+    title: hasPaidPlayers ? 'تنبيه مالي وحذف البطولة' : 'إلغاء وحذف البطولة',
+    message: warningMessage,
     type: 'danger'
   });
+
   if (confirmed) {
-    store.deleteTournament(activeTournament.value.id);
-    ui.showToast('تم حذف وإلغاء البطولة بالكامل.', 'info');
+    const deletedTournamentId = activeTournament.value.id;
+    const deletedTournamentName = activeTournament.value.name;
+
+    // Register refunds to current shift if confirmed and there are paid players
+    if (hasPaidPlayers) {
+      paidPlayers.forEach(p => {
+        if (!store.tournamentsHistory) store.tournamentsHistory = [];
+        store.tournamentsHistory.push({
+          id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+          playerName: p.fullName,
+          nickname: p.nickname,
+          tournamentName: `${deletedTournamentName} (مرتجع حذف البطولة)`,
+          amount: -p.amountConfirmed, // Negative amount representing refund!
+          timestamp: new Date().toISOString(),
+          processedBy: store.session?.username || 'admin'
+        });
+      });
+      store.addActivity('مرتجع حذف بطولة', `تم تسجيل مرتجعات مالية لبطولة ${deletedTournamentName}`);
+    }
+
+    // 1. Delete locally first
+    store.deleteTournament(deletedTournamentId);
+    ui.showToast('تم حذف وإلغاء البطولة وتسجيل المرتجعات محلياً، جاري مزامنة الحذف مع السحابة...', 'info');
+
+    // 2. Push deletion to Supabase immediately (remove ONLY this tournament, keep all others intact)
+    if (navigator.onLine !== false && store.machineId) {
+      try {
+        const { getSupabaseClient } = await import('../../utils/supabase');
+        const supabase = getSupabaseClient(store.machineId);
+        
+        // Fetch current cloud data to get the full payload
+        const { data: cloudRow, error: fetchError } = await supabase
+          .from('cloud_backups')
+          .select('data')
+          .eq('machine_id', store.machineId.toUpperCase().trim())
+          .single();
+
+        if (!fetchError && cloudRow?.data) {
+          const cloudPayload = cloudRow.data;
+          
+          // Remove ONLY the deleted tournament — all other tournaments are untouched
+          const updatedTournaments = (cloudPayload.classico_tournaments || [])
+            .filter(t => t && t.id !== deletedTournamentId);
+
+          // Update the cloud with the new tournaments list (other tournaments fully preserved)
+          const { error: updateError } = await supabase
+            .from('cloud_backups')
+            .update({
+              data: {
+                ...cloudPayload,
+                classico_tournaments: updatedTournaments
+              },
+              updated_at: new Date().toISOString()
+            })
+            .eq('machine_id', store.machineId.toUpperCase().trim());
+
+          if (!updateError) {
+            ui.showToast(`✅ تم حذف بطولة "${deletedTournamentName}" بالكامل من السحابة.`, 'success');
+          } else {
+            console.error('[Cloud Delete] Supabase update error:', updateError);
+            ui.showToast('⚠️ تم الحذف محلياً لكن فشل تحديث السحابة. يرجى المزامنة يدوياً.', 'warning');
+          }
+        }
+      } catch (err) {
+        console.error('[Cloud Delete Error]', err);
+        ui.showToast('⚠️ تم الحذف محلياً لكن تعذر الاتصال بالسحابة.', 'warning');
+      }
+    }
   }
 };
 
@@ -1736,14 +1865,37 @@ const handleMarkPaid = async (p) => {
 };
 
 const handleRemovePlayer = async (p) => {
+  let isPaid = p.amountConfirmed > 0;
+  let warningMessage = `هل أنت متأكد من رغبتك في إزالة اللاعب ${p.nickname} من البطولة؟`;
+  
+  if (isPaid) {
+    warningMessage = `تنبيه مالي ⚠️: اللاعب ${p.nickname} قد قام بسداد مبلغ [ ${p.amountConfirmed} ج ].\n\nهل تريد إلغاء اشتراكه وتسجيل مرتجع مالي لخصم هذا المبلغ من كاش الوردية الحالية؟ (اختر إلغاء إذا كنت تريد إزالته فقط دون خصم المرتجع المالي)`;
+  }
+
   const confirmed = await ui.confirm({
-    title: 'إلغاء اشتراك لاعب',
-    message: `هل أنت متأكد من رغبتك في إزالة اللاعب ${p.nickname} من البطولة؟`,
-    type: 'warning'
+    title: isPaid ? 'إلغاء اشتراك لاعب مدفوع' : 'إلغاء اشتراك لاعب',
+    message: warningMessage,
+    type: isPaid ? 'danger' : 'warning'
   });
+
   if (confirmed) {
+    if (isPaid) {
+      // Add refund to tournamentsHistory for daily safe matching
+      if (!store.tournamentsHistory) store.tournamentsHistory = [];
+      store.tournamentsHistory.push({
+        id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
+        playerName: p.fullName,
+        nickname: p.nickname,
+        tournamentName: `${activeTournament.value.name} (مرتجع إلغاء لاعب)`,
+        amount: -p.amountConfirmed, // Negative amount representing refund!
+        timestamp: new Date().toISOString(),
+        processedBy: store.session?.username || 'admin'
+      });
+      store.addActivity('مرتجع لاعب بطولة', `تم تسجيل مرتجع للاعب ${p.nickname} بقيمة ${p.amountConfirmed} ج`);
+    }
+
     store.removePlayer(activeTournament.value.id, p.id);
-    ui.showToast('تم إلغاء الاشتراك وإزالة اللاعب بنجاح.');
+    ui.showToast(isPaid ? 'تم إلغاء الاشتراك وإزالة اللاعب وتسجيل المرتجع المالي.' : 'تم إلغاء الاشتراك وإزالة اللاعب بنجاح.');
   }
 };
 
@@ -2364,9 +2516,41 @@ const archiveAndResetTournament = async () => {
     type: 'success'
   });
   if (confirmed) {
-    // Delete from active list
-    store.deleteTournament(activeTournament.value.id);
+    const archivedId = activeTournament.value.id;
+    const archivedName = activeTournament.value.name;
+
+    // Delete from active list locally
+    store.deleteTournament(archivedId);
     ui.showToast('تمت أرشفة البطولة بنجاح. لوحة التحكم مهيأة لبطولة جديدة! ✨🏆', 'success');
+
+    // Push cloud removal immediately (remove ONLY this tournament from Supabase, keep all others intact)
+    if (navigator.onLine !== false && store.machineId) {
+      try {
+        const { getSupabaseClient } = await import('../../utils/supabase');
+        const supabase = getSupabaseClient(store.machineId);
+        const { data: cloudRow, error: fetchError } = await supabase
+          .from('cloud_backups')
+          .select('data')
+          .eq('machine_id', store.machineId.toUpperCase().trim())
+          .single();
+
+        if (!fetchError && cloudRow?.data) {
+          const cloudPayload = cloudRow.data;
+          const updatedTournaments = (cloudPayload.classico_tournaments || [])
+            .filter(t => t && t.id !== archivedId);
+
+          await supabase
+            .from('cloud_backups')
+            .update({
+              data: { ...cloudPayload, classico_tournaments: updatedTournaments },
+              updated_at: new Date().toISOString()
+            })
+            .eq('machine_id', store.machineId.toUpperCase().trim());
+        }
+      } catch (err) {
+        console.warn('[Archive Cloud Sync]', err);
+      }
+    }
   }
 };
 
@@ -3346,6 +3530,16 @@ onUnmounted(() => {
 .flash-highlight {
   animation: flashGlow 0.5s ease-in-out 3;
   transition: all 0.3s ease;
+}
+.logo-select-btn.logo-taken {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.logo-select-btn.logo-taken:hover {
+  transform: none !important;
 }
 
 </style>

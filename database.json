@@ -692,8 +692,8 @@
   "classico_archived_expenses": [],
   "classico_tournaments": [
     {
-      "id": "1780863275392",
-      "name": "نونو",
+      "id": "1780866791444",
+      "name": "الفراعنه 123",
       "fee": 200,
       "maxPlayers": 8,
       "type": "cup",
@@ -716,15 +716,15 @@
           "value": "250 ج"
         }
       ],
-      "paymentNumber": "010008873",
-      "paymentNumberInstapay": "010008873",
-      "paymentNumberWallet": "",
+      "paymentNumber": "0109982766",
+      "paymentNumberInstapay": "",
+      "paymentNumberWallet": "0109982766",
       "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
-      "paymentMethod": "instapay",
+      "paymentMethod": "wallet",
       "status": "registration",
       "players": [],
       "matches": [],
-      "createdAt": "2026-06-07T20:14:35.392Z"
+      "createdAt": "2026-06-07T21:13:11.444Z"
     }
   ],
   "classico_tournaments_history": [],
@@ -738,13 +738,104 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-06-07T20:20:13.921Z"
+    "last_online_check": "2026-06-07T22:28:02.923Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
     "appName": "Classico"
   },
   "classico_activity_log": [
+    {
+      "id": 1780866791445.4553,
+      "timestamp": "2026-06-07T21:13:11.445Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه 123"
+    },
+    {
+      "id": 1780866746163.1328,
+      "timestamp": "2026-06-07T21:12:26.163Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه 13"
+    },
+    {
+      "id": 1780866599151.0156,
+      "timestamp": "2026-06-07T21:09:59.151Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه 13"
+    },
+    {
+      "id": 1780866574764.4958,
+      "timestamp": "2026-06-07T21:09:34.764Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه 3"
+    },
+    {
+      "id": 1780865293385.38,
+      "timestamp": "2026-06-07T20:48:13.385Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه 3"
+    },
+    {
+      "id": 1780865239526.9453,
+      "timestamp": "2026-06-07T20:47:19.527Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه 13"
+    },
+    {
+      "id": 1780865092245.5972,
+      "timestamp": "2026-06-07T20:44:52.245Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه 13"
+    },
+    {
+      "id": 1780864774293.7148,
+      "timestamp": "2026-06-07T20:39:34.293Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه 3"
+    },
+    {
+      "id": 1780864668146.6653,
+      "timestamp": "2026-06-07T20:37:48.146Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه 3"
+    },
+    {
+      "id": 1780864646894.0059,
+      "timestamp": "2026-06-07T20:37:26.894Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1780864635717.867,
+      "timestamp": "2026-06-07T20:37:15.717Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة صاصا"
+    },
+    {
+      "id": 1780864540749.2085,
+      "timestamp": "2026-06-07T20:35:40.749Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم صاصا"
+    },
+    {
+      "id": 1780864515791.847,
+      "timestamp": "2026-06-07T20:35:15.791Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة نونو"
+    },
     {
       "id": 1780863275392.95,
       "timestamp": "2026-06-07T20:14:35.392Z",
@@ -776,5 +867,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-07T20:20:13.059Z"
+  "last_seen_time": "2026-06-07T22:28:02.495Z"
 }

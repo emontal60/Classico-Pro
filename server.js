@@ -184,14 +184,20 @@ app.use(express.static(path.join(__dirname, 'classico-v3/dist'), {
 
 // 2. Supabase Service Helper
 const SupabaseService = {
-    request(method, path, body = null) {
+    async request(method, path, body = null) {
+        const mid = await getMid();
         return new Promise((resolve, reject) => {
             const options = {
                 hostname: SUPABASE_URL.replace('https://', ''),
                 port: 443,
                 path: path,
                 method: method,
-                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'apikey': SUPABASE_KEY, 
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'x-machine-id': mid.toUpperCase().trim()
+                }
             };
             const req = https.request(options, (res) => {
                 let data = '';

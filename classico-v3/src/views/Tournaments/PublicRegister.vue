@@ -6,8 +6,24 @@
     <div class="registration-container">
       <!-- Header Area -->
       <header class="reg-header animate-fade-in">
-        <div class="trophy-badge">🏆</div>
-        <h1 class="glow-text">بطولات كلاسيكو برو</h1>
+        <div class="modern-trophy-wrapper">
+          <div class="trophy-glow-halo"></div>
+          <svg class="modern-trophy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+            <defs>
+              <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffe066" />
+                <stop offset="50%" stop-color="#fbbf24" />
+                <stop offset="100%" stop-color="#d97706" />
+              </linearGradient>
+            </defs>
+            <path d="M5 9c0-2.5 2-4.5 4.5-4.5h5C17 4.5 19 6.5 19 9v1.5c0 3-2.5 5.5-5.5 5.5h-3C7.5 16 5 13.5 5 10.5V9z" fill="url(#goldGrad)" />
+            <path d="M5 8c-1.5 0-2.5 1-2.5 2.5s1 2.5 2.5 2.5M19 8c1.5 0 2.5 1 2.5 2.5s-1 2.5-2.5 2.5" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round" />
+            <path d="M12 16v3M8 19h8M6 21h12" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round" />
+            <path d="M9 6.5C9 5.5 10 5 11 5" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity="0.6" />
+            <path d="M12 8l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5z" fill="#fff" />
+          </svg>
+        </div>
+        <h1 class="glow-text">بطولات {{ currentAppName }}</h1>
         <p class="subtitle-text">التسجيل والاشتراك المباشر في البطولة</p>
       </header>
 
@@ -112,187 +128,371 @@
               <span class="label">المشتركين</span>
               <span class="value cyan-color">{{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}</span>
             </div>
-            <div class="stat-item font-wide" style="width: 100%; border: 1px solid rgba(251, 191, 36, 0.15); background: rgba(251, 191, 36, 0.03) !important; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-              <span class="label" style="color: #fbbf24; font-weight: bold; font-size: 0.8rem; margin-bottom: 4px;">🏆 جوائز ومكافآت البطولة المرصودة</span>
+            
+            <div class="prizes-container-card">
+              <h4 class="prizes-title">🏆 جوائز ومكافآت البطولة المرصودة</h4>
               
-              <div v-if="activeTournament.prizesList && activeTournament.prizesList.length > 0" style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-                <div v-for="(p, idx) in activeTournament.prizesList" :key="idx" style="display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.4); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); width: 100%;">
-                  <span style="font-weight: bold; color: #fff; font-size: 0.78rem;">{{ p.label }}</span>
-                  <span style="font-weight: 900; color: #fbbf24; font-size: 0.82rem; text-shadow: 0 0 5px rgba(251, 191, 36, 0.3);">{{ p.value }}</span>
+              <div v-if="activeTournament.prizesList && activeTournament.prizesList.length > 0" class="prizes-list">
+                <div 
+                  v-for="(p, idx) in activeTournament.prizesList" 
+                  :key="idx" 
+                  class="prize-item-row"
+                  :class="['rank-' + idx]"
+                >
+                  <div class="prize-rank-info">
+                    <span class="prize-medal">{{ getMedalEmoji(idx, p.label) }}</span>
+                    <span class="prize-label">{{ p.label }}</span>
+                  </div>
+                  <span class="prize-value">{{ p.value }}</span>
                 </div>
               </div>
               
-              <span v-else class="value gold-color" style="font-size: 1rem; font-weight: 900; text-shadow: 0 0 8px rgba(251, 191, 36, 0.3);">
+              <div v-else class="no-prizes-hint">
                 {{ activeTournament.prizes || 'تحدد لاحقاً للبطولة 🏆' }}
-              </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 1. Registration Form (Only if registration is open) -->
-        <div v-if="activeTournament.status === 'registration'" class="form-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
-          <h3 class="panel-title">📝 استمارة الاشتراك بالبطولة</h3>
-          
-          <div v-if="registrationSuccess" class="success-message-card">
-            <div class="success-icon">✅</div>
-            <h4>تم تسجيل البيانات بنجاح!</h4>
-            <p v-if="activeTournament.fee > 0" class="paid-hint" style="font-size: 0.9rem; border: 1px solid rgba(251, 191, 36, 0.25); background: rgba(251, 191, 36, 0.05); padding: 12px; border-radius: 12px; color: #fbbf24; line-height: 1.6; text-align: center; margin-top: 10px;">
-              ⏳ <strong>حالة الطلب: معلق بانتظار موافقة الإدارة</strong><br>
-              تم استلام تفاصيل سداد الاشتراك بنجاح (رقم العملية: <strong>{{ lastTxId }}</strong>).<br>
-              سيتم تأكيد وتفعيل اسمك بالبطولة فور مراجعة الإدارة للتحويل ومطابقته.
-            </p>
-            <p v-else class="paid-hint">🎉 تم تسجيلك وتأكيد اشتراكك بالبطولة مجاناً بنجاح!</p>
-          </div>
+        <!-- Navigation tabs: Register vs Follow Tournament -->
+        <div v-if="activeTournament" class="view-mode-tabs animate-fade-in" style="display: flex; gap: 10px; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+          <button 
+            type="button"
+            @click="viewMode = 'register'" 
+            :class="['tab-btn', { active: viewMode === 'register' }]"
+            style="flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s; background: none; color: #94a3b8;"
+          >
+            📝 تسجيل لاعب جديد
+          </button>
+          <button 
+            type="button"
+            @click="viewMode = 'dashboard'" 
+            :class="['tab-btn', { active: viewMode === 'dashboard' }]"
+            style="flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s; background: none; color: #94a3b8;"
+          >
+            📊 متابعة البطولة (لوحة اللاعب)
+          </button>
+        </div>
 
-          <!-- If tournament is full -->
-          <div v-else-if="activeTournament.players.length >= activeTournament.maxPlayers" class="success-message-card" style="padding: 1.5rem 0.5rem; text-align: center;">
-            <div class="success-icon" style="font-size: 3.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));">🛑</div>
-            <h4 style="font-size: 1.15rem; font-weight: 800; color: #ef4444; margin-bottom: 10px;">عذراً، اكتمل العدد المطلوب للتسجيل!</h4>
-            <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
-          </div>
-
-          <form v-else @submit.prevent="submitRegistration" class="registration-form">
-            <div class="input-group">
-              <label>الاسم رباعي بالكامل 👤</label>
-              <input 
-                type="text" 
-                v-model="form.fullName" 
-                placeholder="أدخل اسمك رباعي كما هو في البطاقة"
-                required
-                class="premium-input"
-              >
+        <div v-if="viewMode === 'register'">
+          <!-- 1. Registration Form (Only if registration is open) -->
+          <div v-if="activeTournament.status === 'registration'" class="form-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
+            <h3 class="panel-title">📝 استمارة الاشتراك بالبطولة</h3>
+            
+            <div v-if="registrationSuccess" class="success-message-card">
+              <div class="success-icon">✅</div>
+              <h4>تم تسجيل البيانات بنجاح!</h4>
+              <p v-if="activeTournament.fee > 0" class="paid-hint" style="font-size: 0.9rem; border: 1px solid rgba(251, 191, 36, 0.25); background: rgba(251, 191, 36, 0.05); padding: 12px; border-radius: 12px; color: #fbbf24; line-height: 1.6; text-align: center; margin-top: 10px;">
+                ⏳ <strong>حالة الطلب: معلق بانتظار موافقة الإدارة</strong><br>
+                تم استلام تفاصيل سداد الاشتراك بنجاح (رقم العملية: <strong>{{ lastTxId }}</strong>).<br>
+                سيتم تأكيد وتفعيل اسمك بالبطولة فور مراجعة الإدارة للتحويل ومطابقته.
+              </p>
+              <p v-else class="paid-hint">🎉 تم تسجيلك وتأكيد اشتراكك بالبطولة مجاناً بنجاح!</p>
             </div>
 
-            <div class="input-group">
-              <label>الاسم الحركي / المستعار (Nickname) 👾</label>
-              <input 
-                type="text" 
-                v-model="form.nickname" 
-                placeholder="مثال: Neo, Shadow, Sniper"
-                required
-                class="premium-input"
-                maxLength="16"
-              >
+            <!-- If tournament is full -->
+            <div v-else-if="activeTournament.players.length >= activeTournament.maxPlayers" class="success-message-card" style="padding: 1.5rem 0.5rem; text-align: center;">
+              <div class="success-icon" style="font-size: 3.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));">🛑</div>
+              <h4 style="font-size: 1.15rem; font-weight: 800; color: #ef4444; margin-bottom: 10px;">عذراً، اكتمل العدد المطلوب للتسجيل!</h4>
+              <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
             </div>
 
-            <div class="input-group">
-              <label>رقم الهاتف الخاص بك 📱</label>
-              <input 
-                type="tel" 
-                v-model="form.phone" 
-                placeholder="مثال: 010xxxxxxxx"
-                required
-                class="premium-input"
-              >
-            </div>
-
-            <!-- Avatar Selection -->
-            <div class="input-group">
-              <label class="avatar-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span>اختر شعار فريقك (أندية ومنتخبات) ⚽</span>
-                <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null" style="font-size: 0.78rem;">
-                  الشعار المحدد: <span style="color: #fbbf24; font-weight: bold;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
-                  <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)">{{ getLogoSymbol(form.logoId) }}</span>
-                </span>
-              </label>
-              
-              <div class="logo-scroll-grid">
-                <button
-                  type="button"
-                  v-for="(logo, idx) in CURATED_LOGOS"
-                  :key="idx"
-                  :class="['logo-select-btn', { active: form.logoId === idx }]"
-                  :style="getLogoStyle(idx)"
-                  @click="form.logoId = idx"
-                  title="اختر هذا الشعار"
-                >
-                  <span class="logo-symbol">{{ logo.symbol }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- قسم السداد والدفع المالي للبطولة -->
-            <div v-if="activeTournament.fee > 0" class="payment-section-form glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(6, 182, 212, 0.25); background: rgba(6, 182, 212, 0.03); padding: 15px !important; border-radius: 14px; text-align: right;">
-              <h4 style="color: #06b6d4; font-weight: 800; font-size: 0.95rem; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
-                <span>💸 معلومات سداد قيمة الاشتراك</span>
-              </h4>
-              
-              <div style="background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1rem; font-size: 0.8rem; line-height: 1.5; color: #e2e8f0;">
-                <div>💰 <strong>رسوم الاشتراك:</strong> <span style="color: #10b981; font-weight: 900;">{{ activeTournament.fee }} ج</span></div>
-                
-                <!-- Display Instapay number if supported and selected -->
-                <div v-if="form.paymentMethod === 'instapay' && activeTournament.paymentNumberInstapay">
-                  ⚡ <strong>رقم/عنوان حساب انستا باي:</strong> 
-                  <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px;">{{ activeTournament.paymentNumberInstapay }}</span>
-                </div>
-                <!-- Display Wallet number if supported and selected -->
-                <div v-if="form.paymentMethod === 'wallet' && activeTournament.paymentNumberWallet">
-                  📱 <strong>رقم محفظة الكاش:</strong> 
-                  <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px;">{{ activeTournament.paymentNumberWallet }}</span>
-                </div>
-                <!-- Display Cash instructions if supported and selected -->
-                <div v-if="form.paymentMethod === 'cash' && activeTournament.paymentNumberCash">
-                  🏟️ <strong>تعليمات الدفع كاش:</strong> 
-                  <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.paymentNumberCash }}</span>
-                </div>
-              </div>
-
-              <div class="input-group" style="margin-bottom: 1rem;" v-if="activeTournament.paymentMethod === 'both'">
-                <label>وسيلة الدفع المفضلة 💳</label>
-                <select v-model="form.paymentMethod" class="premium-input" style="width: 100%; background: rgba(0,0,0,0.3); color: #fff;">
-                  <option value="instapay">انستا باى ⚡</option>
-                  <option value="wallet">محفظه كاش 📱</option>
-                </select>
-              </div>
-
-              <!-- حقل إدخال المبلغ المحوّل (واجب إدخاله كلياً أو جزئياً) -->
-              <div class="input-group" style="margin-bottom: 1rem;">
-                <label>المبلغ الذي قمت بتحويله (ج) 💸</label>
+            <form v-else @submit.prevent="openSummaryModal" class="registration-form">
+              <div class="input-group">
+                <label>الاسم رباعي بالكامل 👤</label>
                 <input 
-                  type="number" 
-                  v-model.number="form.amountPaid" 
-                  :min="1" 
-                  :max="activeTournament.fee" 
-                  placeholder="اكتب المبلغ الذي قمت بتحويله بالكامل أو جزء منه" 
+                  type="text" 
+                  v-model="form.fullName" 
+                  placeholder="أدخل اسمك رباعي كما هو في البطاقة"
                   required
                   class="premium-input"
-                  style="border-color: rgba(251, 191, 36, 0.4) !important;"
                 >
-                <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">سداد قيمة الاشتراك صحيحة لا تزيد عن قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
               </div>
 
-              <!-- حقول انستاباي الخاصة (تظهر فقط عند اختيار الدفع عبر انستاباي أو محفظة كاش) -->
-              <div v-if="form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet'" class="animate-scale-in" style="display: flex; flex-direction: column; gap: 1rem;">
-                <!-- حقل رقم العملية -->
-                <div class="input-group" style="margin-bottom: 0;">
-                  <label>رقم العملية المرجعي للتحويل (Reference / TxID) 🔢</label>
-                  <input 
-                    type="text" 
-                    v-model="form.transactionId" 
-                    placeholder="أدخل كود تأكيد التحويل من رسالة المحول" 
-                    required
-                    class="premium-input"
+              <div class="input-group">
+                <label>الاسم الحركي / المستعار (Nickname) 👾</label>
+                <input 
+                  type="text" 
+                  v-model="form.nickname" 
+                  placeholder="مثال: Neo, Shadow, Sniper"
+                  required
+                  class="premium-input"
+                  maxLength="16"
+                  :class="{ 'input-error': isNicknameTaken }"
+                >
+                <span v-if="isNicknameTaken" class="error-msg-text animate-fade-in">⚠️ هذا الاسم المستعار محجوز بالفعل في هذه البطولة!</span>
+              </div>
+
+              <!-- Render phone field here ONLY if free tournament. If paid, it's rendered inside payment section -->
+              <div v-if="activeTournament.fee === 0" class="input-group">
+                <label>رقم الهاتف الخاص بك 📱</label>
+                <input 
+                  type="tel" 
+                  v-model="form.phone" 
+                  placeholder="مثال: 010xxxxxxxx"
+                  required
+                  class="premium-input"
+                >
+              </div>
+
+              <!-- Avatar Selection -->
+              <div class="input-group">
+                <label class="avatar-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span>اختر شعار فريقك (أندية ومنتخبات) ⚽</span>
+                  <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null" style="font-size: 0.78rem;">
+                    الشعار المحدد: <span style="color: #fbbf24; font-weight: bold;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
+                    <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)">{{ getLogoSymbol(form.logoId) }}</span>
+                  </span>
+                </label>
+                
+                <div class="logo-scroll-grid">
+                  <button
+                    type="button"
+                    v-for="(logo, idx) in CURATED_LOGOS"
+                    :key="idx"
+                    :class="['logo-select-btn', { active: form.logoId === idx, 'logo-taken': isLogoTaken(idx) && form.logoId !== idx }]"
+                    :style="getLogoStyle(idx)"
+                    :disabled="isLogoTaken(idx) && form.logoId !== idx"
+                    @click="form.logoId = idx"
+                    :title="isLogoTaken(idx) ? 'هذا الشعار محجوز بالفعل 🔒' : logo.name"
                   >
+                    <span class="logo-symbol">{{ isLogoTaken(idx) && form.logoId !== idx ? '🔒' : logo.symbol }}</span>
+                  </button>
                 </div>
               </div>
+
+              <!-- قسم السداد والدفع المالي للبطولة -->
+              <div v-if="activeTournament.fee > 0" class="payment-section-form glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(6, 182, 212, 0.25); background: rgba(6, 182, 212, 0.03); padding: 15px !important; border-radius: 14px; text-align: right;">
+                <h4 style="color: #06b6d4; font-weight: 800; font-size: 0.95rem; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                  <span>💸 معلومات سداد قيمة الاشتراك</span>
+                </h4>
+                
+                <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1rem; font-size: 0.8rem; line-height: 1.6; color: #e2e8f0;">
+                  <div>💰 <strong>رسوم الاشتراك:</strong> <span style="color: #10b981; font-weight: 900;">{{ activeTournament.fee }} ج</span></div>
+                  
+                  <!-- Display Instapay number if supported and selected -->
+                  <div v-if="form.paymentMethod === 'instapay' && activeTournament.paymentNumberInstapay" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                    <div>
+                      ⚡ <strong>رقم/عنوان حساب انستا باي:</strong> 
+                      <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px; margin-right: 5px;">{{ activeTournament.paymentNumberInstapay }}</span>
+                    </div>
+                    <button type="button" @click="copyPaymentNumber(activeTournament.paymentNumberInstapay)" class="copy-btn-small">نسخ 📋</button>
+                  </div>
+                  <!-- Display Wallet number if supported and selected -->
+                  <div v-if="form.paymentMethod === 'wallet' && activeTournament.paymentNumberWallet" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                    <div>
+                      📱 <strong>رقم محفظة الكاش:</strong> 
+                      <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px; margin-right: 5px;">{{ activeTournament.paymentNumberWallet }}</span>
+                    </div>
+                    <button type="button" @click="copyPaymentNumber(activeTournament.paymentNumberWallet)" class="copy-btn-small">نسخ الرقم 📋</button>
+                  </div>
+                  <!-- Display Cash instructions if supported and selected -->
+                  <div v-if="form.paymentMethod === 'cash' && activeTournament.paymentNumberCash">
+                    🏟️ <strong>تعليمات الدفع كاش:</strong> 
+                    <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.paymentNumberCash }}</span>
+                  </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1rem;" v-if="activeTournament.paymentMethod === 'both'">
+                  <label>وسيلة الدفع المفضلة 💳</label>
+                  <select v-model="form.paymentMethod" class="premium-input" style="width: 100%; background: rgba(0,0,0,0.3); color: #fff;">
+                    <option value="instapay">انستا باى ⚡</option>
+                    <option value="wallet">محفظه كاش 📱</option>
+                  </select>
+                </div>
+
+                <!-- خيارات السداد كامل / جزئي -->
+                <div class="input-group" style="margin-bottom: 1rem;">
+                  <label>خيار السداد المفضل 💸</label>
+                  <div class="payment-type-selector" style="display: flex; gap: 10px;">
+                    <button
+                      type="button"
+                      class="pay-type-btn"
+                      :class="{ active: form.paymentType === 'full' }"
+                      @click="setPaymentType('full')"
+                      style="flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); color: #fff; cursor: pointer; transition: all 0.25s;"
+                    >
+                      💵 سداد كامل الاشتراك
+                    </button>
+                    <button
+                      type="button"
+                      class="pay-type-btn"
+                      :class="{ active: form.paymentType === 'partial' }"
+                      @click="setPaymentType('partial')"
+                      style="flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); color: #fff; cursor: pointer; transition: all 0.25s;"
+                    >
+                      💸 سداد دفعة جزئية
+                    </button>
+                  </div>
+                </div>
+
+                <!-- حقل إدخال المبلغ المحوّل -->
+                <div class="input-group" style="margin-bottom: 1rem;">
+                  <label>المبلغ الذي قمت بتحويله (ج) 💸</label>
+                  <input 
+                    type="number" 
+                    v-model.number="form.amountPaid" 
+                    :min="1" 
+                    :max="activeTournament.fee" 
+                    placeholder="اكتب المبلغ الذي قمت بتحويله بالكامل أو جزء منه" 
+                    required
+                    class="premium-input"
+                    style="border-color: rgba(251, 191, 36, 0.4) !important;"
+                    :readonly="form.paymentType === 'full'"
+                  >
+                  <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">سداد قيمة الاشتراك صحيحة لا تزيد عن قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
+                </div>
+
+                <!-- حقل رقم الهاتف داخل قسم الدفع مع التنبيه -->
+                <div class="input-group" style="margin-bottom: 1.2rem;">
+                  <label>رقم الهاتف الخاص بك (رقم الدفع والمحفظة) 📱</label>
+                  <input 
+                    type="tel" 
+                    v-model="form.phone" 
+                    placeholder="مثال: 010xxxxxxxx"
+                    required
+                    class="premium-input"
+                    style="border-color: rgba(251, 191, 36, 0.4) !important;"
+                  >
+                  <span style="font-size: 0.76rem; color: #fbbf24; line-height: 1.5; margin-top: 6px; display: block; border: 1px solid rgba(251, 191, 36, 0.2); background: rgba(251, 191, 36, 0.04); padding: 8px 12px; border-radius: 8px;">
+                    ⚠️ <strong>تنبيه هام:</strong> يجب أن يكون رقم الهاتف المدخل هنا هو نفس الرقم الذي قمت بالتحويل منه لضمان مطابقة وإثبات عملية الدفع بنجاح.
+                  </span>
+                </div>
+
+                <!-- حقول انستاباي الخاصة -->
+                <div v-if="form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet'" class="animate-scale-in" style="display: flex; flex-direction: column; gap: 1rem;">
+                  <!-- حقل رقم العملية -->
+                  <div class="input-group" style="margin-bottom: 0;">
+                    <label>رقم العملية المرجعي للتحويل (Reference / TxID) 🔢</label>
+                    <input 
+                      type="text" 
+                      v-model="form.transactionId" 
+                      placeholder="أدخل كود تأكيد التحويل من رسالة المحول" 
+                      required
+                      class="premium-input"
+                    >
+                  </div>
+                </div>
+                
+                <!-- رسالة توضيحية لدفعة الكاش بالصالة -->
+                <div v-else class="animate-scale-in" style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); text-align: center;">
+                  📣 يرجى التوجه لموظف الكاونتر بالصالة لسداد الرسوم نقداً وتأكيد اشتراكك في أقرب وقت. طلبك سيكون معلقاً ⏳ حتى إتمام الدفع.
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                class="btn btn-submit-neon" 
+                :disabled="submitting || activeTournament.players.length >= activeTournament.maxPlayers"
+              >
+                <span v-if="submitting">جاري تسجيل البيانات... ⌛</span>
+                <span v-else-if="activeTournament.players.length >= activeTournament.maxPlayers">عذراً، البطولة مكتملة العدد 🛑</span>
+                <span v-else-if="activeTournament.fee > 0">تأكيد تفاصيل الدفع والتسجيل المعلق 🏆</span>
+                <span v-else>تأكيد وتسجيل الاشتراك بالبطولة 🏆</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div v-else-if="viewMode === 'dashboard'">
+          <!-- Follow Portal Login Form -->
+          <div v-if="!loggedInPlayer" class="login-container glass-panel animate-scale-in" style="margin-top: 1rem; text-align: right;">
+            <h3 class="panel-title" style="color: #06b6d4;">📊 متابعة البطولة ودخول اللاعبين</h3>
+            <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.5;">
+              الرجاء إدخال بيانات التسجيل الخاصة بك للدخول إلى لوحة التحكم الشخصية لمتابعة مباراتك القادمة وترتيبك حياً:
+            </p>
+
+            <form @submit.prevent="handleFollowLogin" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="input-group">
+                <label>الاسم الحركي / المستعار (Nickname) 👾</label>
+                <input 
+                  type="text" 
+                  v-model="followForm.nickname" 
+                  placeholder="أدخل اسمك المستعار المسجل بدقة"
+                  required
+                  class="premium-input"
+                >
+              </div>
               
-              <!-- رسالة توضيحية لدفعة الكاش بالصالة -->
-              <div v-else class="animate-scale-in" style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); text-align: center;">
-                📣 يرجى التوجه لموظف الكاونتر بالصالة لسداد الرسوم نقداً وتأكيد اشتراكك في أقرب وقت. طلبك سيكون معلقاً ⏳ حتى إتمام الدفع.
+              <div class="input-group">
+                <label>رقم الهاتف الخاص بك 📱</label>
+                <input 
+                  type="tel" 
+                  v-model="followForm.phone" 
+                  placeholder="أدخل رقم الهاتف المسجل"
+                  required
+                  class="premium-input"
+                >
+              </div>
+
+              <div v-if="followLoginError" class="error-msg-text" style="text-align: center; margin-bottom: 5px;">
+                {{ followLoginError }}
+              </div>
+
+              <button type="submit" class="btn btn-submit-neon">
+                🔑 دخول إلى لوحة المتابعة
+              </button>
+            </form>
+          </div>
+
+          <!-- Follow Portal Dashboard Mode -->
+          <div v-else class="player-dashboard-container animate-scale-in" style="display: flex; flex-direction: column; gap: 1.5rem; text-align: right; margin-top: 1rem;">
+            <!-- Player Welcome Card -->
+            <div class="player-welcome-card glass-panel" style="border-right: 4px solid #fbbf24; background: linear-gradient(90deg, rgba(251, 191, 36, 0.05) 0%, rgba(30, 41, 59, 0.45) 100%) !important;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 50px; height: 50px; font-size: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    {{ getLogoSymbol(loggedInPlayer.logoId) }}
+                  </span>
+                  <div>
+                    <h3 style="margin: 0; color: #fff; font-size: 1.15rem;">أهلاً بك، {{ loggedInPlayer.nickname }} 👋</h3>
+                    <span style="color: #fbbf24; font-size: 0.76rem; font-weight: bold;">{{ CURATED_LOGOS[loggedInPlayer.logoId]?.name }}</span>
+                  </div>
+                </div>
+                <button @click="handleFollowLogout" class="copy-btn-small" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #ef4444;">خروج ➔</button>
+              </div>
+              
+              <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; font-size: 0.8rem;">
+                <div>💰 <strong>حالة الاشتراك:</strong> <span style="color: #10b981; font-weight: bold;">مؤكد ومفعل ✅</span></div>
+                <div>💵 <strong>المدفوع:</strong> <span style="color: #fbbf24; font-weight: bold;">{{ loggedInPlayer.amountConfirmed || loggedInPlayer.amountPaid || activeTournament.fee }} ج</span></div>
               </div>
             </div>
 
-            <button 
-              type="submit" 
-              class="btn btn-submit-neon" 
-              :disabled="submitting || activeTournament.players.length >= activeTournament.maxPlayers"
-            >
-              <span v-if="submitting">جاري تسجيل البيانات... ⌛</span>
-              <span v-else-if="activeTournament.players.length >= activeTournament.maxPlayers">عذراً، البطولة مكتملة العدد 🛑</span>
-              <span v-else-if="activeTournament.fee > 0">تأكيد تفاصيل الدفع والتسجيل المعلق 🏆</span>
-              <span v-else>تأكيد وتسجيل الاشتراك بالبطولة 🏆</span>
-            </button>
-          </form>
+            <!-- Player Next Match Highlight -->
+            <div v-if="playerNextMatch" class="player-match-highlight-card glass-panel" style="border: 2px solid #00f2fe !important; box-shadow: 0 0 20px rgba(0, 242, 254, 0.2) !important;">
+              <h4 style="margin: 0 0 10px 0; color: #00f2fe; text-align: center; font-size: 0.95rem; font-weight: 800;">⚔️ مباراتك القادمة في البطولة</h4>
+              
+              <div style="display: flex; align-items: center; justify-content: space-around; gap: 10px; margin: 15px 0;">
+                <!-- Current Player -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+                  <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 45px; height: 45px; font-size: 1.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    {{ getLogoSymbol(loggedInPlayer.logoId) }}
+                  </span>
+                  <span style="font-size: 0.85rem; font-weight: bold; color: #fff; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{{ loggedInPlayer.nickname }}</span>
+                </div>
+
+                <div style="font-weight: 900; font-size: 1.2rem; color: #cbd5e1; font-family: monospace;">VS</div>
+
+                <!-- Opponent -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+                  <span class="player-logo-large" :style="getPlayerLogoStyle(playerNextMatch.opponentId)" style="width: 45px; height: 45px; font-size: 1.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    {{ getPlayerLogoSymbol(playerNextMatch.opponentId) }}
+                  </span>
+                  <span style="font-size: 0.85rem; font-weight: bold; color: #fbbf24; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{{ getPlayerNickname(playerNextMatch.opponentId) }}</span>
+                </div>
+              </div>
+
+              <div style="text-align: center; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                🏆 <span>{{ playerNextMatch.roundName }}</span>
+              </div>
+            </div>
+            <div v-else class="player-match-highlight-card glass-panel" style="text-align: center; padding: 1.5rem;">
+              <span style="font-size: 2rem;">🎮</span>
+              <h4 style="margin: 8px 0 4px 0; color: #fff;">لا توجد مباراة مجدولة حالياً</h4>
+              <p v-if="activeTournament.status === 'registration'" style="color: #94a3b8; font-size: 0.8rem; margin: 0;">بانتظار توليد مواجهات وقرعة البطولة من قبل الإدارة ⏳</p>
+              <p v-else style="color: #94a3b8; font-size: 0.8rem; margin: 0;">انتهت مواجهاتك بالبطولة أو تم إقصاؤك. حظاً موفقاً! 🏆</p>
+            </div>
+          </div>
         </div>
 
         <!-- 2. Live Tournament View (If Active or Completed) -->
@@ -307,7 +507,13 @@
                 <div v-for="round in symmetricCupRounds.leftRounds" :key="'l-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
                   <h4 class="round-title-banner">{{ round.name }}</h4>
                   <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
-                    <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                    <div 
+                      v-for="match in round.matches" 
+                      :key="match.id" 
+                      class="bracket-match-node" 
+                      :class="{ 'player-highlight-node': loggedInPlayer && (match.player1Id === loggedInPlayer.id || match.player2Id === loggedInPlayer.id) }"
+                      style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;"
+                    >
                       <!-- Player 1 -->
                       <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
                         <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
@@ -329,7 +535,7 @@
                   </div>
                 </div>
               </div>
-
+ 
               <!-- Center Wing (Trophy & Final) -->
               <div class="bracket-center-column" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 230px; gap: 1rem;">
                 <div class="trophy-stage animate-pulse" style="text-align: center; margin-bottom: 0.5rem;">
@@ -340,8 +546,13 @@
                 <div class="final-round-title" style="color: #fbbf24; font-weight: 800; font-size: 0.9rem; text-align: center; margin-bottom: 0.2rem;">
                   {{ symmetricCupRounds.finalRoundName }}
                 </div>
-
-                <div v-if="symmetricCupRounds.finalMatch" class="bracket-match-node final-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 220px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;">
+ 
+                <div 
+                  v-if="symmetricCupRounds.finalMatch" 
+                  class="bracket-match-node final-match-node" 
+                  :class="{ 'player-highlight-node': loggedInPlayer && (symmetricCupRounds.finalMatch.player1Id === loggedInPlayer.id || symmetricCupRounds.finalMatch.player2Id === loggedInPlayer.id) }"
+                  style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 220px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;"
+                >
                   <!-- Player 1 -->
                   <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
                     <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
@@ -361,13 +572,19 @@
                   </div>
                 </div>
               </div>
-
+ 
               <!-- Right Wing -->
               <div class="bracket-wing right-wing" v-if="symmetricCupRounds.rightRoundsReversed.length > 0">
                 <div v-for="round in symmetricCupRounds.rightRoundsReversed" :key="'r-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
                   <h4 class="round-title-banner">{{ round.name }}</h4>
                   <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
-                    <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                    <div 
+                      v-for="match in round.matches" 
+                      :key="match.id" 
+                      class="bracket-match-node" 
+                      :class="{ 'player-highlight-node': loggedInPlayer && (match.player1Id === loggedInPlayer.id || match.player2Id === loggedInPlayer.id) }"
+                      style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;"
+                    >
                       <!-- Player 1 -->
                       <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
                         <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
@@ -391,7 +608,7 @@
               </div>
             </div>
           </div>
-
+ 
           <!-- Group Stage + Knockouts Rendering -->
           <div v-else-if="activeTournament.type === 'groups_knockout'" class="groups-stage-container">
             <!-- Tabs Header if Knockout has started -->
@@ -411,7 +628,7 @@
                 📊 دور المجموعات
               </button>
             </div>
-
+ 
             <!-- Group Stage Content -->
             <div v-if="activeTournament.stage === 'groups' || groupsStageTab === 'groups'" class="groups-grid-layout" style="display: flex; flex-direction: column; gap: 2rem;">
               <div 
@@ -437,7 +654,12 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(p, rank) in playersInGroup" :key="p.id" style="border-bottom: 1px solid rgba(255,255,255,0.02);">
+                      <tr 
+                        v-for="(p, rank) in playersInGroup" 
+                        :key="p.id" 
+                        :class="{ 'player-highlight-row': loggedInPlayer && p.id === loggedInPlayer.id }"
+                        style="border-bottom: 1px solid rgba(255,255,255,0.02);"
+                      >
                         <td style="text-align: center; font-weight: bold; padding: 8px 4px;">
                           <span :style="rank < 2 ? 'color: #fbbf24;' : 'color: #94a3b8;'">{{ rank + 1 }}</span>
                         </td>
@@ -456,7 +678,7 @@
                     </tbody>
                   </table>
                 </div>
-
+ 
                 <!-- Group Matches -->
                 <h4 style="font-size: 0.8rem; color: #94a3b8; margin: 12px 0 6px 0; border-right: 2px solid #06b6d4; padding-right: 6px;">📅 مواجهات المجموعة</h4>
                 <div class="group-matches-list" style="display: flex; flex-direction: column; gap: 8px;">
@@ -464,6 +686,7 @@
                     v-for="match in groupMatchesByGroup[groupName]" 
                     :key="match.id" 
                     class="bracket-match-node" 
+                    :class="{ 'player-highlight-node': loggedInPlayer && (match.player1Id === loggedInPlayer.id || match.player2Id === loggedInPlayer.id) }"
                     style="padding: 6px 10px !important; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);"
                   >
                     <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -489,7 +712,7 @@
                 </div>
               </div>
             </div>
-
+ 
             <!-- Group Stage Knockout Content (Symmetric Bracket) -->
             <div v-if="activeTournament.stage === 'knockout' && groupsStageTab === 'knockout'" class="knockout-bracket-wrapper">
               <div v-if="symmetricCupRounds" class="symmetric-bracket-container">
@@ -498,7 +721,13 @@
                   <div v-for="round in symmetricCupRounds.leftRounds" :key="'l-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
                     <h4 class="round-title-banner">{{ round.name }}</h4>
                     <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
-                      <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                      <div 
+                        v-for="match in round.matches" 
+                        :key="match.id" 
+                        class="bracket-match-node" 
+                        :class="{ 'player-highlight-node': loggedInPlayer && (match.player1Id === loggedInPlayer.id || match.player2Id === loggedInPlayer.id) }"
+                        style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;"
+                      >
                         <!-- Player 1 -->
                         <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
                           <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
@@ -520,7 +749,7 @@
                     </div>
                   </div>
                 </div>
-
+ 
                 <!-- Center Wing (Trophy & Final) -->
                 <div class="bracket-center-column" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 230px; gap: 1rem;">
                   <div class="trophy-stage animate-pulse" style="text-align: center; margin-bottom: 0.5rem;">
@@ -531,8 +760,13 @@
                   <div class="final-round-title" style="color: #fbbf24; font-weight: 800; font-size: 0.9rem; text-align: center; margin-bottom: 0.2rem;">
                     {{ symmetricCupRounds.finalRoundName }}
                   </div>
-
-                  <div v-if="symmetricCupRounds.finalMatch" class="bracket-match-node final-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 220px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;">
+ 
+                  <div 
+                    v-if="symmetricCupRounds.finalMatch" 
+                    class="bracket-match-node final-match-node" 
+                    :class="{ 'player-highlight-node': loggedInPlayer && (symmetricCupRounds.finalMatch.player1Id === loggedInPlayer.id || symmetricCupRounds.finalMatch.player2Id === loggedInPlayer.id) }"
+                    style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 220px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;"
+                  >
                     <!-- Player 1 -->
                     <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
                       <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
@@ -552,13 +786,19 @@
                     </div>
                   </div>
                 </div>
-
+ 
                 <!-- Right Wing -->
                 <div class="bracket-wing right-wing" v-if="symmetricCupRounds.rightRoundsReversed.length > 0">
                   <div v-for="round in symmetricCupRounds.rightRoundsReversed" :key="'r-r-' + round.index" class="bracket-round-column" style="min-width: 180px;">
                     <h4 class="round-title-banner">{{ round.name }}</h4>
                     <div class="round-matches-list" style="display: flex; flex-direction: column; justify-content: space-around; flex: 1; gap: 1rem;">
-                      <div v-for="match in round.matches" :key="match.id" class="bracket-match-node" style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;">
+                      <div 
+                        v-for="match in round.matches" 
+                        :key="match.id" 
+                        class="bracket-match-node" 
+                        :class="{ 'player-highlight-node': loggedInPlayer && (match.player1Id === loggedInPlayer.id || match.player2Id === loggedInPlayer.id) }"
+                        style="padding: 0.5rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px;"
+                      >
                         <!-- Player 1 -->
                         <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
                           <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
@@ -583,7 +823,7 @@
               </div>
             </div>
           </div>
-
+ 
           <!-- League Leaderboard Rendering -->
           <div v-else class="league-table-container">
             <div class="table-frame-v3" style="width: 100%; overflow-x: auto;">
@@ -600,7 +840,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(p, rank) in leagueLeaderboard" :key="p.id">
+                  <tr 
+                    v-for="(p, rank) in leagueLeaderboard" 
+                    :key="p.id"
+                    :class="{ 'player-highlight-row': loggedInPlayer && p.id === loggedInPlayer.id }"
+                  >
                     <td style="text-align: center;">
                       <span v-if="rank === 0" class="crown">👑 1</span>
                       <span v-else-if="rank === 1" class="silver-medal">🥈 2</span>
@@ -624,7 +868,7 @@
             </div>
           </div>
         </div>
-
+ 
         <!-- 3. Registered Players Board -->
         <div class="registered-players-board glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 2rem;">
           <h3 class="panel-title">👥 اللاعبين المسجلين حالياً ({{ activeTournament.players.filter(p => !p.isPendingApproval).length }})</h3>
@@ -638,6 +882,7 @@
               v-for="p in activeTournament.players.filter(p => !p.isPendingApproval)" 
               :key="p.id" 
               class="player-badge-card"
+              :class="{ 'player-highlight-card-border': loggedInPlayer && p.id === loggedInPlayer.id }"
             >
               <span class="p-logo" :style="getLogoStyle(p.logoId)">
                 {{ getLogoSymbol(p.logoId) }}
@@ -680,20 +925,6 @@ const form = reactive({
   transactionId: ''
 });
 
-watch(activeTournament, (newVal) => {
-  if (newVal) {
-    if (newVal.paymentMethod === 'instapay') {
-      form.paymentMethod = 'instapay';
-    } else if (newVal.paymentMethod === 'wallet') {
-      form.paymentMethod = 'wallet';
-    } else if (newVal.paymentMethod === 'both') {
-      form.paymentMethod = 'instapay';
-    } else {
-      form.paymentMethod = 'cash';
-    }
-    form.amountPaid = newVal.fee || 0;
-  }
-}, { immediate: true });
 
 // landing page state
 const selectedTid = ref(null);
@@ -707,6 +938,7 @@ const backToLanding = () => {
 
 // Curated 68 esports gaming logo symbols
 // 36 highly curated football clubs, national teams and soccer elements
+// Curated 64 professional logo symbols (European clubs, Arab clubs, national teams, esports)
 const CURATED_LOGOS = [
   // 1. European Clubs
   { symbol: '🇪🇸👑', name: 'ريال مدريد (Real Madrid)' },
@@ -721,7 +953,13 @@ const CURATED_LOGOS = [
   { symbol: '🇮🇹🔵', name: 'إنتر ميلان (Inter Milan)' },
   { symbol: '🇮🇹🦓', name: 'يوفنتوس (Juventus)' },
   { symbol: '🇫🇷🗼', name: 'باريس سان جيرمان (PSG)' },
-  
+  { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🐓', name: 'توتنهام (Tottenham)' },
+  { symbol: '🇪🇸🦇', name: 'أتلتيكو مدريد (Atletico Madrid)' },
+  { symbol: '🇩🇪🐝', name: 'بوروسيا دورتموند (Dortmund)' },
+  { symbol: '🇮🇹🦅', name: 'لاتسيو (Lazio)' },
+  { symbol: '🇮🇹🐺', name: 'روما (AS Roma)' },
+  { symbol: '🇵🇹🦅', name: 'بنفيكا (Benfica)' },
+
   // 2. Egyptian & Arab Clubs
   { symbol: '🇪🇬🦅', name: 'الأهلي المصري (Al Ahly)' },
   { symbol: '🇪🇬🏹', name: 'الزمالك المصري (Zamalek)' },
@@ -729,7 +967,13 @@ const CURATED_LOGOS = [
   { symbol: '🇸🇦🟡', name: 'النصر السعودي (Al Nassr)' },
   { symbol: '🇸🇦🐯', name: 'الاتحاد السعودي (Al Ittihad)' },
   { symbol: '🇦🇪🏰', name: 'العين الإماراتي (Al Ain)' },
-  
+  { symbol: '🇪🇬⚽', name: 'بيراميدز (Pyramids FC)' },
+  { symbol: '🇸🇦🟢', name: 'الأهلي السعودي (Al Ahli)' },
+  { symbol: '🇸🇦🦁', name: 'الشباب السعودي (Al Shabab)' },
+  { symbol: '🇲🇦🔴', name: 'الوداد المغربي (Wydad)' },
+  { symbol: '🇲🇦🟢', name: 'الرجاء المغربي (Raja)' },
+  { symbol: '🇹🇳🔴', name: 'الترجي التونسي (Esperance)' },
+
   // 3. National Teams
   { symbol: '🇪🇬🏆', name: 'منتخب مصر (Egypt)' },
   { symbol: '🇲🇦🦁', name: 'منتخب المغرب (Morocco)' },
@@ -743,14 +987,30 @@ const CURATED_LOGOS = [
   { symbol: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🦁', name: 'منتخب إنجلترا (England)' },
   { symbol: '🇵🇹⚡', name: 'منتخب البرتغال (Portugal)' },
   { symbol: '🇳🇱🇳🇱', name: 'منتخب هولندا (Netherlands)' },
-  
-  // 4. Special Football Symbols
+  { symbol: '🇩🇿🦊', name: 'منتخب الجزائر (Algeria)' },
+  { symbol: '🇹🇳🦅', name: 'منتخب تونس (Tunisia)' },
+  { symbol: '🇸🇪🟡', name: 'منتخب السويد (Sweden)' },
+  { symbol: '🇧🇪😈', name: 'منتخب بلجيكا (Belgium)' },
+  { symbol: '🇺🇾⭐', name: 'منتخب أوروغواي (Uruguay)' },
+  { symbol: '🇭🇷⚡', name: 'منتخب كرواتيا (Croatia)' },
+  { symbol: '🇯🇵🇯🇵', name: 'منتخب اليابان (Japan)' },
+  { symbol: '🇰🇷🇰🇷', name: 'منتخب كوريا الجنوبية (South Korea)' },
+  { symbol: '🇸🇳🦁', name: 'منتخب السنغال (Senegal)' },
+  { symbol: '🇨🇲🦁', name: 'منتخب الكاميرون (Cameroon)' },
+
+  // 4. Special Football & eSports Symbols
   { symbol: '⚽🔥', name: 'الكرة النارية' },
   { symbol: '⚽⚡', name: 'كرة البرق' },
   { symbol: '⚽👑', name: 'الكرة الذهبية' },
   { symbol: '🏆✨', name: 'كأس كلاسيكو الذهبي' },
   { symbol: '👟✨', name: 'حذاء الهداف الذهبي' },
-  { symbol: '🧤🥅', name: 'قفاز الحارس الذهبي' }
+  { symbol: '🧤🥅', name: 'قفاز الحارس الذهبي' },
+  { symbol: '🎮🔥', name: 'الألعاب النارية' },
+  { symbol: '🎮⚡', name: 'الألعاب الصاعقة' },
+  { symbol: '👑✨', name: 'تاج البطولة' },
+  { symbol: '🐉🔥', name: 'التنين الأحمر' },
+  { symbol: '🦅⚡', name: 'الصقر الإلكتروني' },
+  { symbol: '🦁👑', name: 'الأسد الملك' }
 ];
 
 
@@ -833,6 +1093,21 @@ const activeTournament = computed(() => {
 
   return null;
 });
+
+watch(activeTournament, (newVal) => {
+  if (newVal) {
+    if (newVal.paymentMethod === 'instapay') {
+      form.paymentMethod = 'instapay';
+    } else if (newVal.paymentMethod === 'wallet') {
+      form.paymentMethod = 'wallet';
+    } else if (newVal.paymentMethod === 'both') {
+      form.paymentMethod = 'instapay';
+    } else {
+      form.paymentMethod = 'cash';
+    }
+    form.amountPaid = newVal.fee || 0;
+  }
+}, { immediate: true });
 
 const selectTournament = (id) => {
   selectedTid.value = id;
@@ -1122,7 +1397,7 @@ const submitRegistration = async () => {
   submitting.value = true;
   try {
     if (isCloudMode.value) {
-      // 1. Create new Player object
+      // 1. Build new player object
       const newPlayer = {
         id: 'PLR-' + Date.now().toString() + '-' + Math.random().toString(36).substr(2, 4),
         fullName: form.fullName.trim(),
@@ -1143,30 +1418,29 @@ const submitRegistration = async () => {
         joinedAt: new Date().toISOString()
       };
 
-      // 2. Append to tournament player list
-      cloudTournament.value.players.push(newPlayer);
-
-      // 3. Update in the array inside full backup state
-      const tournamentsList = fullCloudDataPayload.value.classico_tournaments || [];
-      const tIdx = tournamentsList.findIndex(t => t.id === cloudTournament.value.id);
-      if (tIdx !== -1) {
-        tournamentsList[tIdx] = cloudTournament.value;
-      } else {
-        tournamentsList.push(cloudTournament.value);
-      }
-      fullCloudDataPayload.value.classico_tournaments = tournamentsList;
-
-      // 4. Update the Supabase cloud table row
       const { supabase } = await import('../../utils/supabase');
-      const { error } = await supabase
-        .from('cloud_backups')
-        .update({
-          data: fullCloudDataPayload.value,
-          updated_at: new Date().toISOString()
-        })
-        .eq('machine_id', cloudMachineId.value);
+
+      // Call the safe, transactional database function to register
+      const { data, error } = await supabase.rpc('register_public_player', {
+        target_machine_id: cloudMachineId.value,
+        target_tournament_id: cloudTournament.value.id,
+        new_player: newPlayer
+      });
 
       if (error) throw error;
+
+      if (data && data.success) {
+        // Sync local display state with the fresh server data returned by RPC
+        cloudTournament.value = data.tournament;
+        fullCloudDataPayload.value = {
+          classico_tournaments: [data.tournament]
+        };
+        registrationSuccess.value = true;
+      } else {
+        alert(data?.message || 'فشل التسجيل بالبطولة.');
+        submitting.value = false;
+        return;
+      }
 
       registrationSuccess.value = true;
       form.fullName = '';
@@ -1251,39 +1525,24 @@ watch(
 
       try {
         const { supabase } = await import('../../utils/supabase');
-        const { data, error } = await supabase
-          .from('cloud_backups')
-          .select('data')
-          .eq('machine_id', uppercaseMid)
-          .single();
+        
+        // Fetch only the sanitized tournament details securely via RPC
+        const { data, error } = await supabase.rpc('get_public_tournament', {
+          target_machine_id: uppercaseMid,
+          target_tournament_id: tid || ''
+        });
 
         if (error) throw error;
 
-        if (data && data.data) {
-          fullCloudDataPayload.value = data.data;
-          const tournamentsList = (data.data.classico_tournaments || []).filter(t => t && t.id);
-          
-          // Find tournament matching the query tid STRICTLY
-          let selected = null;
-          if (tid) {
-            selected = tournamentsList.find(t => t.id.toString() === tid.toString());
-            if (!selected) {
-              // tid was specified but not found in cloud data - show not found
-              console.warn(`[Registration] Tournament tid=${tid} not found in cloud backup. Data may not be synced yet.`);
-              tournamentNotFound.value = true;
-            }
-          } else {
-            // No tid specified, pick the first registration/active tournament
-            selected = tournamentsList.find(t => t.status === 'registration' || t.status === 'active');
-            if (!selected && tournamentsList.length > 0) {
-              selected = tournamentsList[tournamentsList.length - 1];
-            }
-          }
-          
-          if (selected) {
-            selectedTid.value = selected.id;
-            cloudTournament.value = selected;
-          }
+        if (data) {
+          selectedTid.value = data.id;
+          cloudTournament.value = data;
+          // Set fullCloudDataPayload to mock containing this tournament so that existing list references won't break
+          fullCloudDataPayload.value = {
+            classico_tournaments: [data]
+          };
+        } else {
+          tournamentNotFound.value = true;
         }
       } catch (err) {
         console.error('[Cloud Load Error]', err.message);
