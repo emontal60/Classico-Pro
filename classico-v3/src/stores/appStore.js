@@ -963,8 +963,9 @@ export const useAppStore = defineStore('app', {
         ? (Number(t.groupsCount) || 4) * (Number(t.playersPerGroup) || 4)
         : (Number(t.maxPlayers) || 8);
 
+      const id = Date.now().toString();
       this.tournaments.push({
-        id: Date.now().toString(),
+        id: id,
         name: t.name,
         fee: Number(t.fee) || 0,
         maxPlayers: maxPlayers,
@@ -987,6 +988,7 @@ export const useAppStore = defineStore('app', {
       });
       this.addActivity('بطولة جديدة', `تم إنشاء بطولة جديدة باسم ${t.name}`);
       this.saveToDatabase();
+      return id;
     },
 
     deleteTournament(id) {

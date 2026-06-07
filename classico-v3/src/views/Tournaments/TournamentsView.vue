@@ -1748,7 +1748,7 @@ const handleCreateTournament = () => {
         ? createForm.paymentNumberCash.trim() 
         : `${createForm.paymentNumberInstapay.trim()} / ${createForm.paymentNumberWallet.trim()}`;
 
-  store.createTournament({
+  const newTournamentId = store.createTournament({
     name: createForm.name.trim(),
     fee: Number(createForm.fee) || 0,
     maxPlayers: Number(createForm.maxPlayers) || 8,
@@ -1761,6 +1761,13 @@ const handleCreateTournament = () => {
     paymentNumberCash: createForm.paymentNumberCash.trim(),
     paymentMethod: createForm.paymentMethod
   });
+
+  if (newTournamentId) {
+    selectedTournamentId.value = newTournamentId;
+    showCreateForm.value = false;
+    initAdvancingState();
+  }
+
   ui.showToast('تم إنشاء ملف البطولة وتفعيله بنجاح! 🏆', 'success');
 };
 
