@@ -662,6 +662,7 @@ import { useRoute } from 'vue-router';
 import { useAppStore } from '../../stores/appStore';
 
 const store = useAppStore();
+const route = useRoute();
 
 const submitting = ref(false);
 const registrationSuccess = ref(false);
