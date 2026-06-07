@@ -310,7 +310,6 @@
                       class="pay-type-btn"
                       :class="{ active: form.paymentType === 'full' }"
                       @click="setPaymentType('full')"
-                      style="flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); color: #fff; cursor: pointer; transition: all 0.25s;"
                     >
                       💵 سداد كامل الاشتراك
                     </button>
@@ -319,7 +318,6 @@
                       class="pay-type-btn"
                       :class="{ active: form.paymentType === 'partial' }"
                       @click="setPaymentType('partial')"
-                      style="flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); color: #fff; cursor: pointer; transition: all 0.25s;"
                     >
                       💸 سداد دفعة جزئية
                     </button>
@@ -336,8 +334,8 @@
                     :max="activeTournament.fee" 
                     placeholder="اكتب المبلغ الذي قمت بتحويله بالكامل أو جزء منه" 
                     required
-                    class="premium-input"
-                    style="border-color: rgba(251, 191, 36, 0.4) !important;"
+                    class="premium-input amount-paid-input"
+                    :class="{ 'readonly-input': form.paymentType === 'full', 'partial-input': form.paymentType === 'partial' }"
                     :readonly="form.paymentType === 'full'"
                   >
                   <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">سداد قيمة الاشتراك صحيحة لا تزيد عن قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
@@ -1121,6 +1119,34 @@ const getMedalEmoji = (idx, label = '') => {
 const isLogoTaken = (logoIdx) => {
   if (!activeTournament.value?.players) return false;
   return activeTournament.value.players.some(p => p && Number(p.logoId) === Number(logoIdx));
+};
+
+const copyPaymentNumber = (num) => {
+  if (!num) return;
+  navigator.clipboard.writeText(num.toString().trim())
+    .then(() => {
+      alert(`تم نسخ الرقم بنجاح: ${num}`);
+    })
+    .catch((err) => {
+      console.error('Failed to copy text: ', err);
+      // Fallback
+      const el = document.createElement('textarea');
+      el.value = num.toString().trim();
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      alert(`تم نسخ الرقم بنجاح: ${num}`);
+    });
+};
+
+const setPaymentType = (type) => {
+  form.paymentType = type;
+  if (type === 'full') {
+    form.amountPaid = activeTournament.value.fee;
+  } else {
+    form.amountPaid = '';
+  }
 };
 
 const selectTournament = (id) => {
@@ -2192,5 +2218,181 @@ watch(
   background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%) !important;
   color: white !important;
   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+/* Copy button small */
+.copy-btn-small {
+  background: rgba(6, 182, 212, 0.15) !important;
+  color: #06b6d4 !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  padding: 4px 10px !important;
+  border-radius: 8px !important;
+  font-size: 0.72rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.copy-btn-small:hover {
+  background: rgba(6, 182, 212, 0.3) !important;
+  border-color: #06b6d4 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2) !important;
+}
+.copy-btn-small:active {
+  transform: translateY(0) !important;
+}
+
+/* Highlight amount input */
+.amount-paid-input {
+  transition: all 0.3s ease !important;
+}
+
+/* For full payment (readonly) */
+.amount-paid-input.readonly-input {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+  color: #fbbf24 !important;
+  cursor: not-allowed !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+.amount-paid-input.readonly-input:focus {
+  border-color: rgba(251, 191, 36, 0.6) !important;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.15) !important;
+}
+
+/* For partial payment (editable) */
+.amount-paid-input.partial-input {
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+  color: #fff !important;
+  text-align: center !important;
+}
+.amount-paid-input.partial-input:focus {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.3) !important;
+  background: rgba(6, 182, 212, 0.03) !important;
+}
+
+/* Payment Type Button selector styles */
+.pay-type-btn {
+  flex: 1;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  background: rgba(255,255,255,0.02) !important;
+  color: #94a3b8 !important;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.pay-type-btn:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+.pay-type-btn.active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
+  border-color: #06b6d4 !important;
+  color: #fff !important;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2) !important;
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.4) !important;
+}
+
+/* Prizes Container & Cards styling */
+.prizes-container-card {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.15) !important;
+  border-radius: 16px !important;
+  padding: 1.2rem !important;
+  margin-top: 0.5rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(251, 191, 36, 0.03) !important;
+}
+.prizes-title {
+  color: #fbbf24 !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  margin: 0 0 1rem 0 !important;
+  text-align: right !important;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.25) !important;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.1) !important;
+  padding-bottom: 8px !important;
+}
+.prizes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.prize-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  transition: all 0.25s ease !important;
+}
+.prize-item-row:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  transform: translateX(-3px) !important;
+}
+
+/* Individual rank styling */
+.prize-item-row.rank-0 {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.25) !important;
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.05) !important;
+}
+.prize-item-row.rank-0 .prize-value {
+  color: #fbbf24 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3) !important;
+  font-size: 1.05rem !important;
+}
+.prize-item-row.rank-1 {
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+.prize-item-row.rank-1 .prize-value {
+  color: #cbd5e1 !important;
+  font-size: 0.98rem !important;
+}
+.prize-item-row.rank-2 {
+  background: linear-gradient(90deg, rgba(180, 83, 9, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+  border-color: rgba(180, 83, 9, 0.2) !important;
+}
+.prize-item-row.rank-2 .prize-value {
+  color: #d97706 !important;
+  font-size: 0.95rem !important;
+}
+
+.prize-rank-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.prize-medal {
+  font-size: 1.25rem;
+}
+.prize-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.prize-value {
+  font-weight: 900;
+  font-size: 0.92rem;
+  color: #38bdf8;
+}
+
+.no-prizes-hint {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.82rem;
+  padding: 10px 0;
+  font-style: italic;
 }
 </style>
