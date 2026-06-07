@@ -122,10 +122,18 @@ FOR ALL TO authenticated
 USING (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com')
 WITH CHECK (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com');
 
--- Devices can only see their own subscription via x-machine-id header
+-- Devices can only see their own subscription via x-machine-id header (or sub-devices checking their owner's subscription)
 CREATE POLICY "Devices can view own subscription" ON subscriptions 
 FOR SELECT TO anon 
-USING (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id')); 
+USING (
+    machine_id = (current_setting('request.headers', true)::json->>'x-machine-id')
+    OR
+    machine_id IN (
+        SELECT owner_machine_id 
+        FROM subscription_keys 
+        WHERE used_by = (current_setting('request.headers', true)::json->>'x-machine-id')
+    )
+); 
 
 -- Allow anyone to request a new subscription, but it must be pending
 CREATE POLICY "Allow new registration" ON subscriptions 
@@ -148,6 +156,58 @@ WITH CHECK (
 );
 
 
+-- Helper function to check cross-device access within the same subscription group
+CREATE OR REPLACE FUNCTION has_backup_access(requester TEXT, target TEXT)
+RETURNS BOOLEAN
+SECURITY DEFINER
+AS $$
+DECLARE
+    req_owner TEXT;
+    tgt_owner TEXT;
+    tgt_clean TEXT;
+BEGIN
+    IF requester IS NULL OR requester = '' THEN
+        RETURN FALSE;
+    END IF;
+
+    -- 1. Direct match
+    IF requester = target THEN
+        RETURN TRUE;
+    END IF;
+
+    -- 2. Handle shared users row pattern
+    IF target LIKE 'shared_users_%' THEN
+        tgt_clean := substring(target from 14);
+    ELSE
+        tgt_clean := target;
+    END IF;
+
+    -- 3. If requester is owner of the shared users / backup target
+    IF requester = tgt_clean THEN
+        RETURN TRUE;
+    END IF;
+
+    -- 4. Get owner of the requester device
+    SELECT owner_machine_id INTO req_owner FROM subscription_keys WHERE used_by = requester LIMIT 1;
+    IF req_owner IS NULL THEN
+        req_owner := requester;
+    END IF;
+
+    -- 5. Get owner of the target device
+    SELECT owner_machine_id INTO tgt_owner FROM subscription_keys WHERE used_by = tgt_clean LIMIT 1;
+    IF tgt_owner IS NULL THEN
+        tgt_owner := tgt_clean;
+    END IF;
+
+    -- 6. Grant access if they belong to the same subscription owner
+    IF req_owner = tgt_owner THEN
+        RETURN TRUE;
+    END IF;
+
+    RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql;
+
 -- 6. SECURE RLS Policies for Cloud Backups
 DROP POLICY IF EXISTS "Enable backup management" ON cloud_backups;
 DROP POLICY IF EXISTS "Owner backup access" ON cloud_backups;
@@ -159,11 +219,17 @@ FOR ALL TO authenticated
 USING (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com')
 WITH CHECK (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com');
 
--- Devices can ONLY read and write their own backup
+-- Devices can ONLY read and write their own backup or backups in their subscription group
 CREATE POLICY "Devices can manage own backups" ON cloud_backups 
 FOR ALL TO anon 
-USING (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id')) 
-WITH CHECK (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'));
+USING (has_backup_access(
+    (current_setting('request.headers', true)::json->>'x-machine-id'),
+    machine_id
+)) 
+WITH CHECK (has_backup_access(
+    (current_setting('request.headers', true)::json->>'x-machine-id'),
+    machine_id
+));
 
 
 -- 7. SECURE RLS Policies for Subscription Keys
