@@ -114,6 +114,8 @@ DROP POLICY IF EXISTS "Allow anonymous updates for pending requests" ON subscrip
 DROP POLICY IF EXISTS "Allow server to activate subscriptions" ON subscriptions;
 DROP POLICY IF EXISTS "Allow public delete subscriptions" ON subscriptions;
 
+DROP POLICY IF EXISTS "Allow public update subscriptions" ON subscriptions;
+
 -- Owner has absolute access (authenticated via email)
 CREATE POLICY "Owner full access" ON subscriptions 
 FOR ALL TO authenticated
@@ -149,6 +151,7 @@ WITH CHECK (
 -- 6. SECURE RLS Policies for Cloud Backups
 DROP POLICY IF EXISTS "Enable backup management" ON cloud_backups;
 DROP POLICY IF EXISTS "Owner backup access" ON cloud_backups;
+DROP POLICY IF EXISTS "Devices can manage own backups" ON cloud_backups;
 
 -- Owner has absolute access
 CREATE POLICY "Owner backup access" ON cloud_backups 
@@ -169,6 +172,8 @@ DROP POLICY IF EXISTS "Public update for binding" ON subscription_keys;
 DROP POLICY IF EXISTS "Owner manage keys" ON subscription_keys;
 DROP POLICY IF EXISTS "Server manage keys" ON subscription_keys;
 DROP POLICY IF EXISTS "Allow public delete keys" ON subscription_keys;
+DROP POLICY IF EXISTS "Devices can select keys" ON subscription_keys;
+DROP POLICY IF EXISTS "Devices can update own keys" ON subscription_keys;
 
 -- Owner has absolute access
 CREATE POLICY "Owner manage keys" ON subscription_keys 
@@ -206,6 +211,8 @@ USING (owner_machine_id = (current_setting('request.headers', true)::json->>'x-m
 -- 8. SECURE RLS Policies for Subscription Logs
 DROP POLICY IF EXISTS "Enable logs read/write for all" ON subscription_logs;
 DROP POLICY IF EXISTS "Allow public insert logs" ON subscription_logs;
+DROP POLICY IF EXISTS "Devices can insert logs" ON subscription_logs;
+DROP POLICY IF EXISTS "Devices can view own logs" ON subscription_logs;
 
 -- Devices can only insert logs for themselves
 CREATE POLICY "Devices can insert logs" ON subscription_logs 
