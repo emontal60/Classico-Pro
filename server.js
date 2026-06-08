@@ -192,9 +192,9 @@ const SupabaseService = {
                 port: 443,
                 path: path,
                 method: method,
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'apikey': SUPABASE_KEY, 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_KEY,
                     'Authorization': `Bearer ${SUPABASE_KEY}`,
                     'x-machine-id': mid.toUpperCase().trim()
                 }
@@ -207,9 +207,9 @@ const SupabaseService = {
                         let parsedData = [];
                         if (data && data.trim()) {
                             try { parsedData = JSON.parse(data); }
-                            catch(e) { parsedData = { raw: data }; }
+                            catch (e) { parsedData = { raw: data }; }
                         }
-                        
+
                         if (res.statusCode >= 200 && res.statusCode < 300) {
                             resolve(parsedData);
                         } else {
@@ -248,11 +248,11 @@ async function getMid() {
                     const clean = out.replace(/SerialNumber/i, '').trim();
                     const cleanLower = clean.toLowerCase();
                     const isGeneric = cleanLower.includes('o.e.m') ||
-                                      cleanLower.includes('fill') ||
-                                      cleanLower.includes('none') ||
-                                      cleanLower.includes('default') ||
-                                      cleanLower.replace(/[^a-z0-9]/g, '').length < 4 ||
-                                      /^0+$/.test(cleanLower.replace(/[^0-9]/g, ''));
+                        cleanLower.includes('fill') ||
+                        cleanLower.includes('none') ||
+                        cleanLower.includes('default') ||
+                        cleanLower.replace(/[^a-z0-9]/g, '').length < 4 ||
+                        /^0+$/.test(cleanLower.replace(/[^0-9]/g, ''));
                     if (!isGeneric) {
                         return resolve(clean);
                     }
@@ -310,9 +310,9 @@ function getDataPath() {
     const devPath = path.join(__dirname, 'database.json');
     const parentDevPath = path.join(__dirname, '..', 'database.json');
     const userDataPath = process.env.CLASSICO_DATA_PATH ? path.join(process.env.CLASSICO_DATA_PATH, 'database.json') : null;
-    
+
     const possiblePaths = [userDataPath, devPath, parentDevPath].filter(p => p !== null);
-    
+
     for (const p of possiblePaths) {
         if (fs.existsSync(p)) return p;
     }
@@ -361,7 +361,7 @@ async function requireActiveSubscription(req, res, next) {
         const now = new Date();
 
         const localPath = getDataPath();
-        
+
         if (!fs.existsSync(localPath)) {
             return res.status(403).json({ success: false, error: 'Database not initialized, active license required.' });
         }
@@ -405,7 +405,7 @@ async function requireActiveSubscription(req, res, next) {
 app.get('/api/data', requireActiveSubscription, async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase();
-        
+
         const localPath = getDataPath();
         let foundExisting = fs.existsSync(localPath);
         if (foundExisting) console.log(`[Server] (OK) Database found at: ${localPath}`);
@@ -416,7 +416,7 @@ app.get('/api/data', requireActiveSubscription, async (req, res) => {
             const rootPath = path.join(__dirname, 'database.json');
             const parentRootPath = path.join(__dirname, '..', 'database.json');
             const sourcePath = fs.existsSync(rootPath) ? rootPath : (fs.existsSync(parentRootPath) ? parentRootPath : null);
-            
+
             if (sourcePath && sourcePath !== localPath) {
                 try {
                     console.log(`[Migration] 📦 Copying data from ${sourcePath} to ${localPath}`);
@@ -554,11 +554,11 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
                 try {
                     const existing = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=data`);
                     const hasBackup = existing && existing.length > 0;
-                    
+
                     if (hasBackup && existing[0].data) {
                         const cloudData = existing[0].data;
                         let mergedAny = false;
-                        
+
                         if (data.classico_tournaments && cloudData.classico_tournaments) {
                             data.classico_tournaments.forEach(localT => {
                                 if (localT && localT.status === 'registration') {
@@ -567,13 +567,13 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
                                         const localDeletedIds = localT.deletedPlayerIds || [];
                                         cloudT.players.forEach(cloudP => {
                                             if (!cloudP) return;
-                                            const existsLocally = Array.isArray(localT.players) && localT.players.some(p => 
-                                                p && (p.id === cloudP.id || 
-                                                p.phone === cloudP.phone || 
-                                                (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase()))
+                                            const existsLocally = Array.isArray(localT.players) && localT.players.some(p =>
+                                                p && (p.id === cloudP.id ||
+                                                    p.phone === cloudP.phone ||
+                                                    (p.nickname && cloudP.nickname && p.nickname.toLowerCase() === cloudP.nickname.toLowerCase()))
                                             );
                                             const isDeletedLocally = localDeletedIds.includes(cloudP.id);
-                                            
+
                                             if (!existsLocally && !isDeletedLocally) {
                                                 if (!Array.isArray(localT.players)) {
                                                     localT.players = [];
@@ -587,7 +587,7 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
                                 }
                             });
                         }
-                        
+
                         if (mergedAny) {
                             try {
                                 fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
@@ -648,10 +648,10 @@ app.get('/api/system/subscription-verify', async (req, res) => {
                     // Margin of 75 minutes (4,500,000 ms) to accommodate Daylight Saving changes + small clock drifts
                     if (now < new Date(lastSeen.getTime() - 4500000)) {
                         console.error(`[Security] Date tampering detected for ${mid}. Now: ${now.toISOString()}, LastSeen: ${lastSeen.toISOString()}`);
-                        return res.json({ 
-                            success: false, 
-                            status: 'tampered', 
-                            message: 'تنبيه أمني: تم اكتشاف تلاعب في تاريخ الجهاز. يرجى ضبط الساعة للوقت الحالي والاتصال بالإنترنت.' 
+                        return res.json({
+                            success: false,
+                            status: 'tampered',
+                            message: 'تنبيه أمني: تم اكتشاف تلاعب في تاريخ الجهاز. يرجى ضبط الساعة للوقت الحالي والاتصال بالإنترنت.'
                         });
                     }
                 }
@@ -752,27 +752,27 @@ app.get('/api/system/subscription-verify', async (req, res) => {
         // No active subscription found
         saveSubToLocal({ status: 'none', success: false });
         res.json({ success: false, status: 'none', mid: mid });
-    } catch (e) { 
+    } catch (e) {
         console.error("[Subscription] Online verification failed. Trying secure offline fallback...", e.message);
-        
+
         if (!mid) {
             try { mid = (await getMid()).toUpperCase().trim(); } catch (err) { mid = ''; }
         }
-        
+
         // --- SECURE OFFLINE FALLBACK CRYPTOGRAPHIC VALIDATION ---
         const localPath = getDataPath();
         if (fs.existsSync(localPath)) {
             try {
                 const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
                 const localSub = localData.classico_subscription;
-                
+
                 if (localSub && localSub.status === 'active' && localSub.token) {
                     const tokenParts = localSub.token.split('.');
                     const sig = tokenParts.pop();
                     const tokenPayload = tokenParts.join('.');
                     if (tokenPayload && sig) {
                         const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(tokenPayload).digest('hex');
-                        
+
                         if (sig === expectedSig) {
                             const [cachedMid, status, expiryStr] = tokenPayload.split('|');
                             if (status === 'active') {
@@ -826,7 +826,7 @@ app.get('/api/system/subscription-verify', async (req, res) => {
                 console.error("[Security] Offline cryptographic check error:", err.message);
             }
         }
-        res.json({ success: false, status: 'error', message: 'خطأ في الاتصال بسيرفر التحقق ولم يتم العثور على تفعيل محلي موثق.' }); 
+        res.json({ success: false, status: 'error', message: 'خطأ في الاتصال بسيرفر التحقق ولم يتم العثور على تفعيل محلي موثق.' });
     }
 });
 
@@ -844,7 +844,7 @@ app.post('/api/system/sync-subscription', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Database not found' });
         }
         const localData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-        
+
         // Preserve last_online_check if it exists in local storage but is missing in frontend sync payload
         if (localData.classico_subscription && localData.classico_subscription.last_online_check && !subData.last_online_check) {
             subData.last_online_check = localData.classico_subscription.last_online_check;
@@ -878,7 +878,7 @@ app.post('/api/system/activate-additional', async (req, res) => {
         // 2. Double check if this key belongs to a subscription with this phone number
         const ownerMid = targetKey.owner_machine_id;
         const subs = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${ownerMid}&phone_number=eq.${phone}&status=eq.active&select=id`);
-        
+
         if (!subs || subs.length === 0) {
             return res.json({ success: false, message: 'رقم الهاتف غير مطابق لمالك هذا الكود' });
         }
@@ -933,7 +933,7 @@ app.post('/api/system/subscription-request', async (req, res) => {
             machine_id: mid,
             ...payload
         });
-        
+
         res.json({ success: true, status: 'pending' });
     } catch (e) {
         console.error("[Subscription] ERROR:", e);
@@ -953,9 +953,9 @@ app.get('/api/system/subscription-history', async (req, res) => {
             // Graceful fallback to avoid throwing 500 errors in browser console
             res.json([]);
         }
-    } catch (e) { 
+    } catch (e) {
         console.error("[Subscription History] Global error:", e);
-        res.json([]); 
+        res.json([]);
     }
 });
 
@@ -1012,7 +1012,7 @@ app.post('/api/system/start-tunnel', (req, res) => {
         tunnelProcess.stdout.on('data', (data) => {
             const output = data.toString();
             console.log(`[Tunnel SSH Log] ${output}`);
-            
+
             // Match the generated lhr.life HTTPS URL
             const match = output.match(/(https:\/\/[a-zA-Z0-9.-]+\.lhr\.life)/i);
             if (match && match[1]) {
@@ -1072,7 +1072,7 @@ async function startLocaltunnelFallback(res) {
         console.log('[Tunnel Fallback] Starting localtunnel programmatically...');
         const localtunnel = require('localtunnel');
         const tunnel = await localtunnel({ port: 3000 });
-        
+
         tunnelUrl = tunnel.url;
         tunnelProcess = tunnel;
 
@@ -1253,9 +1253,9 @@ app.get('/api/system/cloud-backup-info', async (req, res) => {
             console.error(`[Cloud Backup Info] Supabase query failed for ${mid}:`, dbErr);
             res.json(null);
         }
-    } catch (e) { 
+    } catch (e) {
         console.error("[Cloud Backup Info] Global error:", e);
-        res.json(null); 
+        res.json(null);
     }
 });
 
@@ -1468,196 +1468,9 @@ setInterval(runMaintenance, 60 * 60 * 1000);
 setTimeout(runMaintenance, 60 * 1000);
 
 // --- ADMIN / OWNER PORTAL ENDPOINTS ---
-
-app.get('/api/admin/subscriptions', async (req, res) => {
-    try {
-        const subs = await SupabaseService.request('GET', '/rest/v1/subscriptions?select=*&order=created_at.desc');
-        res.json({ success: true, subs });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
-app.post('/api/admin/approve', async (req, res) => {
-    try {
-        const { machine_id, plan_type } = req.body;
-        if (!machine_id) return res.status(400).json({ error: 'Missing machine_id' });
-
-        const mid = machine_id.toUpperCase().trim();
-        console.log(`[Admin] Manual Approving ${mid} (Plan: ${plan_type})`);
-
-        // 1. Get subscription details
-        const results = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${mid}`);
-        const sub = (results && results.length > 0) ? results[0] : null;
-        if (!sub) {
-            console.error(`[Admin] Subscription not found for MID: ${mid}`);
-            return res.status(404).json({ error: 'Subscription not found' });
-        }
-
-        const maxDevices = parseInt(sub.max_devices) || 1;
-        let days = 30; // Default monthly
-        if (plan_type === 'yearly') days = 365;
-        else if (plan_type === 'trial') days = 7;
-        const expiry = new Date();
-        expiry.setDate(expiry.getDate() + days);
-
-        // 2. Activate main IMMEDIATELY
-        console.log(`[Admin] Activating main device...`);
-        await SupabaseService.request('PATCH', `/rest/v1/subscriptions?machine_id=eq.${mid}`, {
-            status: 'active',
-            activated_at: new Date().toISOString(),
-            expires_at: expiry.toISOString()
-        });
-
-        // 2b. LOG THE ACTIVATION
-        try {
-            await SupabaseService.request('POST', '/rest/v1/subscription_logs', {
-                machine_id: mid,
-                plan_type: plan_type,
-                status: 'active',
-                created_at: new Date().toISOString(),
-                expires_at: expiry.toISOString(),
-                action: 'approved'
-            });
-        } catch (logErr) { console.error("[Admin] Failed to log approval:", logErr); }
-
-        // 3. Respond to client IMMEDIATELY (Fast UI response)
-        res.json({ success: true, message: 'تم تفعيل الجهاز الرئيسي وتسجيل العملية...' });
-
-        // 4. Generate serials for others in the BACKGROUND (Non-blocking)
-        if (maxDevices > 1) {
-            (async () => {
-                try {
-                    console.log(`[Admin] Plan allows ${maxDevices} devices. Checking keys in background...`);
-                    const existingKeys = await SupabaseService.request('GET', `/rest/v1/subscription_keys?owner_machine_id=eq.${mid}`);
-                    const currentKeyCount = Array.isArray(existingKeys) ? existingKeys.length : 0;
-                    const keysToGenerate = (maxDevices - 1) - currentKeyCount;
-
-                    if (keysToGenerate > 0) {
-                        console.log(`[Admin] Generating ${keysToGenerate} new serial keys...`);
-                        for (let i = 0; i < keysToGenerate; i++) {
-                            const randomKey = 'CLASS-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-                            await SupabaseService.request('POST', '/rest/v1/subscription_keys', {
-                                owner_machine_id: mid,
-                                serial_key: randomKey,
-                                status: 'unused',
-                                expires_at: expiry.toISOString()
-                            });
-                        }
-                        console.log(`[Admin] Background key generation completed for ${mid}`);
-                    }
-                } catch (bgErr) {
-                    console.error(`[Admin] Background Key Gen Failed for ${mid}:`, bgErr);
-                }
-            })();
-        }
-
-    } catch (e) {
-        console.error(`[Admin] Approval Failed:`, e);
-        if (!res.headersSent) {
-            res.status(500).json({ 
-                success: false, 
-                error: e.message || 'Internal Server Error'
-            });
-        }
-    }
-});
-
-app.post('/api/admin/unlink-key', async (req, res) => {
-    try {
-        const { key_id } = req.body;
-        if (!key_id) return res.status(400).json({ error: 'Missing key_id' });
-        
-        await SupabaseService.request('PATCH', `/rest/v1/subscription_keys?id=eq.${key_id}`, {
-            status: 'unused',
-            used_by: null
-        });
-        
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
-app.post('/api/admin/update-key-name', async (req, res) => {
-    try {
-        const { key_id, device_name } = req.body;
-        if (!key_id) return res.status(400).json({ error: 'Missing key_id' });
-        
-        await SupabaseService.request('PATCH', `/rest/v1/subscription_keys?id=eq.${key_id}`, {
-            device_name: device_name || ''
-        });
-        
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
-app.get('/api/admin/my-keys', async (req, res) => {
-    try {
-        const mid = (await getMid()).toUpperCase().trim();
-        const keys = await SupabaseService.request('GET', `/rest/v1/subscription_keys?owner_machine_id=eq.${mid}`);
-        res.json({ success: true, keys: keys || [] });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
-app.get('/api/admin/all-keys', async (req, res) => {
-    try {
-        const keys = await SupabaseService.request('GET', '/rest/v1/subscription_keys?select=*');
-        res.json({ success: true, keys: keys || [] });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
-
-app.post('/api/admin/reject', async (req, res) => {
-    try {
-        const { machine_id } = req.body;
-        if (!machine_id) return res.status(400).json({ error: 'Missing machine_id' });
-        
-        const mid = machine_id.toUpperCase().trim();
-        console.log(`[Admin] 🗑️ Request to DELETE subscriber: [${mid}]`);
-
-        // 1. Get info for logging before delete
-        const results = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${mid}`);
-        const sub = (results && results.length > 0) ? results[0] : null;
-
-        if (!sub) {
-            console.warn(`[Admin] ⚠️ Subscriber [${mid}] not found in Database.`);
-        }
-
-        // 2. Delete from subscriptions
-        console.log(`[Admin] Executing DELETE for ${mid} from subscriptions table...`);
-        await SupabaseService.request('DELETE', `/rest/v1/subscriptions?machine_id=eq.${mid}`);
-
-        // 2b. Delete associated keys (Cleanup)
-        try {
-            await SupabaseService.request('DELETE', `/rest/v1/subscription_keys?owner_machine_id=eq.${mid}`);
-            console.log(`[Admin] Keys cleaned up for ${mid}`);
-        } catch (err) { console.error("[Admin] Key cleanup failed:", err); }
-
-        // 3. LOG THE DELETION
-        try {
-            await SupabaseService.request('POST', '/rest/v1/subscription_logs', {
-                machine_id: mid,
-                plan_type: sub ? sub.plan_type : 'unknown',
-                status: 'deleted',
-                created_at: new Date().toISOString(),
-                action: 'rejected'
-            });
-            console.log(`[Admin] Deletion logged for ${mid}`);
-        } catch (logErr) { console.error("[Admin] Failed to log rejection:", logErr); }
-
-        console.log(`[Admin] ✅ Process finished for ${mid}`);
-        res.json({ success: true });
-    } catch (e) {
-        console.error(`[Admin] ❌ Global Reject Error for ${mid}:`, e);
-        res.status(500).json({ success: false, error: e.message });
-    }
-});
+// Admin endpoints have been securely removed from the local server.
+// The Owner Portal now operates exclusively in Cloud Mode (direct Supabase connection)
+// using the authenticated admin JWT, ensuring maximum security.
 
 // 7. SPA Routing & Fallback (Must be last)
 app.get('*', (req, res) => {

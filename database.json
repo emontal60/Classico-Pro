@@ -738,13 +738,20 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-06-07T23:31:08.207Z"
+    "last_online_check": "2026-06-08T20:23:58.106Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
     "appName": "Classico"
   },
   "classico_activity_log": [
+    {
+      "id": 1780947399021.8135,
+      "timestamp": "2026-06-08T19:36:39.021Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
     {
       "id": 1780875090460.9885,
       "timestamp": "2026-06-07T23:31:30.460Z",
@@ -1006,5 +1013,6 @@
     }
   ],
   "is_activation": false,
-  "is_reset": false
+  "is_reset": false,
+  "last_seen_time": "2026-06-08T20:23:57.812Z"
 }
