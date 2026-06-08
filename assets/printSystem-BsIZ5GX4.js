@@ -1,4 +1,4 @@
-import{t as e}from"./appStore-Coy8rI9U.js";var t=(t,n=!1)=>{let r=e(),i=r.appSettings?.appName||`Classico`,a=r.appSettings?.appLogo||`/logo1.png`,o=(t.orders||[]).map(e=>`
+import{t as e}from"./appStore-BK-o2hpz.js";var t=(t,n=!1)=>{let r=e(),i=r.appSettings?.appName||`Classico`,a=r.appSettings?.appLogo||`/logo1.png`,o=(t.orders||[]).map(e=>`
     <div class="invoice-row">
       <span class="val-bold">${(e.total||0).toFixed(2)} ج</span>
       <span class="item-name">${e.qty}x ${e.name}</span>
