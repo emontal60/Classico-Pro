@@ -1,6 +1,6 @@
 {
   "name": "classico-local-server",
-  "version": "1.0.47",
+  "version": "1.0.48",
   "description": "Local server for Classico App persistence",
   "main": "electron/main.js",
   "scripts": {
