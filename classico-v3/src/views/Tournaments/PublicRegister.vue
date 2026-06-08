@@ -912,6 +912,48 @@ const registrationSuccess = ref(false);
 const lastTxId = ref('');
 const viewMode = ref('register');
 
+// --- Follow / Player Dashboard State ---
+const loggedInPlayer = ref(null);
+const followLoginError = ref('');
+const followForm = reactive({ nickname: '', phone: '' });
+
+const handleFollowLogin = () => {
+  followLoginError.value = '';
+  const t = activeTournament.value;
+  if (!t || !t.players) {
+    followLoginError.value = 'لا تتوفر بيانات البطولة.';
+    return;
+  }
+  const found = t.players.find(p =>
+    p &&
+    p.nickname && p.nickname.trim().toLowerCase() === followForm.nickname.trim().toLowerCase() &&
+    p.phone && p.phone.trim() === followForm.phone.trim()
+  );
+  if (found) {
+    loggedInPlayer.value = found;
+  } else {
+    followLoginError.value = 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف.';
+  }
+};
+
+const handleFollowLogout = () => {
+  loggedInPlayer.value = null;
+  followForm.nickname = '';
+  followForm.phone = '';
+  followLoginError.value = '';
+};
+
+const playerNextMatch = computed(() => {
+  if (!loggedInPlayer.value || !activeTournament.value?.matches) return null;
+  const pid = loggedInPlayer.value.id;
+  const upcoming = activeTournament.value.matches.find(
+    m => !m.played && (m.player1Id === pid || m.player2Id === pid)
+  );
+  if (!upcoming) return null;
+  const opponentId = upcoming.player1Id === pid ? upcoming.player2Id : upcoming.player1Id;
+  return { ...upcoming, opponentId };
+});
+
 const form = reactive({
   fullName: '',
   nickname: '',
