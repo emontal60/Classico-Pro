@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { useUIStore } from './uiStore';
 
 const API_BASE = window.location.origin && !window.location.origin.includes('file://') && !window.location.origin.includes('vscode-webview')
   ? `${window.location.origin}/api`
@@ -321,7 +322,7 @@ export const useAppStore = defineStore('app', {
           }
 
           if (this.subscriptionStatus === 'tampered') {
-             const ui = (await import('./uiStore')).useUIStore();
+             const ui = useUIStore();
              ui.showToast(data.message || 'تنبيه أمني: تم اكتشاف تلاعب في الوقت!', 'error');
           }
         } else {
@@ -352,7 +353,7 @@ export const useAppStore = defineStore('app', {
           const now = new Date();
           const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
 
-          const ui = (await import('./uiStore')).useUIStore();
+          const ui = useUIStore();
 
           if (diffDays <= 3 && diffDays > 0) {
             ui.showToast(`تنبيه هام جداً 🚨: متبقي ${diffDays} أيام فقط! سيتم إغلاق النظام تلقائياً إذا لم يتم التجديد.`, 'error');

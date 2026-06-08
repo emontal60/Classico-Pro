@@ -959,6 +959,101 @@ app.get('/api/system/subscription-history', async (req, res) => {
     }
 });
 
+// --- MULTI-DEVICE MANAGEMENT ENDPOINTS ---
+app.get('/api/system/my-keys', async (req, res) => {
+    try {
+        const mid = (await getMid()).toUpperCase().trim();
+        const keys = await SupabaseService.request('GET', `/rest/v1/subscription_keys?owner_machine_id=eq.${mid}&select=*&order=created_at.asc`);
+        res.json({ success: true, keys: keys || [] });
+    } catch (e) {
+        console.error("[My Keys] Error:", e);
+        res.status(500).json({ success: false, error: 'Failed to fetch keys' });
+    }
+});
+
+app.post('/api/system/update-key-name', async (req, res) => {
+    try {
+        const mid = (await getMid()).toUpperCase().trim();
+        const { key_id, device_name } = req.body;
+        
+        await SupabaseService.request('PATCH', `/rest/v1/subscription_keys?id=eq.${key_id}&owner_machine_id=eq.${mid}`, {
+            device_name: device_name
+        });
+        res.json({ success: true });
+    } catch (e) {
+        console.error("[Update Key Name] Error:", e);
+        res.status(500).json({ success: false, error: 'Failed to update name' });
+    }
+});
+
+app.post('/api/system/activate-additional', async (req, res) => {
+    try {
+        const mid = (await getMid()).toUpperCase().trim();
+        const { serial, phone } = req.body;
+        
+        // 1. Fetch the unused key by serial
+        const keys = await SupabaseService.request('GET', `/rest/v1/subscription_keys?serial_key=eq.${serial}&status=eq.unused&select=*`);
+        if (!keys || keys.length === 0) {
+            return res.json({ success: false, message: 'الكود غير صحيح أو مستخدم مسبقاً.' });
+        }
+        
+        const keyData = keys[0];
+        
+        // 2. Fetch the owner's subscription to verify phone number
+        const parentSubs = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${keyData.owner_machine_id}&select=phone_number,expires_at,plan_type,status`);
+        if (!parentSubs || parentSubs.length === 0) {
+            return res.json({ success: false, message: 'الاشتراك الرئيسي غير موجود.' });
+        }
+        
+        const parentSub = parentSubs[0];
+        
+        if (parentSub.status !== 'active') {
+            return res.json({ success: false, message: 'الاشتراك الرئيسي غير نشط.' });
+        }
+        
+        if (String(parentSub.phone_number).trim() !== String(phone).trim()) {
+            return res.json({ success: false, message: 'رقم الهاتف غير مطابق لاشتراك الفرع الرئيسي.' });
+        }
+        
+        // 3. Mark key as used by this mid
+        await SupabaseService.request('PATCH', `/rest/v1/subscription_keys?id=eq.${keyData.id}`, {
+            status: 'used',
+            used_by: mid,
+            activated_at: new Date().toISOString(),
+            expires_at: parentSub.expires_at
+        });
+        
+        // 4. Create or update subscription row for the sub-device
+        const subPayload = {
+            plan_type: parentSub.plan_type,
+            status: 'active',
+            amount: 0,
+            payment_method: 'multi_device_key',
+            transaction_id: serial,
+            phone_number: parentSub.phone_number,
+            device_limit: 20,
+            max_devices: 1,
+            expires_at: parentSub.expires_at,
+            activated_at: new Date().toISOString()
+        };
+        
+        const existingSub = await SupabaseService.request('GET', `/rest/v1/subscriptions?machine_id=eq.${mid}`);
+        if (existingSub && existingSub.length > 0) {
+            await SupabaseService.request('PATCH', `/rest/v1/subscriptions?machine_id=eq.${mid}`, subPayload);
+        } else {
+            await SupabaseService.request('POST', `/rest/v1/subscriptions`, {
+                machine_id: mid,
+                ...subPayload
+            });
+        }
+        
+        res.json({ success: true, message: 'تم تفعيل الجهاز الإضافي بنجاح.' });
+    } catch (e) {
+        console.error("[Activate Additional] Error:", e);
+        res.status(500).json({ success: false, message: 'حدث خطأ في النظام.' });
+    }
+});
+
 // --- CLOUD TUNNEL & LOCAL IP ENDPOINTS FOR PLAYSTATION TOURNAMENTS ---
 let tunnelProcess = null;
 let tunnelUrl = null;

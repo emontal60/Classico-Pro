@@ -118,7 +118,7 @@ const remainingSlots = computed(() => Math.max(0, subscriptionCount.value - (act
 const fetchMyKeys = async () => {
   loading.value = true;
   try {
-    const res = await axios.get('http://localhost:3000/api/admin/my-keys');
+    const res = await axios.get('http://localhost:3000/api/system/my-keys');
     myKeys.value = res.data.keys || [];
   } catch (err) {
     console.error("Failed to fetch keys:", err);
@@ -129,7 +129,7 @@ const fetchMyKeys = async () => {
 
 const saveKeyName = async (key) => {
   try {
-    await axios.post('http://localhost:3000/api/admin/update-key-name', {
+    await axios.post('http://localhost:3000/api/system/update-key-name', {
       key_id: key.id,
       device_name: key.device_name
     });

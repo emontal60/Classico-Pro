@@ -119,7 +119,7 @@ const remainingSlots = computed(() => Math.max(0, subscriptionCount.value - (act
 const fetchMyKeys = async () => {
   loading.value = true;
   try {
-    const res = await axios.get('http://localhost:3000/api/admin/my-keys');
+    const res = await axios.get('http://localhost:3000/api/system/my-keys');
     myKeys.value = res.data.keys || [];
     // Keep the global branch select dropdown lists fresh too
     store.fetchMultiBranchData().catch(err => console.error("Failed to sync global branch data:", err));
@@ -132,7 +132,7 @@ const fetchMyKeys = async () => {
 
 const saveKeyName = async (key) => {
   try {
-    await axios.post('http://localhost:3000/api/admin/update-key-name', {
+    await axios.post('http://localhost:3000/api/system/update-key-name', {
       key_id: key.id,
       device_name: key.device_name
     });
