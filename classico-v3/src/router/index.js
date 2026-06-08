@@ -2,38 +2,24 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import { watch } from 'vue';
 import { useAppStore } from '../stores/appStore';
 
-// Views
-import LoginView from '../views/LoginView.vue';
-import MonitoringView from '../views/MonitoringView.vue';
-import LoungeView from '../views/LoungeView.vue';
-import ArchiveView from '../views/ArchiveView.vue';
-import CustomersView from '../views/CustomersView.vue';
-import ExpensesView from '../views/ExpensesView.vue';
-import MenuView from '../views/MenuView.vue';
-import SettingsView from '../views/Settings/SettingsView.vue';
-import GamepadView from '../views/GamepadView.vue';
-import SubscriptionsView from '../views/SubscriptionsView.vue';
-import PaymentView from '../views/PaymentView.vue';
-import WaitingView from '../views/WaitingView.vue';
-import TournamentsView from '../views/Tournaments/TournamentsView.vue';
-import PublicRegister from '../views/Tournaments/PublicRegister.vue';
+// Views are lazy-loaded in the routes array
 
 const routes = [
-  { path: '/login', name: 'Login', component: LoginView },
-  { path: '/subscriptions', name: 'Subscriptions', component: SubscriptionsView },
-  { path: '/payment', name: 'Payment', component: PaymentView },
-  { path: '/waiting', name: 'Waiting', component: WaitingView },
-  { path: '/', name: 'Monitoring', component: MonitoringView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/lounge', name: 'Lounge', component: LoungeView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/archive', name: 'Archive', component: ArchiveView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/customers', name: 'Customers', component: CustomersView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/expenses', name: 'Expenses', component: ExpensesView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/menu', name: 'Menu', component: MenuView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/gamepad', name: 'Gamepad', component: GamepadView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/settings', name: 'Settings', component: SettingsView, meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/login', name: 'Login', component: () => import('../views/LoginView.vue') },
+  { path: '/subscriptions', name: 'Subscriptions', component: () => import('../views/SubscriptionsView.vue') },
+  { path: '/payment', name: 'Payment', component: () => import('../views/PaymentView.vue') },
+  { path: '/waiting', name: 'Waiting', component: () => import('../views/WaitingView.vue') },
+  { path: '/', name: 'Monitoring', component: () => import('../views/MonitoringView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/lounge', name: 'Lounge', component: () => import('../views/LoungeView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/archive', name: 'Archive', component: () => import('../views/ArchiveView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/customers', name: 'Customers', component: () => import('../views/CustomersView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/expenses', name: 'Expenses', component: () => import('../views/ExpensesView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/menu', name: 'Menu', component: () => import('../views/MenuView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/gamepad', name: 'Gamepad', component: () => import('../views/GamepadView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/settings', name: 'Settings', component: () => import('../views/Settings/SettingsView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
   { path: '/multi-device', name: 'MultiDevice', component: () => import('../views/Settings/MultiDeviceView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/tournaments', name: 'Tournaments', component: TournamentsView, meta: { requiresAuth: true, requiresSubscription: true } },
-  { path: '/tournaments/register', name: 'TournamentRegister', component: PublicRegister },
+  { path: '/tournaments', name: 'Tournaments', component: () => import('../views/Tournaments/TournamentsView.vue'), meta: { requiresAuth: true, requiresSubscription: true } },
+  { path: '/tournaments/register', name: 'TournamentRegister', component: () => import('../views/Tournaments/PublicRegister.vue') },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];
 
