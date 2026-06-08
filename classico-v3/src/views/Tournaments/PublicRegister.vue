@@ -197,7 +197,7 @@
               <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
             </div>
 
-            <form v-else @submit.prevent="openSummaryModal" class="registration-form">
+            <form v-else @submit.prevent="submitRegistration" class="registration-form">
               <div class="input-group">
                 <label>الاسم رباعي بالكامل 👤</label>
                 <input 
