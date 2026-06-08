@@ -1,0 +1,1 @@
+var e=``+new URL(`logoapp-DUURGlvD.png`,import.meta.url).href;export{e as t};
