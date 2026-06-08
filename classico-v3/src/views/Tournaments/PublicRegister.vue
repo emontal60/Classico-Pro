@@ -197,7 +197,7 @@
               <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
             </div>
 
-            <form v-else @submit.prevent="submitRegistration" class="registration-form">
+            <form v-else @submit.prevent="openSummaryModal" class="registration-form">
               <div class="input-group">
                 <label>الاسم رباعي بالكامل 👤</label>
                 <input 
@@ -897,6 +897,80 @@
       </div>
     </div>
   </div>
+
+  <!-- ===== Payment Summary Modal ===== -->
+  <Teleport to="body">
+    <div v-if="showSummaryModal" class="summary-modal-overlay" @click.self="showSummaryModal = false">
+      <div class="summary-modal-card animate-scale-in">
+        <!-- Header -->
+        <div class="summary-modal-header">
+          <span style="font-size: 2rem;">📋</span>
+          <h3>مراجعة طلبك قبل التأكيد</h3>
+          <p>تأكد من صحة بياناتك قبل الإرسال</p>
+        </div>
+
+        <!-- Player Info -->
+        <div class="summary-section">
+          <div class="summary-row">
+            <span class="summary-label">👤 الاسم رباعي</span>
+            <span class="summary-value">{{ form.fullName }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">👾 الاسم المستعار</span>
+            <span class="summary-value cyan-glow">{{ form.nickname }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">📱 رقم الهاتف</span>
+            <span class="summary-value">{{ form.phone }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">⚽ شعار الفريق</span>
+            <span class="summary-value" style="display: flex; align-items: center; gap: 8px;">
+              <span :style="getLogoStyle(form.logoId)" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;">{{ getLogoSymbol(form.logoId) }}</span>
+              <span style="font-size:0.8rem;color:#94a3b8;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div v-if="activeTournament && activeTournament.fee > 0" class="summary-section" style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem;">
+          <div class="summary-row">
+            <span class="summary-label">💰 قيمة الاشتراك</span>
+            <span class="summary-value" style="color: #10b981; font-weight: 900;">{{ activeTournament.fee }} ج</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">💳 طريقة الدفع</span>
+            <span class="summary-value">
+              {{ form.paymentMethod === 'instapay' ? '📲 إنستاباي' : form.paymentMethod === 'wallet' ? '📱 محفظة' : '💵 كاش بالصالة' }}
+            </span>
+          </div>
+          <div v-if="form.paymentMethod !== 'cash'" class="summary-row">
+            <span class="summary-label">🔢 رقم العملية</span>
+            <span class="summary-value" style="font-family: monospace; color: #fbbf24;">{{ form.transactionId || '---' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">💵 المبلغ المدفوع</span>
+            <span class="summary-value" style="color: #fbbf24; font-weight: 900;">{{ form.amountPaid }} ج</span>
+          </div>
+        </div>
+
+        <!-- Warning note -->
+        <div class="summary-note">
+          ⚠️ تأكد من صحة جميع البيانات، لا يمكن تعديلها بعد الإرسال.
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="summary-actions">
+          <button @click="showSummaryModal = false" class="btn-back-edit">✏️ تعديل البيانات</button>
+          <button @click="confirmAndSubmit" class="btn-confirm-submit" :disabled="submitting">
+            <span v-if="submitting">⌛ جاري الإرسال...</span>
+            <span v-else>✅ تأكيد وإرسال الطلب</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
 </template>
 
 <script setup>
@@ -911,6 +985,33 @@ const submitting = ref(false);
 const registrationSuccess = ref(false);
 const lastTxId = ref('');
 const viewMode = ref('register');
+const showSummaryModal = ref(false);
+
+const openSummaryModal = () => {
+  // Basic validation before showing modal
+  if (!form.fullName.trim()) { alert('يرجى إدخال الاسم الرباعي.'); return; }
+  if (!form.nickname.trim()) { alert('يرجى إدخال الاسم المستعار.'); return; }
+  const t = activeTournament.value;
+  if (!t) return;
+  if (t.fee > 0) {
+    if (!form.phone.trim()) { alert('يرجى إدخال رقم الهاتف.'); return; }
+    if ((form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet') && !form.transactionId.trim()) {
+      alert('يرجى إدخال رقم العملية المرجعي.'); return;
+    }
+  }
+  if (t.players && t.players.find(p => p && p.nickname && p.nickname.trim().toLowerCase() === form.nickname.trim().toLowerCase())) {
+    alert('هذا الاسم المستعار مسجل بالفعل! يرجى اختيار اسم مستعار آخر.'); return;
+  }
+  if (t.players && t.players.find(p => p && p.phone && p.phone.trim() === form.phone.trim())) {
+    alert('رقم الهاتف هذا مسجل بالفعل في هذه البطولة!'); return;
+  }
+  showSummaryModal.value = true;
+};
+
+const confirmAndSubmit = async () => {
+  showSummaryModal.value = false;
+  await submitRegistration();
+};
 
 // --- Follow / Player Dashboard State ---
 const loggedInPlayer = ref(null);
@@ -1664,6 +1765,131 @@ watch(
 </script>
 
 <style>
+/* ===== Summary Modal ===== */
+.summary-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  direction: rtl;
+}
+.summary-modal-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 24px;
+  padding: 2rem 1.5rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(6, 182, 212, 0.1);
+}
+.summary-modal-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.summary-modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0.5rem 0 0.3rem 0;
+}
+.summary-modal-header p {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+.summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  gap: 1rem;
+}
+.summary-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.summary-value {
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  font-weight: 700;
+  text-align: left;
+}
+.summary-value.cyan-glow {
+  color: #06b6d4;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+}
+.summary-note {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 0.78rem;
+  color: #fbbf24;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+.summary-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+.btn-back-edit {
+  flex: 1;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Cairo', sans-serif;
+}
+.btn-back-edit:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.btn-confirm-submit {
+  flex: 2;
+  padding: 0.85rem;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Cairo', sans-serif;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+.btn-confirm-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+.btn-confirm-submit:disabled {
+  background: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 /* CSS Variables & Layout Overrides */
 .mobile-registration-wrapper {
   background: radial-gradient(circle at 50% 10%, #080f1e 0%, #03060f 100%) !important;
