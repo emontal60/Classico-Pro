@@ -1343,7 +1343,7 @@ const getTournamentTypeLabel = (type) => {
 
 // Cup Brackets rounds
 const cupRounds = computed(() => {
-  if (!activeTournament.value || !activeTournament.value.matches.length) return [];
+  if (!activeTournament.value || !(activeTournament.value.matches || []).length) return [];
   
   const isCup = activeTournament.value.type === 'cup';
   const isGroupsKo = activeTournament.value.type === 'groups_knockout' && activeTournament.value.stage === 'knockout';
@@ -1351,7 +1351,7 @@ const cupRounds = computed(() => {
   if (!isCup && !isGroupsKo) return [];
   
   // Filter matches to only knockout matches
-  const matches = activeTournament.value.matches.filter(m => !m.isGroupStage);
+  const matches = (activeTournament.value.matches || []).filter(m => !m.isGroupStage);
   if (matches.length === 0) return [];
   
   const maxRound = Math.max(...matches.map(m => m.roundIndex));
