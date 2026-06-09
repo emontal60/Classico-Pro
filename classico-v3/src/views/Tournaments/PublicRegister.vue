@@ -895,9 +895,6 @@
               </span>
               <div class="p-info">
                 <span class="p-nick">{{ p.nickname }}</span>
-                <span class="p-status" :class="{ paid: p.paid }">
-                  {{ p.paid ? 'مؤكد السداد ✅' : (p.amountConfirmed > 0 ? `تم دفع ${p.amountConfirmed} ج 💰` : 'بانتظار الدفع 💳') }}
-                </span>
               </div>
             </div>
           </div>
@@ -1023,6 +1020,7 @@ const confirmAndSubmit = async () => {
 
 // --- Follow / Player Dashboard State ---
 const loggedInPlayer = ref(null);
+const playerViewMode = ref('dashboard'); // 'dashboard', 'matches', 'players'
 const followLoginError = ref('');
 const followForm = reactive({ nickname: '', phone: '' });
 
@@ -1040,6 +1038,12 @@ const handleFollowLogin = () => {
   );
   if (found) {
     loggedInPlayer.value = found;
+    // After login, show matches view if tournament started, otherwise stay on dashboard
+    if (activeTournament.value.status !== 'registration') {
+      playerViewMode.value = 'matches';
+    } else {
+      playerViewMode.value = 'dashboard';
+    }
   } else {
     followLoginError.value = 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف.';
   }
