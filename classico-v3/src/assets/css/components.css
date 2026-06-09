@@ -450,10 +450,16 @@ th {
     overflow-y: auto;
     z-index: 5000;
     margin-top: 5px;
-    background: #1e293b;
+    background: #1e293b !important;
     border: 1px solid var(--accent-primary);
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+}
+
+.light-mode .searchable-select .options-list {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.15) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
 }
 
 .option-item {

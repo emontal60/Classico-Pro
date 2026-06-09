@@ -524,13 +524,18 @@ const formatDateTime = (iso) => {
   max-height: 250px;
   overflow-y: auto;
   z-index: 100;
-  background: #1e293b; /* Opaque Dark Blue */
+  background: #1e293b !important; /* Force opaque in dark mode */
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   border: 1px solid var(--border-color);
   border-radius: 8px;
 }
+:global(.light-mode) .searchable-select .options-list {
+  background: #ffffff !important; /* Force opaque in light mode */
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
 .option-item { padding: 0.5rem; cursor: pointer; border-bottom: 1px solid var(--border-color); }
-.option-item:hover { background: var(--bg-hover); }
+.option-item:hover { background: rgba(255, 255, 255, 0.08) !important; }
+:global(.light-mode) .option-item:hover { background: rgba(15, 23, 42, 0.06) !important; }
 .section-header-premium {
   display: flex;
   justify-content: space-between;

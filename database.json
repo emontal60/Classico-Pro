@@ -676,9 +676,21 @@
     }
   ],
   "classico_history": [],
-  "classico_customers": [],
+  "classico_customers": [
+    {
+      "id": 1781036531565,
+      "clientId": 1781036531560,
+      "name": "ايمن",
+      "ledger": []
+    }
+  ],
   "classico_archived_customers": [],
-  "classico_clients_dir": [],
+  "classico_clients_dir": [
+    {
+      "id": 1781036531560,
+      "name": "ايمن"
+    }
+  ],
   "classico_users": {
     "admin": {
       "role": "manager",
@@ -689,7 +701,14 @@
     }
   },
   "classico_archived_salaries": [],
-  "classico_lounge_invoices": [],
+  "classico_lounge_invoices": [
+    {
+      "id": 1781036499615,
+      "name": "فاتورة #101",
+      "startTime": "2026-06-09T20:21:39.615Z",
+      "orders": []
+    }
+  ],
   "classico_lounge_history": [],
   "classico_expenses": [],
   "classico_archived_expenses": [],
@@ -862,7 +881,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-09T20:10:50.065Z"
+    "last_online_check": "2026-06-09T20:41:22.219Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -1271,5 +1290,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-09T20:10:49.618Z"
+  "last_seen_time": "2026-06-09T20:41:21.517Z"
 }

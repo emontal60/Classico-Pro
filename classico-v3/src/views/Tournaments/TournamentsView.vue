@@ -13,8 +13,8 @@
           <!-- Left side: Sidebar list & forms / links -->
           <div class="side-column">
             <!-- 1. Tournaments Sidebar List -->
-            <div class="glass-panel" style="padding: 1rem !important; border-radius: 16px; display: flex; flex-direction: column; gap: 10px; background: rgba(30, 41, 59, 0.45); border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box;">
-              <h3 style="font-size: 0.95rem; font-weight: 800; color: #fff; margin: 0 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎮 البطولات والمسابقات النشطة</h3>
+            <div class="glass-panel sidebar-card-v3" style="padding: 1rem !important; border-radius: 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;">
+              <h3 class="sidebar-title-v3">🎮 البطولات والمسابقات النشطة</h3>
               
               <div class="tournaments-sidebar-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto;">
                 <div 
@@ -25,12 +25,12 @@
                 >
                   <div style="display: flex; justify-content: space-between; align-items: center;">
 
-                    <strong style="font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; color: #fff;">{{ t.name }}</strong>
+                    <strong class="sidebar-tour-name">{{ t.name }}</strong>
                     <span class="badge" :class="t.status" style="font-size: 0.65rem; padding: 2px 6px;">
                       {{ t.status === 'registration' ? 'تسجيل' : t.status === 'active' ? 'نشطة' : 'منتهية' }}
                     </span>
                   </div>
-                  <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">
+                  <div class="sidebar-tour-subtext" style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">
                     <span>نوع: {{ t.type === 'cup' ? 'كأس' : t.type === 'league' ? 'دوري' : 'مجموعات' }}</span>
                     <span>اللاعبين: {{ t.players?.filter(p => p && !p.isPendingApproval).length || 0 }} / {{ t.maxPlayers }}</span>
                   </div>
@@ -153,16 +153,22 @@
             <div v-else-if="activeTournament" class="glass-card-form animate-scale-in">
               <div class="form-header-v3">🔗 روابط الاشتراك والتسويق للبطولة</div>
               
-              <div class="active-tour-meta" style="margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                <h3 class="highlight" style="font-size: 1.15rem; margin: 0; word-break: break-word; line-height: 1.4;">{{ activeTournament.name }}</h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; width: 100%;">
-                  <span class="badge" :class="activeTournament.type">
-                    {{ activeTournament.type === 'cup' ? 'كأس' : activeTournament.type === 'league' ? 'دوري' : 'مجموعات وتصفيات' }}
-                  </span>
-                  <span class="badge" :class="activeTournament.status">
-                    {{ activeTournament.status === 'registration' ? 'مرحلة التسجيل' : 'نشطة الآن' }}
-                  </span>
+              <div class="active-tour-meta-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.2rem; width: 100%;">
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start; flex: 1; min-width: 0;">
+                  <h3 class="active-tour-highlight-title" style="font-size: 1.25rem; margin: 0; word-break: break-word; line-height: 1.4; font-weight: 800;">{{ activeTournament.name }}</h3>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; width: 100%;">
+                    <span class="badge" :class="activeTournament.type">
+                      {{ activeTournament.type === 'cup' ? 'كأس' : activeTournament.type === 'league' ? 'دوري' : 'مجموعات وتصفيات' }}
+                    </span>
+                    <span class="badge" :class="activeTournament.status">
+                      {{ activeTournament.status === 'registration' ? 'مرحلة التسجيل' : 'نشطة الآن' }}
+                    </span>
+                  </div>
                 </div>
+                
+                <button @click="handleDeleteTournament" class="btn delete-tour-mini-btn" title="حذف وإلغاء البطولة بالكامل">
+                  <span>إلغاء البطولة 🗑️</span>
+                </button>
               </div>
 
               <!-- Permanent 24/7 Cloud Registration Link (Zero Server Dependency!) -->
@@ -184,10 +190,6 @@
                   <img :src="`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(cloudPagesUrl)}`" alt="QR Link" style="display: block; width: 140px; height: 140px;">
                 </div>
               </div>
-
-              <button @click="handleDeleteTournament" class="btn danger-btn" style="width: 100%; margin-top: 1.5rem;">
-                حذف وإلغاء البطولة بالكامل 🗑️
-              </button>
             </div>
           </div>
 
@@ -239,8 +241,7 @@
                 <table style="width: 100%;">
                   <thead>
                     <tr>
-                      <th style="text-align: right;">اللاعب</th>
-                      <th style="text-align: center;">الاسم الحركي</th>
+                      <th style="text-align: right;">اللاعب / الاسم الحركي</th>
                       <th style="text-align: center;">الهاتف</th>
                       <th style="text-align: center;">تفاصيل التحويل</th>
                       <th style="text-align: center;">المدفوع / المتبقي</th>
@@ -250,13 +251,17 @@
                   </thead>
                   <tbody>
                     <tr v-for="p in filteredPlayers" :key="p.id" :style="p && p.isPendingApproval ? 'background: rgba(251, 191, 36, 0.03);' : ''">
-                      <td style="text-align: right; display: flex; align-items: center; gap: 8px; font-weight: bold; padding: 12px 8px;">
-                        <span class="player-logo-mini" :style="getLogoStyle(p.logoId)">
-                          {{ getLogoSymbol(p.logoId) }}
-                        </span>
-                        <span>{{ p.fullName }}</span>
+                      <td style="text-align: right; padding: 12px 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px; direction: rtl;">
+                          <span class="player-logo-mini" :style="getLogoStyle(p.logoId)">
+                            {{ getLogoSymbol(p.logoId) }}
+                          </span>
+                          <div style="display: flex; flex-direction: column; gap: 2px; text-align: right; min-width: 0;">
+                            <span style="font-weight: 800; font-size: 0.9rem; display: block; line-height: 1.2;">{{ p.fullName }}</span>
+                            <span class="player-nickname-sub" style="color: var(--accent-cyan); font-size: 0.72rem; font-weight: bold; display: block; line-height: 1.2;">{{ p.nickname }}</span>
+                          </div>
+                        </div>
                       </td>
-                      <td style="text-align: center; color: var(--accent-cyan); font-weight: bold;">{{ p.nickname }}</td>
                       <td style="text-align: center; font-family: monospace;">{{ p.phone }}</td>
                       
                       <!-- تفاصيل التحويل المالي للمشتركين -->
@@ -312,7 +317,7 @@
                       </td>
                     </tr>
                     <tr v-if="filteredPlayers.length === 0">
-                      <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                      <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
                         {{ playerSearchQuery.trim() ? 'لا توجد نتائج تطابق بحثك عن "' + playerSearchQuery + '" 🔍' : 'لا توجد تسجيلات بعد. قم بنشر رابط الـ QR للبدء في تجميع اللاعبين! 🏆' }}
                       </td>
                     </tr>
@@ -321,7 +326,7 @@
               </div>
 
               <!-- Start Tournament Button -->
-              <div v-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= 2" class="action-footer" style="text-align: center;">
+              <div v-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= 2" class="action-footer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; width: 100%; margin-top: 1.5rem;">
                 <p v-if="activeTournament.type === 'cup' && activeTournament.players.filter(p => p && !p.isPendingApproval).length < activeTournament.maxPlayers" style="font-size: 0.8rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold;">
                   ⚠️ تنبيه: لم يكتمل العدد المطلوب ({{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }}). عند الضغط على "بدء" سيقوم النظام بتوزيع تأهلات تلقائية (Bye Passes) عشوائياً للاعبين المتبقين!
                 </p>
@@ -842,35 +847,45 @@
 
     <!-- 1. Add Player Manually Dialog -->
     <div v-if="showAddPlayerModal" class="modal-overlay" @click.self="showAddPlayerModal = false" style="direction: rtl; z-index: 1000000 !important;">
-      <div class="modal-content glass-panel" style="max-width: 500px; width: 90%;">
+      <div class="modal-content glass-panel" style="max-width: 550px; width: 95%;">
         <div class="modal-header">
-          <h2 style="font-weight: 800; font-size: 1.15rem; color: var(--accent-cyan);">👤 تسجيل لاعب جديد يدوياً</h2>
+          <h2 class="modal-header-title cyan" style="font-weight: 800; font-size: 1.15rem;">👤 تسجيل لاعب جديد يدوياً</h2>
           <button @click="showAddPlayerModal = false" class="btn-icon">✖</button>
         </div>
 
-        <div class="modal-body-v3" style="display: flex; flex-direction: column; gap: 1rem; padding: 1rem 0;">
-          <div class="field-v3">
-            <label>الاسم رباعي بالكامل 👤</label>
-            <input type="text" v-model="manualPlayerForm.fullName" placeholder="أدخل اسم المشترك بالكامل" class="premium-input-v3">
-          </div>
-          <div class="field-v3">
-            <label>الاسم الحركي / المستعار (Nickname) 👾</label>
-            <input type="text" v-model="manualPlayerForm.nickname" placeholder="الاسم الذي سيظهر على مخطط المواجهات" class="premium-input-v3" maxLength="16">
-          </div>
-          <div class="field-v3">
-            <label>رقم الهاتف 📱</label>
-            <input type="tel" v-model="manualPlayerForm.phone" placeholder="أدخل رقم الموبايل" class="premium-input-v3">
+        <div class="modal-body-v3" style="display: flex; flex-direction: column; gap: 1.25rem; padding: 1rem 0;">
+          
+          <!-- Personal Info Group -->
+          <div class="modal-section-card">
+            <h4 class="modal-section-title">📝 البيانات الشخصية للاعب</h4>
+            
+            <div class="field-v3" style="margin-bottom: 0;">
+              <label>الاسم رباعي بالكامل 👤</label>
+              <input type="text" v-model="manualPlayerForm.fullName" placeholder="أدخل اسم المشترك بالكامل" class="premium-input-v3" style="width: 100%;">
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="field-v3" style="margin-bottom: 0;">
+                <label>الاسم الحركي (Nickname) 👾</label>
+                <input type="text" v-model="manualPlayerForm.nickname" placeholder="الاسم على المخطط" class="premium-input-v3" maxLength="16" style="width: 100%;">
+              </div>
+              <div class="field-v3" style="margin-bottom: 0;">
+                <label>رقم الهاتف 📱</label>
+                <input type="tel" v-model="manualPlayerForm.phone" placeholder="رقم الموبايل" class="premium-input-v3" style="width: 100%;">
+              </div>
+            </div>
           </div>
 
-          <div class="field-v3">
-            <label style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-              <span>اختر شعار الفريق والرمز 🎨</span>
-              <span v-if="manualPlayerForm.logoId !== null" style="font-size: 0.75rem; color: var(--accent-success); display: flex; align-items: center; gap: 5px;">
-                الشعار المحدد: <span style="color: #fbbf24; font-weight: bold; margin-left: 5px;">{{ CURATED_LOGOS[manualPlayerForm.logoId]?.name }}</span>
+          <!-- Logo Picker Group -->
+          <div class="modal-section-card">
+            <label style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin: 0; background: none !important; border: none !important; padding: 0 !important; box-shadow: none !important; color: inherit !important;">
+              <span class="modal-section-title" style="background: none !important; padding: 0 !important; box-shadow: none !important; margin: 0 !important;">🎨 اختر شعار الفريق والرمز</span>
+              <span v-if="manualPlayerForm.logoId !== null" class="modal-logo-preview-badge">
+                الشعار المحدد: <span class="modal-highlight-text">{{ CURATED_LOGOS[manualPlayerForm.logoId]?.name }}</span>
                 <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)">{{ getLogoSymbol(manualPlayerForm.logoId) }}</span>
               </span>
             </label>
-            <div class="logo-scroll-grid" style="grid-template-columns: repeat(8, 1fr); max-height: 120px; margin-bottom: 1rem;">
+            <div class="logo-scroll-grid">
               <button
                 type="button"
                 v-for="(logo, idx) in CURATED_LOGOS"
@@ -879,7 +894,7 @@
                 :style="getLogoStyle(idx)"
                 :disabled="isLogoTaken(idx) && manualPlayerForm.logoId !== idx"
                 @click="manualPlayerForm.logoId = idx"
-                style="width: 32px; height: 32px; font-size: 1.1rem;"
+                style="width: 36px; height: 36px; font-size: 1.25rem;"
                 :title="isLogoTaken(idx) ? 'هذا الشعار محجوز بالفعل 🔒' : logo.name"
               >
                 {{ isLogoTaken(idx) && manualPlayerForm.logoId !== idx ? '🔒' : logo.symbol }}
@@ -888,8 +903,8 @@
           </div>
 
           <!-- Payment Section for Manual Registration inside Lounge -->
-          <div v-if="activeTournament && activeTournament.fee > 0" style="border: 1px solid rgba(6, 182, 212, 0.15); background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
-            <h4 style="margin: 0 0 5px 0; font-size: 0.85rem; color: var(--accent-cyan); font-weight: 800;">💸 تفاصيل السداد المالي بالصالة</h4>
+          <div v-if="activeTournament && activeTournament.fee > 0" class="modal-section-card highlight-border">
+            <h4 class="modal-section-title">💸 تفاصيل السداد المالي بالصالة</h4>
             
             <div class="field-v3" style="margin-bottom: 0;">
               <label>حالة السداد للمشترك 💰</label>
@@ -900,21 +915,25 @@
               </select>
             </div>
 
-            <div v-if="manualPlayerForm.paymentStatus !== 'unpaid'" class="field-v3" style="margin-bottom: 0; margin-top: 5px;">
-              <label>طريقة السداد 💳</label>
-              <select v-model="manualPlayerForm.paymentMethod" class="premium-input-v3" style="width: 100%;">
-                <option value="cash">نقداً بالصالة 💵</option>
-                <option value="instapay">انستا باى ⚡</option>
-                <option value="wallet">محفظة كاش 📱</option>
-              </select>
+            <!-- Side-by-side if status is partial, otherwise method takes full width -->
+            <div v-if="manualPlayerForm.paymentStatus !== 'unpaid'" :style="manualPlayerForm.paymentStatus === 'partial' ? 'display: grid; grid-template-columns: 1fr 1fr; gap: 12px;' : ''">
+              <div class="field-v3" style="margin-bottom: 0;">
+                <label>طريقة السداد 💳</label>
+                <select v-model="manualPlayerForm.paymentMethod" class="premium-input-v3" style="width: 100%;">
+                  <option value="cash">نقداً بالصالة 💵</option>
+                  <option value="instapay">انستا باى ⚡</option>
+                  <option value="wallet">محفظة كاش 📱</option>
+                </select>
+              </div>
+
+              <div v-if="manualPlayerForm.paymentStatus === 'partial'" class="field-v3" style="margin-bottom: 0;">
+                <label>المبلغ المدفوع حالياً (ج) 💵</label>
+                <input type="number" v-model.number="manualPlayerForm.amountPaid" :max="activeTournament.fee" min="1" placeholder="مثال: 20" class="premium-input-v3" style="width: 100%;">
+              </div>
             </div>
 
-            <div v-if="manualPlayerForm.paymentStatus === 'partial'" class="field-v3" style="margin-bottom: 0; margin-top: 5px;">
-              <label>المبلغ المدفوع حالياً (ج) 💵</label>
-              <input type="number" v-model.number="manualPlayerForm.amountPaid" :max="activeTournament.fee" min="1" placeholder="مثال: 20" class="premium-input-v3" style="width: 100%;">
-            </div>
-
-            <div v-if="manualPlayerForm.paymentStatus !== 'unpaid' && (manualPlayerForm.paymentMethod === 'instapay' || manualPlayerForm.paymentMethod === 'wallet')" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px;">
+            <!-- Transaction Details -->
+            <div v-if="manualPlayerForm.paymentStatus !== 'unpaid' && (manualPlayerForm.paymentMethod === 'instapay' || manualPlayerForm.paymentMethod === 'wallet')" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div class="field-v3" style="margin-bottom: 0;">
                 <label style="font-size: 0.72rem; padding: 4px 8px;">رقم العملية (TxID) 🔢</label>
                 <input type="text" v-model="manualPlayerForm.transactionId" placeholder="اختياري" class="premium-input-v3" style="width: 100%;">
@@ -927,9 +946,9 @@
           </div>
         </div>
 
-        <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1rem;">
-          <button @click="showAddPlayerModal = false" class="btn secondary-btn" style="flex: 1; border: 1px solid rgba(255,255,255,0.1);">إلغاء ✖</button>
-          <button @click="submitManualPlayer" class="btn btn-green-v3" style="flex: 1;">تسجيل المشترك بالبطولة ✅</button>
+        <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+          <button @click="showAddPlayerModal = false" class="btn secondary-btn" style="flex: 1;">إلغاء ✖</button>
+          <button @click="submitManualPlayer" class="btn btn-green-v3 btn-pulse-green" style="flex: 1;">تسجيل المشترك بالبطولة ✅</button>
         </div>
       </div>
     </div>
@@ -938,7 +957,7 @@
     <div v-if="showScoreModal" class="modal-overlay" @click.self="showScoreModal = false" style="direction: rtl; z-index: 1000000 !important;">
       <div class="modal-content glass-panel" style="max-width: 520px; width: 90%;">
         <div class="modal-header">
-          <h2 style="font-weight: 800; font-size: 1.15rem; color: #fbbf24;">✍️ تسجيل نتيجة وحكم اللقاء</h2>
+          <h2 class="modal-header-title amber" style="font-weight: 800; font-size: 1.15rem;">✍️ تسجيل نتيجة وحكم اللقاء</h2>
           <button @click="showScoreModal = false" class="btn-icon">✖</button>
         </div>
 
@@ -950,7 +969,7 @@
                 {{ getPlayerLogoSymbol(activeMatch.player1Id) }}
               </span>
               <strong style="font-size: 1rem; color: var(--text-main);">{{ getPlayerNickname(activeMatch.player1Id) }}</strong>
-              <input type="number" v-model="matchScore.score1" class="premium-input" style="text-align: center; font-size: 1.8rem; font-weight: 900; width: 80px; padding: 0.5rem; background: rgba(0,0,0,0.4);" min="0">
+              <input type="number" v-model="matchScore.score1" class="score-modal-input" min="0">
             </div>
 
             <div style="font-weight: bold; font-size: 1.5rem; color: var(--text-muted); padding-top: 2rem;">ضد</div>
@@ -961,7 +980,7 @@
                 {{ getPlayerLogoSymbol(activeMatch.player2Id) }}
               </span>
               <strong style="font-size: 1rem; color: var(--text-main);">{{ getPlayerNickname(activeMatch.player2Id) }}</strong>
-              <input type="number" v-model="matchScore.score2" class="premium-input" style="text-align: center; font-size: 1.8rem; font-weight: 900; width: 80px; padding: 0.5rem; background: rgba(0,0,0,0.4);" min="0">
+              <input type="number" v-model="matchScore.score2" class="score-modal-input" min="0">
             </div>
           </div>
 
@@ -977,7 +996,7 @@
         </div>
 
         <div class="modal-footer" style="display: flex; gap: 1rem;">
-          <button @click="showScoreModal = false" class="btn secondary-btn" style="flex: 1; border: 1px solid rgba(255,255,255,0.1);">إلغاء ✖</button>
+          <button @click="showScoreModal = false" class="btn secondary-btn" style="flex: 1;">إلغاء ✖</button>
           <button @click="submitMatchScore" class="btn btn-green-v3" style="flex: 1;">اعتماد وحفظ النتيجة 🏆</button>
         </div>
       </div>
@@ -987,32 +1006,32 @@
     <div v-if="showConfirmPaymentModal" class="modal-overlay" @click.self="showConfirmPaymentModal = false" style="direction: rtl; z-index: 1000000 !important;">
       <div class="modal-content glass-panel" style="max-width: 480px; width: 90%;">
         <div class="modal-header">
-          <h2 style="font-weight: 800; font-size: 1.15rem; color: #10b981;">💳 تأكيد سداد قيمة الاشتراك وتفعيل العضوية</h2>
+          <h2 class="modal-header-title green" style="font-weight: 800; font-size: 1.15rem;">💳 تأكيد سداد قيمة الاشتراك وتفعيل العضوية</h2>
           <button @click="showConfirmPaymentModal = false" class="btn-icon">✖</button>
         </div>
 
         <div class="modal-body-v3" style="padding: 1rem 0; text-align: right;" v-if="selectedPlayerToConfirm">
-          <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
-            مراجعة وتأكيد تسجيل اللاعب <strong style="color: #06b6d4;">{{ selectedPlayerToConfirm.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToConfirm.nickname }}</strong>) بالبطولة.
+          <p class="modal-text-desc">
+            مراجعة وتأكيد تسجيل اللاعب <strong class="player-highlight">{{ selectedPlayerToConfirm.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToConfirm.nickname }}</strong>) بالبطولة.
           </p>
 
-          <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; color: #fff;">
-            <div style="margin-bottom: 6px;">💰 <strong>المبلغ المفترض دفعه للبطولة:</strong> <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.fee }} ج</span></div>
-            <div style="margin-bottom: 6px;">💵 <strong>نوع السداد المرسل من العميل:</strong> <span style="color: #06b6d4; font-weight: bold;">{{ selectedPlayerToConfirm.paymentType === 'full' ? 'اشتراك كامل' : 'دفعة جزئية (مقدم)' }}</span></div>
-            <div style="margin-bottom: 6px;">💸 <strong>المبلغ المرسل (مكتوب بالطلب):</strong> <span style="color: #10b981; font-weight: bold;">{{ selectedPlayerToConfirm.amountPaid }} ج</span></div>
-            <div style="margin-bottom: 6px;">📱 <strong>رقم المحول منه:</strong> <span style="font-family: monospace;">{{ selectedPlayerToConfirm.senderNumber }}</span></div>
-            <div>🔢 <strong>رقم العملية المرجعي (TxID):</strong> <span style="font-family: monospace; color: #fbbf24; font-weight: bold;">{{ selectedPlayerToConfirm.transactionId }}</span></div>
+          <div class="modal-preview-box">
+            <div style="margin-bottom: 6px;">💰 <strong>المبلغ المفترض دفعه للبطولة:</strong> <span class="preview-fee">{{ activeTournament.fee }} ج</span></div>
+            <div style="margin-bottom: 6px;">💵 <strong>نوع السداد المرسل من العميل:</strong> <span class="preview-type">{{ selectedPlayerToConfirm.paymentType === 'full' ? 'اشتراك كامل' : 'دفعة جزئية (مقدم)' }}</span></div>
+            <div style="margin-bottom: 6px;">💸 <strong>المبلغ المرسل (مكتوب بالطلب):</strong> <span class="preview-amount">{{ selectedPlayerToConfirm.amountPaid }} ج</span></div>
+            <div style="margin-bottom: 6px;">📱 <strong>رقم المحول منه:</strong> <span class="preview-phone">{{ selectedPlayerToConfirm.senderNumber }}</span></div>
+            <div>🔢 <strong>رقم العملية المرجعي (TxID):</strong> <span class="preview-txid">{{ selectedPlayerToConfirm.transactionId }}</span></div>
           </div>
 
           <div class="field-v3" style="margin-bottom: 0;">
             <label>تعديل/تأكيد المبلغ المستلم فعلياً (ج) 💰</label>
-            <input type="number" v-model.number="confirmedAmountInput" class="premium-input-v3" :max="activeTournament.fee" min="0" placeholder="أدخل القيمة التي وصلت المحفظة بالفعل" style="background: rgba(15, 23, 42, 0.45) !important; color: white !important; border: 1px solid rgba(255,255,255,0.08) !important; padding: 8px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1.1rem; font-weight: bold; text-align: center;">
+            <input type="number" v-model.number="confirmedAmountInput" class="premium-input-v3 modal-amount-input" :max="activeTournament.fee" min="0" placeholder="أدخل القيمة التي وصلت المحفظة بالفعل">
             <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.5;">عند التأكيد، سيتم تفعيل حساب المشترك وتوريد القيمة مباشرة لليومية الحالية.</span>
           </div>
         </div>
 
         <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-          <button @click="showConfirmPaymentModal = false" class="btn secondary-btn" style="flex: 1; border: 1px solid rgba(255,255,255,0.1);">إلغاء ✖</button>
+          <button @click="showConfirmPaymentModal = false" class="btn secondary-btn" style="flex: 1;">إلغاء ✖</button>
           <button @click="submitConfirmPayment" class="btn btn-green-v3 btn-pulse-green" style="flex: 1;">تأكيد السداد وتفعيل المشترك ✅</button>
         </div>
       </div>
@@ -1022,30 +1041,30 @@
     <div v-if="showCollectRemainingModal" class="modal-overlay" @click.self="showCollectRemainingModal = false" style="direction: rtl; z-index: 1000000 !important;">
       <div class="modal-content glass-panel" style="max-width: 480px; width: 90%;">
         <div class="modal-header">
-          <h2 style="font-weight: 800; font-size: 1.15rem; color: #fbbf24;">💰 تحصيل المبلغ المتبقي من الاشتراك</h2>
+          <h2 class="modal-header-title amber" style="font-weight: 800; font-size: 1.15rem;">💰 تحصيل المبلغ المتبقي من الاشتراك</h2>
           <button @click="showCollectRemainingModal = false" class="btn-icon">✖</button>
         </div>
 
         <div class="modal-body-v3" style="padding: 1rem 0; text-align: right;" v-if="selectedPlayerToCollect">
-          <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
-            تحصيل المديونية المتبقية وتحديث حالة تسجيل اللاعب <strong style="color: #06b6d4;">{{ selectedPlayerToCollect.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToCollect.nickname }}</strong>).
+          <p class="modal-text-desc">
+            تحصيل المديونية المتبقية وتحديث حالة تسجيل اللاعب <strong class="player-highlight">{{ selectedPlayerToCollect.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToCollect.nickname }}</strong>).
           </p>
 
-          <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; color: #fff;">
-            <div style="margin-bottom: 6px;">💰 <strong>رسوم الاشتراك الإجمالية:</strong> <span style="font-weight: bold;">{{ activeTournament.fee }} ج</span></div>
-            <div style="margin-bottom: 6px;">💵 <strong>إجمالي المدفوع سابقاً:</strong> <span style="color: #10b981; font-weight: bold;">{{ selectedPlayerToCollect.amountConfirmed }} ج</span></div>
-            <div>🚨 <strong>المبلغ المتبقي المستحق:</strong> <span style="color: #ef4444; font-weight: 900;">{{ selectedPlayerToCollect.remainingAmount }} ج</span></div>
+          <div class="modal-preview-box">
+            <div style="margin-bottom: 6px;">💰 <strong>رسوم الاشتراك الإجمالية:</strong> <span class="preview-total-fee">{{ activeTournament.fee }} ج</span></div>
+            <div style="margin-bottom: 6px;">💵 <strong>إجمالي المدفوع سابقاً:</strong> <span class="preview-amount">{{ selectedPlayerToCollect.amountConfirmed }} ج</span></div>
+            <div>🚨 <strong>المبلغ المتبقي المستحق:</strong> <span class="preview-remaining">{{ selectedPlayerToCollect.remainingAmount }} ج</span></div>
           </div>
 
           <div class="field-v3" style="margin-bottom: 0;">
             <label>المبلغ المراد سداده حالياً (ج) 💸</label>
-            <input type="number" v-model.number="collectAmountInput" class="premium-input-v3" :max="selectedPlayerToCollect.remainingAmount" min="1" placeholder="أدخل القيمة المحصلة" style="background: rgba(15, 23, 42, 0.45) !important; color: white !important; border: 1px solid rgba(255,255,255,0.08) !important; padding: 8px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1.1rem; font-weight: bold; text-align: center;">
+            <input type="number" v-model.number="collectAmountInput" class="premium-input-v3 modal-amount-input" :max="selectedPlayerToCollect.remainingAmount" min="1" placeholder="أدخل القيمة المحصلة">
             <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.5;">عند التحصيل، سيتم إدراج هذا المبلغ لليومية الحالية وتخفيض مديونية العضو تلقائياً.</span>
           </div>
         </div>
 
         <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-          <button @click="showCollectRemainingModal = false" class="btn secondary-btn" style="flex: 1; border: 1px solid rgba(255,255,255,0.1);">إلغاء ✖</button>
+          <button @click="showCollectRemainingModal = false" class="btn secondary-btn" style="flex: 1;">إلغاء ✖</button>
           <button @click="submitCollectRemaining" class="btn btn-green-v3 btn-pulse-green" style="flex: 1; background: #10b981 !important; color: white !important;">تأكيد التحصيل والسداد 💸✅</button>
         </div>
       </div>
@@ -1055,7 +1074,7 @@
     <div v-if="showAccountsModal" class="modal-overlay" @click.self="showAccountsModal = false" style="direction: rtl; z-index: 1000000 !important;">
       <div class="modal-content glass-panel" style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
-          <h2 style="font-weight: 800; font-size: 1.2rem; color: #06b6d4; display: flex; align-items: center; gap: 8px; margin: 0;">
+          <h2 class="modal-header-title cyan" style="font-weight: 800; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; margin: 0;">
             <span>📊 كشف الحساب المالي والتدفقات النقدية للبطولات</span>
           </h2>
           <button @click="showAccountsModal = false" class="btn-icon">✖</button>
@@ -2699,6 +2718,568 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Scoped Cairo Font Override for the whole tournament dashboard wrapper and portals */
+.tournaments-admin-wrapper,
+.tournaments-admin-wrapper *,
+.modal-overlay,
+.modal-overlay * {
+  font-family: 'Cairo', sans-serif !important;
+}
+
+/* Sidebar Styling day/night modes */
+.sidebar-card-v3 {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+:global(.light-mode) .sidebar-card-v3 {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05) !important;
+}
+
+.sidebar-title-v3 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 6px;
+}
+:global(.light-mode) .sidebar-title-v3 {
+  color: #0f172a !important;
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.sidebar-tour-name {
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+  color: #fff;
+  font-weight: bold;
+}
+:global(.light-mode) .sidebar-tour-name {
+  color: #0f172a !important;
+}
+:global(.light-mode) .sidebar-tour-item.active .sidebar-tour-name {
+  color: var(--accent-primary) !important;
+  font-weight: 800;
+}
+:global(.light-mode) .sidebar-tour-item.active .sidebar-tour-subtext {
+  color: #1e3a8a !important;
+}
+
+/* Modals layout elements responsive design */
+.modal-section-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-section-card.highlight-border {
+  border-color: rgba(6, 182, 212, 0.2);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+  box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.05);
+}
+.modal-preview-box {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #fff;
+}
+.modal-amount-input {
+  background: rgba(15, 23, 42, 0.45) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 8px 12px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+}
+.modal-text-desc {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* Modal header title responsive coloring */
+.modal-header-title.cyan { color: var(--accent-cyan); }
+.modal-header-title.green { color: #10b981; }
+.modal-header-title.amber { color: #fbbf24; }
+
+/* Light mode overrides for modals */
+:global(.light-mode) .modal-header-title.cyan { color: #0891b2 !important; }
+:global(.light-mode) .modal-header-title.green { color: #059669 !important; }
+:global(.light-mode) .modal-header-title.amber { color: #b45309 !important; }
+
+:global(.light-mode) .modal-section-card {
+  background: rgba(15, 23, 42, 0.02) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+:global(.light-mode) .modal-section-card.highlight-border {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(8, 145, 178, 0.04) 100%) !important;
+  border-color: rgba(37, 99, 235, 0.2) !important;
+  box-shadow: inset 0 0 15px rgba(37, 99, 235, 0.02) !important;
+}
+:global(.light-mode) .modal-preview-box {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+:global(.light-mode) .modal-amount-input {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+}
+:global(.light-mode) .modal-text-desc {
+  color: #475569 !important;
+}
+
+/* Modal Inner Section Typography & Elements */
+.modal-section-title {
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+  font-weight: 800;
+}
+:global(.light-mode) .modal-section-title {
+  color: #0891b2 !important;
+}
+.modal-logo-preview-badge {
+  font-size: 0.75rem;
+  color: var(--accent-success);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+:global(.light-mode) .modal-logo-preview-badge {
+  color: #059669 !important;
+}
+.modal-highlight-text {
+  color: #fbbf24;
+  font-weight: bold;
+  margin-left: 5px;
+}
+:global(.light-mode) .modal-highlight-text {
+  color: #d97706 !important;
+}
+
+/* Logo selection item styles */
+:global(.light-mode) .logo-scroll-grid {
+  background: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+:global(.light-mode) .logo-select-btn:not(.active) {
+  box-shadow: none !important;
+}
+:global(.light-mode) .logo-select-btn.active {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.25) !important;
+}
+
+/* Match Score inputs style overrides */
+.score-modal-input {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 900;
+  width: 80px;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.4) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px;
+  outline: none;
+}
+.score-modal-input:focus {
+  border-color: var(--accent-cyan) !important;
+}
+:global(.light-mode) .score-modal-input {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+:global(.light-mode) .score-modal-input:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Modal text highlights and previews custom colors */
+.player-highlight {
+  color: #06b6d4;
+}
+:global(.light-mode) .player-highlight {
+  color: #0284c7 !important;
+}
+.preview-fee {
+  color: #fbbf24;
+  font-weight: bold;
+}
+:global(.light-mode) .preview-fee {
+  color: #d97706 !important;
+}
+.preview-type {
+  color: #06b6d4;
+  font-weight: bold;
+}
+:global(.light-mode) .preview-type {
+  color: #0284c7 !important;
+}
+.preview-amount {
+  color: #10b981;
+  font-weight: bold;
+}
+:global(.light-mode) .preview-amount {
+  color: #059669 !important;
+}
+.preview-txid {
+  color: #fbbf24;
+  font-weight: bold;
+  font-family: monospace;
+}
+:global(.light-mode) .preview-txid {
+  color: #b45309 !important;
+}
+.preview-phone {
+  font-family: monospace;
+  color: #e2e8f0;
+}
+:global(.light-mode) .preview-phone {
+  color: #0f172a !important;
+}
+.preview-total-fee {
+  font-weight: bold;
+  color: #fff;
+}
+:global(.light-mode) .preview-total-fee {
+  color: #0f172a !important;
+}
+.preview-remaining {
+  color: #ef4444;
+  font-weight: 900;
+}
+:global(.light-mode) .preview-remaining {
+  color: #dc2626 !important;
+}
+
+/* Accounts Modal Table Responsive Stylings */
+.accounts-table-container {
+  max-height: 45vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.15) !important;
+}
+:global(.light-mode) .accounts-table-container {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+.accounts-table-header {
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  color: #64748b;
+  background: rgba(0, 0, 0, 0.2);
+}
+:global(.light-mode) .accounts-table-header {
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+  background: rgba(15, 23, 42, 0.05) !important;
+  color: #475569 !important;
+}
+.accounts-table-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+:global(.light-mode) .accounts-table-row {
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+.accounts-tour-name {
+  text-align: right;
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 0.88rem;
+}
+:global(.light-mode) .accounts-tour-name {
+  color: #0f172a !important;
+}
+.accounts-tour-fee {
+  text-align: center;
+  font-weight: bold;
+  color: #fbbf24;
+}
+:global(.light-mode) .accounts-tour-fee {
+  color: #b45309 !important;
+}
+.accounts-tour-players {
+  text-align: center;
+  color: #cbd5e1;
+}
+:global(.light-mode) .accounts-tour-players {
+  color: #334155 !important;
+}
+.accounts-tour-expected {
+  text-align: center;
+  font-weight: bold;
+  color: #cbd5e1;
+}
+:global(.light-mode) .accounts-tour-expected {
+  color: #334155 !important;
+}
+.accounts-tour-confirmed {
+  text-align: center;
+  font-weight: bold;
+  color: #10b981;
+}
+:global(.light-mode) .accounts-tour-confirmed {
+  color: #059669 !important;
+}
+.accounts-tour-pending {
+  text-align: center;
+  font-weight: bold;
+  color: #fbbf24;
+}
+:global(.light-mode) .accounts-tour-pending {
+  color: #b45309 !important;
+}
+.accounts-tour-remaining {
+  text-align: center;
+  font-weight: bold;
+  color: #ef4444;
+}
+:global(.light-mode) .accounts-tour-remaining {
+  color: #dc2626 !important;
+}
+.accounts-tour-archived {
+  text-align: center;
+  font-weight: bold;
+  color: #06b6d4;
+}
+:global(.light-mode) .accounts-tour-archived {
+  color: #0284c7 !important;
+}
+.accounts-totals-box {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+:global(.light-mode) .accounts-totals-box {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+.accounts-total-val {
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+.accounts-total-val.confirmed { color: #10b981; }
+:global(.light-mode) .accounts-total-val.confirmed { color: #059669 !important; }
+.accounts-total-val.pending { color: #fbbf24; }
+:global(.light-mode) .accounts-total-val.pending { color: #b45309 !important; }
+.accounts-total-val.remaining { color: #ef4444; }
+:global(.light-mode) .accounts-total-val.remaining { color: #dc2626 !important; }
+.accounts-total-val.archived { color: #06b6d4; }
+:global(.light-mode) .accounts-total-val.archived { color: #0284c7 !important; }
+.accounts-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1rem;
+}
+:global(.light-mode) .accounts-modal-footer {
+  border-top-color: rgba(15, 23, 42, 0.08) !important;
+}
+.accounts-modal-footer .close-btn {
+  padding: 0.5rem 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+:global(.light-mode) .accounts-modal-footer .close-btn {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+
+/* Tour status badge design overrides */
+.badge.registration {
+  background: rgba(251, 191, 36, 0.15) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.25) !important;
+}
+:global(.light-mode) .badge.registration {
+  background: rgba(217, 119, 6, 0.08) !important;
+  color: #b45309 !important;
+  border-color: rgba(217, 119, 6, 0.15) !important;
+}
+.badge.active {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+:global(.light-mode) .badge.active {
+  background: rgba(5, 150, 105, 0.08) !important;
+  color: #059669 !important;
+  border-color: rgba(5, 150, 105, 0.15) !important;
+}
+.badge.completed {
+  background: rgba(148, 163, 184, 0.15) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+:global(.light-mode) .badge.completed {
+  background: rgba(71, 85, 105, 0.08) !important;
+  color: #475569 !important;
+  border-color: rgba(71, 85, 105, 0.15) !important;
+}
+:global(.light-mode) .badge.cup {
+  background: rgba(37, 99, 235, 0.08) !important;
+  color: #1d4ed8 !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+}
+:global(.light-mode) .badge.league {
+  background: rgba(5, 150, 105, 0.08) !important;
+  color: #059669 !important;
+  border-color: rgba(5, 150, 105, 0.15) !important;
+}
+:global(.light-mode) .modal-footer .secondary-btn {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+
+/* Modals styling for centered popups */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 1000000 !important;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%) !important;
+  border: 1px solid rgba(6, 182, 212, 0.25) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 25px rgba(6, 182, 212, 0.15) !important;
+  padding: 2rem !important;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+:global(.light-mode) .modal-content {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.8rem;
+  margin-bottom: 1rem;
+}
+:global(.light-mode) .modal-header {
+  border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.btn-icon {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.btn-icon:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+:global(.light-mode) .btn-icon {
+  background: rgba(15, 23, 42, 0.03) !important;
+  border-color: rgba(15, 23, 42, 0.05) !important;
+  color: #64748b !important;
+}
+:global(.light-mode) .btn-icon:hover {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.logo-scroll-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  max-height: 120px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo-select-btn {
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.logo-select-btn:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+.logo-select-btn.active {
+  border-color: #fff !important;
+  transform: scale(1.18);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6) !important;
+}
+
 .tournaments-admin-wrapper {
   padding: 0;
 }
@@ -3644,6 +4225,49 @@ onUnmounted(() => {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     transform: scale(1);
   }
+}
+
+/* Active open tournament name highlight & mini delete button styles */
+.active-tour-highlight-title {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  font-family: inherit;
+}
+:global(.light-mode) .active-tour-highlight-title {
+  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.delete-tour-mini-btn {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease-in-out !important;
+  padding: 6px 12px !important;
+  font-size: 0.78rem !important;
+  font-weight: bold !important;
+  border-radius: 8px !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.delete-tour-mini-btn:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25) !important;
+}
+:global(.light-mode) .delete-tour-mini-btn {
+  background: rgba(220, 38, 38, 0.08) !important;
+  color: #dc2626 !important;
+  border-color: rgba(220, 38, 38, 0.15) !important;
+}
+:global(.light-mode) .delete-tour-mini-btn:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
 }
 
 </style>
