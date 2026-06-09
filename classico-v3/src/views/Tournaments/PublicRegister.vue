@@ -1024,35 +1024,69 @@ const playerViewMode = ref('dashboard'); // 'dashboard', 'matches', 'players'
 const followLoginError = ref('');
 const followForm = reactive({ nickname: '', phone: '' });
 
-const handleFollowLogin = () => {
+const handleFollowLogin = async () => {
   followLoginError.value = '';
   const t = activeTournament.value;
-  if (!t || !t.players) {
+  if (!t) {
     followLoginError.value = 'لا تتوفر بيانات البطولة.';
     return;
   }
 
-  const inputNick = (followForm.nickname || '').trim().toLowerCase();
+  const inputNick = (followForm.nickname || '').trim();
   const inputPhone = (followForm.phone || '').trim();
 
-  const found = t.players.find(p => {
-    if (!p) return false;
-    const storedNick = (p.nickname || '').trim().toLowerCase();
-    const storedPhone = (p.phone || '').trim();
-    // Also check if phone is stored as a number or has different formatting
-    return storedNick === inputNick && (storedPhone === inputPhone || String(p.phone) === inputPhone);
-  });
+  if (!inputNick || !inputPhone) {
+    followLoginError.value = 'يرجى إدخال الاسم المستعار ورقم الهاتف.';
+    return;
+  }
 
-  if (found) {
-    loggedInPlayer.value = found;
-    // After login, show matches view if tournament started, otherwise stay on dashboard
-    if (activeTournament.value.status !== 'registration') {
-      playerViewMode.value = 'matches';
+  try {
+    if (isCloudMode.value) {
+      // In Cloud Mode, we MUST verify on the server because phone numbers are hidden from public list
+      const { supabase } = await import('../../utils/supabase');
+      const { data, error } = await supabase.rpc('verify_player_login', {
+        target_machine_id: cloudMachineId.value,
+        target_tournament_id: t.id,
+        input_nickname: inputNick,
+        input_phone: inputPhone
+      });
+
+      if (error) throw error;
+
+      if (data && data.success) {
+        loggedInPlayer.value = data.player;
+        // After login, show matches view if tournament started, otherwise stay on dashboard
+        if (activeTournament.value.status !== 'registration') {
+          playerViewMode.value = 'matches';
+        } else {
+          playerViewMode.value = 'dashboard';
+        }
+      } else {
+        followLoginError.value = data?.message || 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف بدقة.';
+      }
     } else {
-      playerViewMode.value = 'dashboard';
+      // WiFi local server mode (data already contains phones for local network)
+      const found = t.players.find(p => {
+        if (!p) return false;
+        const storedNick = (p.nickname || '').trim().toLowerCase();
+        const storedPhone = (p.phone || '').trim();
+        return storedNick === inputNick.toLowerCase() && (storedPhone === inputPhone || String(p.phone) === inputPhone);
+      });
+
+      if (found) {
+        loggedInPlayer.value = found;
+        if (activeTournament.value.status !== 'registration') {
+          playerViewMode.value = 'matches';
+        } else {
+          playerViewMode.value = 'dashboard';
+        }
+      } else {
+        followLoginError.value = 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف بدقة.';
+      }
     }
-  } else {
-    followLoginError.value = 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف بدقة.';
+  } catch (err) {
+    console.error('[Login Error]', err);
+    followLoginError.value = 'حدث خطأ أثناء محاولة الدخول. يرجى المحاولة مجدداً.';
   }
 };
 

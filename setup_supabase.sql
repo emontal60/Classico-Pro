@@ -282,6 +282,52 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- Function 3: Secure player login verification (Server-side check to protect phone numbers)
+CREATE OR REPLACE FUNCTION verify_player_login(
+    target_machine_id TEXT,
+    target_tournament_id TEXT,
+    input_nickname TEXT,
+    input_phone TEXT
+)
+RETURNS JSONB
+SECURITY DEFINER
+AS $$
+DECLARE
+    backup_data JSONB;
+    tour_item JSONB;
+    player_item JSONB;
+    found_player JSONB := NULL;
+    input_nick_low TEXT := lower(trim(input_nickname));
+    input_phone_trim TEXT := trim(input_phone);
+BEGIN
+    SELECT data INTO backup_data FROM cloud_backups WHERE machine_id = target_machine_id;
+    IF backup_data IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'لم يتم العثور على بيانات الصالة السحابية.');
+    END IF;
+
+    FOR tour_item IN SELECT jsonb_array_elements(backup_data->'classico_tournaments') LOOP
+        IF tour_item->>'id' = target_tournament_id THEN
+            FOR player_item IN SELECT jsonb_array_elements(tour_item->'players') LOOP
+                IF lower(trim(player_item->>'nickname')) = input_nick_low AND 
+                   (trim(player_item->>'phone') = input_phone_trim OR player_item->>'phone' = input_phone_trim) THEN
+                    found_player := player_item;
+                    EXIT;
+                END IF;
+            END LOOP;
+            EXIT;
+        END IF;
+    END LOOP;
+
+    IF found_player IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'message', 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف بدقة.');
+    END IF;
+
+    -- Return the full player object including private fields for the logged-in player
+    RETURN jsonb_build_object('success', true, 'player', found_player);
+END;
+$$ LANGUAGE plpgsql;
+
+
 -- Function 2: Transactional server-side player registration (Handles duplicate check & avoids race conditions)
 CREATE OR REPLACE FUNCTION register_public_player(
     target_machine_id TEXT,
@@ -303,7 +349,6 @@ DECLARE
     max_players INT;
     nickname TEXT;
     phone TEXT;
-    current_confirmed_count INT;
 BEGIN
     -- Select backup row for update to lock it and prevent concurrent registration race conditions
     SELECT * INTO backup_row FROM cloud_backups WHERE machine_id = target_machine_id FOR UPDATE;
@@ -341,13 +386,8 @@ BEGIN
         players_list := '[]'::jsonb;
     END IF;
 
-    -- Count confirmed players (where isPendingApproval is false or null/not present)
-    SELECT COALESCE(COUNT(*), 0)::int INTO current_confirmed_count
-    FROM jsonb_array_elements(players_list) p
-    WHERE COALESCE((p->>'isPendingApproval')::boolean, false) = false;
-
     max_players := (tour_item->>'maxPlayers')::int;
-    IF current_confirmed_count >= max_players THEN
+    IF jsonb_array_length(players_list) >= max_players THEN
         RETURN jsonb_build_object('success', false, 'message', 'عذراً، البطولة مكتملة العدد بالفعل ولا يمكن قبول تسجيل إضافي.');
     END IF;
 
