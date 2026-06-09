@@ -1031,11 +1031,18 @@ const handleFollowLogin = () => {
     followLoginError.value = 'لا تتوفر بيانات البطولة.';
     return;
   }
-  const found = t.players.find(p =>
-    p &&
-    p.nickname && p.nickname.trim().toLowerCase() === followForm.nickname.trim().toLowerCase() &&
-    p.phone && p.phone.trim() === followForm.phone.trim()
-  );
+
+  const inputNick = (followForm.nickname || '').trim().toLowerCase();
+  const inputPhone = (followForm.phone || '').trim();
+
+  const found = t.players.find(p => {
+    if (!p) return false;
+    const storedNick = (p.nickname || '').trim().toLowerCase();
+    const storedPhone = (p.phone || '').trim();
+    // Also check if phone is stored as a number or has different formatting
+    return storedNick === inputNick && (storedPhone === inputPhone || String(p.phone) === inputPhone);
+  });
+
   if (found) {
     loggedInPlayer.value = found;
     // After login, show matches view if tournament started, otherwise stay on dashboard
@@ -1045,7 +1052,7 @@ const handleFollowLogin = () => {
       playerViewMode.value = 'dashboard';
     }
   } else {
-    followLoginError.value = 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف.';
+    followLoginError.value = 'لم يتم العثور على اللاعب. تأكد من الاسم المستعار ورقم الهاتف بدقة.';
   }
 };
 
