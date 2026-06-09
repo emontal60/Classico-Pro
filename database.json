@@ -728,10 +728,10 @@
       "players": [
         {
           "id": "PLR-1780959325901-ixxl",
-          "paid": false,
+          "paid": true,
           "phone": "010373365",
           "logoId": 2,
-          "paidAt": "2026-06-09T19:27:03.825Z",
+          "paidAt": "2026-06-09T19:55:21.948Z",
           "fullName": "ايمن",
           "joinedAt": "2026-06-08T22:55:25.901Z",
           "nickname": "ساس",
@@ -741,9 +741,47 @@
           "paymentMethod": "wallet",
           "transactionId": "231453245",
           "amountArchived": 0,
-          "amountConfirmed": 50,
-          "remainingAmount": 150,
+          "amountConfirmed": 200,
+          "remainingAmount": 0,
           "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781034856770-3cpn",
+          "paid": false,
+          "phone": "01098276256",
+          "logoId": 15,
+          "paidAt": "2026-06-09T19:55:49.548Z",
+          "fullName": "احمد ابراهيم",
+          "joinedAt": "2026-06-09T19:54:16.770Z",
+          "nickname": "مومو",
+          "amountPaid": 100,
+          "paymentType": "partial",
+          "senderNumber": "01098276256",
+          "paymentMethod": "wallet",
+          "transactionId": "23445543",
+          "amountArchived": 0,
+          "amountConfirmed": 100,
+          "remainingAmount": 100,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781035034021-pvdm",
+          "paid": false,
+          "phone": "01083763535",
+          "logoId": 17,
+          "paidAt": null,
+          "fullName": "محمد ابراهيم",
+          "joinedAt": "2026-06-09T19:57:14.021Z",
+          "nickname": "حمو",
+          "amountPaid": 70,
+          "paymentType": "partial",
+          "senderNumber": "01083763535",
+          "paymentMethod": "wallet",
+          "transactionId": "33232323",
+          "amountArchived": 0,
+          "amountConfirmed": 0,
+          "remainingAmount": 200,
+          "isPendingApproval": true
         }
       ],
       "matches": [],
@@ -794,6 +832,24 @@
       "amount": 50,
       "timestamp": "2026-06-09T19:27:03.825Z",
       "processedBy": "admin"
+    },
+    {
+      "id": "1781034921948-fz1k",
+      "playerName": "ايمن",
+      "nickname": "ساس",
+      "tournamentName": "ايموو",
+      "amount": 150,
+      "timestamp": "2026-06-09T19:55:21.948Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781034949548-ek1e",
+      "playerName": "احمد ابراهيم",
+      "nickname": "مومو",
+      "tournamentName": "ايموو",
+      "amount": 100,
+      "timestamp": "2026-06-09T19:55:49.548Z",
+      "processedBy": "admin"
     }
   ],
   "classico_subscription": {
@@ -806,13 +862,27 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-09T19:50:11.928Z"
+    "last_online_check": "2026-06-09T20:10:50.065Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
     "appName": "Classico"
   },
   "classico_activity_log": [
+    {
+      "id": 1781034949549.5454,
+      "timestamp": "2026-06-09T19:55:49.549Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب مومو بقيمة 100 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781034921948.7888,
+      "timestamp": "2026-06-09T19:55:21.948Z",
+      "user": "admin",
+      "action": "سداد متبقي لاعب",
+      "details": "تم سداد متبقي اشتراك اللاعب ساس بقيمة 150 ج لبطولة ايموو"
+    },
     {
       "id": 1781033223825.5154,
       "timestamp": "2026-06-09T19:27:03.825Z",
@@ -1201,5 +1271,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-09T19:50:10.646Z"
+  "last_seen_time": "2026-06-09T20:10:49.618Z"
 }

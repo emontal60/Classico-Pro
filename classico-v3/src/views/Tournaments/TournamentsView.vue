@@ -983,15 +983,15 @@
       </div>
     </div>
 
-    <!-- 3. Confirm Payment Dialog (Rendered as Side Panel) -->
-    <div v-if="showConfirmPaymentModal" class="side-panel-overlay" @click.self="showConfirmPaymentModal = false" style="direction: rtl; z-index: 1000000 !important;">
-      <div class="side-panel-content glass-panel">
+    <!-- 3. Confirm Payment Dialog (Rendered as Centered Popup Modal) -->
+    <div v-if="showConfirmPaymentModal" class="modal-overlay" @click.self="showConfirmPaymentModal = false" style="direction: rtl; z-index: 1000000 !important;">
+      <div class="modal-content glass-panel" style="max-width: 480px; width: 90%;">
         <div class="modal-header">
           <h2 style="font-weight: 800; font-size: 1.15rem; color: #10b981;">💳 تأكيد سداد قيمة الاشتراك وتفعيل العضوية</h2>
           <button @click="showConfirmPaymentModal = false" class="btn-icon">✖</button>
         </div>
 
-        <div class="modal-body-v3" style="padding: 1rem 0; text-align: right; flex: 1;" v-if="selectedPlayerToConfirm">
+        <div class="modal-body-v3" style="padding: 1rem 0; text-align: right;" v-if="selectedPlayerToConfirm">
           <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
             مراجعة وتأكيد تسجيل اللاعب <strong style="color: #06b6d4;">{{ selectedPlayerToConfirm.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToConfirm.nickname }}</strong>) بالبطولة.
           </p>
@@ -1018,35 +1018,35 @@
       </div>
     </div>
 
-    <!-- 4. Collect Remaining Payment Dialog -->
+    <!-- 4. Collect Remaining Payment Dialog (Rendered as Centered Popup Modal) -->
     <div v-if="showCollectRemainingModal" class="modal-overlay" @click.self="showCollectRemainingModal = false" style="direction: rtl; z-index: 1000000 !important;">
-      <div class="modal-content glass-panel" style="max-width: 450px; width: 90%;">
+      <div class="modal-content glass-panel" style="max-width: 480px; width: 90%;">
         <div class="modal-header">
           <h2 style="font-weight: 800; font-size: 1.15rem; color: #fbbf24;">💰 تحصيل المبلغ المتبقي من الاشتراك</h2>
           <button @click="showCollectRemainingModal = false" class="btn-icon">✖</button>
         </div>
 
         <div class="modal-body-v3" style="padding: 1rem 0; text-align: right;" v-if="selectedPlayerToCollect">
-          <p style="color: #cbd5e1; font-size: 0.88rem; margin-bottom: 10px;">
-            تحصيل المديونية المتبقية للاعب <strong style="color: #06b6d4;">{{ selectedPlayerToCollect.nickname }}</strong>.
+          <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
+            تحصيل المديونية المتبقية وتحديث حالة تسجيل اللاعب <strong style="color: #06b6d4;">{{ selectedPlayerToCollect.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToCollect.nickname }}</strong>).
           </p>
 
-          <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1.2rem; font-size: 0.82rem; line-height: 1.5; color: #fff;">
-            <div>💰 <strong>رسوم الاشتراك الإجمالية:</strong> <span>{{ activeTournament.fee }} ج</span></div>
-            <div>💵 <strong>إجمالي المدفوع سابقاً:</strong> <span style="color: #10b981; font-weight: bold;">{{ selectedPlayerToCollect.amountConfirmed }} ج</span></div>
-            <div>🚨 <strong>المبلغ المتبقي المعلق:</strong> <span style="color: #ef4444; font-weight: 900;">{{ selectedPlayerToCollect.remainingAmount }} ج</span></div>
+          <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; color: #fff;">
+            <div style="margin-bottom: 6px;">💰 <strong>رسوم الاشتراك الإجمالية:</strong> <span style="font-weight: bold;">{{ activeTournament.fee }} ج</span></div>
+            <div style="margin-bottom: 6px;">💵 <strong>إجمالي المدفوع سابقاً:</strong> <span style="color: #10b981; font-weight: bold;">{{ selectedPlayerToCollect.amountConfirmed }} ج</span></div>
+            <div>🚨 <strong>المبلغ المتبقي المستحق:</strong> <span style="color: #ef4444; font-weight: 900;">{{ selectedPlayerToCollect.remainingAmount }} ج</span></div>
           </div>
 
           <div class="field-v3" style="margin-bottom: 0;">
             <label>المبلغ المراد سداده حالياً (ج) 💸</label>
-            <input type="number" v-model.number="collectAmountInput" class="premium-input-v3" :max="selectedPlayerToCollect.remainingAmount" min="1" placeholder="مثال: 20" style="background: rgba(15, 23, 42, 0.45) !important; color: white !important; border: 1px solid rgba(255,255,255,0.08) !important; padding: 8px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1.1rem; font-weight: bold; text-align: center;">
-            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">سيتم توريد هذا المبلغ المدفوع لليومية الحالية وتخفيض مديونية العضو.</span>
+            <input type="number" v-model.number="collectAmountInput" class="premium-input-v3" :max="selectedPlayerToCollect.remainingAmount" min="1" placeholder="أدخل القيمة المحصلة" style="background: rgba(15, 23, 42, 0.45) !important; color: white !important; border: 1px solid rgba(255,255,255,0.08) !important; padding: 8px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1.1rem; font-weight: bold; text-align: center;">
+            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.5;">عند التحصيل، سيتم إدراج هذا المبلغ لليومية الحالية وتخفيض مديونية العضو تلقائياً.</span>
           </div>
         </div>
 
         <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
           <button @click="showCollectRemainingModal = false" class="btn secondary-btn" style="flex: 1; border: 1px solid rgba(255,255,255,0.1);">إلغاء ✖</button>
-          <button @click="submitCollectRemaining" class="btn btn-green-v3" style="flex: 1; background: #fbbf24 !important; color: black !important;">اعتماد وتحصيل المبلغ 💳</button>
+          <button @click="submitCollectRemaining" class="btn btn-green-v3 btn-pulse-green" style="flex: 1; background: #10b981 !important; color: white !important;">تأكيد التحصيل والسداد 💸✅</button>
         </div>
       </div>
     </div>
