@@ -303,6 +303,7 @@ DECLARE
     max_players INT;
     nickname TEXT;
     phone TEXT;
+    current_confirmed_count INT;
 BEGIN
     -- Select backup row for update to lock it and prevent concurrent registration race conditions
     SELECT * INTO backup_row FROM cloud_backups WHERE machine_id = target_machine_id FOR UPDATE;
@@ -340,8 +341,13 @@ BEGIN
         players_list := '[]'::jsonb;
     END IF;
 
+    -- Count confirmed players (where isPendingApproval is false or null/not present)
+    SELECT COALESCE(COUNT(*), 0)::int INTO current_confirmed_count
+    FROM jsonb_array_elements(players_list) p
+    WHERE COALESCE((p->>'isPendingApproval')::boolean, false) = false;
+
     max_players := (tour_item->>'maxPlayers')::int;
-    IF jsonb_array_length(players_list) >= max_players THEN
+    IF current_confirmed_count >= max_players THEN
         RETURN jsonb_build_object('success', false, 'message', 'عذراً، البطولة مكتملة العدد بالفعل ولا يمكن قبول تسجيل إضافي.');
     END IF;
 

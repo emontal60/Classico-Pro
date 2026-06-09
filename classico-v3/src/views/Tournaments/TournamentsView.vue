@@ -32,7 +32,7 @@
                   </div>
                   <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">
                     <span>نوع: {{ t.type === 'cup' ? 'كأس' : t.type === 'league' ? 'دوري' : 'مجموعات' }}</span>
-                    <span>اللاعبين: {{ t.players?.length || 0 }} / {{ t.maxPlayers }}</span>
+                    <span>اللاعبين: {{ t.players?.filter(p => p && !p.isPendingApproval).length || 0 }} / {{ t.maxPlayers }}</span>
                   </div>
                 </div>
                 <div v-if="store.tournaments.length === 0" style="text-align: center; color: var(--text-muted); font-size: 0.72rem; padding: 15px 0;">لا توجد بطولات بعد.</div>
@@ -204,7 +204,12 @@
             <!-- 3. Registered Players Management panel -->
             <div v-else-if="activeTournament && activeTournament.status === 'registration'" class="form-card-v3 animate-scale-in">
               <div class="form-header-v3" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <span>👤 المشتركين المسجلين حالياً ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }})</span>
+                <span>
+                  👤 المشتركين المسجلين حالياً ({{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }})
+                  <span v-if="activeTournament.players.filter(p => p && p.isPendingApproval).length > 0" style="margin-right: 8px; background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.25); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;">
+                    {{ activeTournament.players.filter(p => p && p.isPendingApproval).length }} طلبات معلقة ⏳
+                  </span>
+                </span>
                 <div style="display: flex; gap: 8px;">
                   <button @click="showAccountsModal = true" class="btn secondary-btn" style="padding: 0.3rem 0.8rem; font-size: 0.85rem; font-weight: bold; background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%) !important; color: white !important; border: none !important;">
                     📊 الحسابات والإيرادات الكلية
@@ -216,6 +221,18 @@
                     + تسجيل لاعب يدوياً
                   </button>
                 </div>
+              </div>
+
+              <!-- شريط بحث لتصفية المشتركين -->
+              <div style="margin: 1.2rem 0; position: relative; direction: rtl;">
+                <input 
+                  type="text" 
+                  v-model="playerSearchQuery" 
+                  placeholder="🔎 ابحث عن لاعب بالاسم، الاسم الحركي، أو رقم الهاتف..." 
+                  class="premium-input-v3"
+                  style="width: 100%; padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(15, 23, 42, 0.45) !important; color: white !important; font-size: 0.9rem; direction: rtl; box-sizing: border-box;"
+                >
+                <span v-if="playerSearchQuery.trim()" @click="playerSearchQuery = ''" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ef4444; font-size: 0.85rem; font-weight: bold; padding: 2px 6px; z-index: 10;">مسح ✖</span>
               </div>
 
               <div class="table-container" style="max-height: 50vh; overflow-y: auto; margin-bottom: 1.5rem;">
@@ -232,7 +249,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="p in activeTournament.players" :key="p.id" :style="p.isPendingApproval ? 'background: rgba(251, 191, 36, 0.03);' : ''">
+                    <tr v-for="p in filteredPlayers" :key="p.id" :style="p && p.isPendingApproval ? 'background: rgba(251, 191, 36, 0.03);' : ''">
                       <td style="text-align: right; display: flex; align-items: center; gap: 8px; font-weight: bold; padding: 12px 8px;">
                         <span class="player-logo-mini" :style="getLogoStyle(p.logoId)">
                           {{ getLogoSymbol(p.logoId) }}
@@ -294,20 +311,22 @@
                         </div>
                       </td>
                     </tr>
-                    <tr v-if="activeTournament.players.length === 0">
-                      <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">لا توجد تسجيلات بعد. قم بنشر رابط الـ QR للبدء في تجميع اللاعبين! 🏆</td>
+                    <tr v-if="filteredPlayers.length === 0">
+                      <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2.5rem;">
+                        {{ playerSearchQuery.trim() ? 'لا توجد نتائج تطابق بحثك عن "' + playerSearchQuery + '" 🔍' : 'لا توجد تسجيلات بعد. قم بنشر رابط الـ QR للبدء في تجميع اللاعبين! 🏆' }}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
               <!-- Start Tournament Button -->
-              <div v-if="activeTournament.players.length >= 2" class="action-footer" style="text-align: center;">
-                <p v-if="activeTournament.type === 'cup' && activeTournament.players.length < activeTournament.maxPlayers" style="font-size: 0.8rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold;">
-                  ⚠️ تنبيه: لم يكتمل العدد المطلوب ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). عند الضغط على "بدء" سيقوم النظام بتوزيع تأهلات تلقائية (Bye Passes) عشوائياً للاعبين المتبقين!
+              <div v-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= 2" class="action-footer" style="text-align: center;">
+                <p v-if="activeTournament.type === 'cup' && activeTournament.players.filter(p => p && !p.isPendingApproval).length < activeTournament.maxPlayers" style="font-size: 0.8rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold;">
+                  ⚠️ تنبيه: لم يكتمل العدد المطلوب ({{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }}). عند الضغط على "بدء" سيقوم النظام بتوزيع تأهلات تلقائية (Bye Passes) عشوائياً للاعبين المتبقين!
                 </p>
-                <p v-if="activeTournament.type === 'groups_knockout' && activeTournament.players.length < activeTournament.maxPlayers" style="font-size: 0.8rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold;">
-                  ⚠️ تنبيه: لم يكتمل العدد الكلي المستهدف ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). سيتم ملء المقاعد المتبقية بلاعبي تأهل تلقائي (Bye) لإنشاء قرعة المجموعات!
+                <p v-if="activeTournament.type === 'groups_knockout' && activeTournament.players.filter(p => p && !p.isPendingApproval).length < activeTournament.maxPlayers" style="font-size: 0.8rem; color: #fbbf24; margin-bottom: 8px; font-weight: bold;">
+                  ⚠️ تنبيه: لم يكتمل العدد الكلي المستهدف ({{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }}). سيتم ملء المقاعد المتبقية بلاعبي تأهل تلقائي (Bye) لإنشاء قرعة المجموعات!
                 </p>
                 <button @click="handleStartTournament" class="btn btn-green-v3" style="font-size: 1.1rem; padding: 0.8rem 2.5rem; font-weight: bold; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);">
                   🎲 إغلاق التسجيل وتوليد مواجهات القرعة عشوائياً 🚀
@@ -964,37 +983,37 @@
       </div>
     </div>
 
-    <!-- 3. Confirm Payment Dialog -->
-    <div v-if="showConfirmPaymentModal" class="modal-overlay" @click.self="showConfirmPaymentModal = false" style="direction: rtl; z-index: 1000000 !important;">
-      <div class="modal-content glass-panel" style="max-width: 480px; width: 90%;">
+    <!-- 3. Confirm Payment Dialog (Rendered as Side Panel) -->
+    <div v-if="showConfirmPaymentModal" class="side-panel-overlay" @click.self="showConfirmPaymentModal = false" style="direction: rtl; z-index: 1000000 !important;">
+      <div class="side-panel-content glass-panel">
         <div class="modal-header">
           <h2 style="font-weight: 800; font-size: 1.15rem; color: #10b981;">💳 تأكيد سداد قيمة الاشتراك وتفعيل العضوية</h2>
           <button @click="showConfirmPaymentModal = false" class="btn-icon">✖</button>
         </div>
 
-        <div class="modal-body-v3" style="padding: 1rem 0; text-align: right;" v-if="selectedPlayerToConfirm">
+        <div class="modal-body-v3" style="padding: 1rem 0; text-align: right; flex: 1;" v-if="selectedPlayerToConfirm">
           <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.6;">
             مراجعة وتأكيد تسجيل اللاعب <strong style="color: #06b6d4;">{{ selectedPlayerToConfirm.fullName }}</strong> (الاسم الحركي: <strong>{{ selectedPlayerToConfirm.nickname }}</strong>) بالبطولة.
           </p>
 
-          <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1.2rem; font-size: 0.82rem; line-height: 1.5; color: #fff;">
-            <div>💰 <strong>المبلغ المفترض دفعه للبطولة:</strong> <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.fee }} ج</span></div>
-            <div>💵 <strong>نوع السداد المرسل من العميل:</strong> <span style="color: #06b6d4; font-weight: bold;">{{ selectedPlayerToConfirm.paymentType === 'full' ? 'اشتراك كامل' : 'دفعة جزئية (مقدم)' }}</span></div>
-            <div>💸 <strong>المبلغ المرسل (مكتوب بالطلب):</strong> <span style="color: #10b981; font-weight: bold;">{{ selectedPlayerToConfirm.amountPaid }} ج</span></div>
-            <div>📱 <strong>رقم المحول منه:</strong> <span style="font-family: monospace;">{{ selectedPlayerToConfirm.senderNumber }}</span></div>
+          <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.6; color: #fff;">
+            <div style="margin-bottom: 6px;">💰 <strong>المبلغ المفترض دفعه للبطولة:</strong> <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.fee }} ج</span></div>
+            <div style="margin-bottom: 6px;">💵 <strong>نوع السداد المرسل من العميل:</strong> <span style="color: #06b6d4; font-weight: bold;">{{ selectedPlayerToConfirm.paymentType === 'full' ? 'اشتراك كامل' : 'دفعة جزئية (مقدم)' }}</span></div>
+            <div style="margin-bottom: 6px;">💸 <strong>المبلغ المرسل (مكتوب بالطلب):</strong> <span style="color: #10b981; font-weight: bold;">{{ selectedPlayerToConfirm.amountPaid }} ج</span></div>
+            <div style="margin-bottom: 6px;">📱 <strong>رقم المحول منه:</strong> <span style="font-family: monospace;">{{ selectedPlayerToConfirm.senderNumber }}</span></div>
             <div>🔢 <strong>رقم العملية المرجعي (TxID):</strong> <span style="font-family: monospace; color: #fbbf24; font-weight: bold;">{{ selectedPlayerToConfirm.transactionId }}</span></div>
           </div>
 
           <div class="field-v3" style="margin-bottom: 0;">
             <label>تعديل/تأكيد المبلغ المستلم فعلياً (ج) 💰</label>
             <input type="number" v-model.number="confirmedAmountInput" class="premium-input-v3" :max="activeTournament.fee" min="0" placeholder="أدخل القيمة التي وصلت المحفظة بالفعل" style="background: rgba(15, 23, 42, 0.45) !important; color: white !important; border: 1px solid rgba(255,255,255,0.08) !important; padding: 8px 12px; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 1.1rem; font-weight: bold; text-align: center;">
-            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">عند التأكيد، سيتم تفعيل حساب المشترك وتوريد القيمة مباشرة لليومية الحالية.</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; display: block; line-height: 1.5;">عند التأكيد، سيتم تفعيل حساب المشترك وتوريد القيمة مباشرة لليومية الحالية.</span>
           </div>
         </div>
 
         <div class="modal-footer" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
           <button @click="showConfirmPaymentModal = false" class="btn secondary-btn" style="flex: 1; border: 1px solid rgba(255,255,255,0.1);">إلغاء ✖</button>
-          <button @click="submitConfirmPayment" class="btn btn-green-v3" style="flex: 1;">تأكيد السداد وتفعيل المشترك ✅</button>
+          <button @click="submitConfirmPayment" class="btn btn-green-v3 btn-pulse-green" style="flex: 1;">تأكيد السداد وتفعيل المشترك ✅</button>
         </div>
       </div>
     </div>
@@ -1190,6 +1209,25 @@ const selectedPlayerToConfirm = ref(null);
 const selectedPlayerToCollect = ref(null);
 const confirmedAmountInput = ref(0);
 const collectAmountInput = ref(0);
+
+const playerSearchQuery = ref('');
+
+const filteredPlayers = computed(() => {
+  if (!activeTournament.value || !activeTournament.value.players) return [];
+  const q = playerSearchQuery.value.trim().toLowerCase();
+  if (!q) return activeTournament.value.players;
+  return activeTournament.value.players.filter(p => {
+    if (!p) return false;
+    const fullName = (p.fullName || '').toLowerCase();
+    const nickname = (p.nickname || '').toLowerCase();
+    const phone = (p.phone || '').toLowerCase();
+    return fullName.includes(q) || nickname.includes(q) || phone.includes(q);
+  });
+});
+
+watch(selectedTournamentId, () => {
+  playerSearchQuery.value = '';
+});
 
 // Handlers for payments
 const openConfirmPaymentDialog = (p) => {
@@ -1664,7 +1702,7 @@ const groupMatchesByGroup = computed(() => {
 const leagueLeaderboard = computed(() => {
   if (!activeTournament.value || activeTournament.value.type !== 'league') return [];
   
-  const players = activeTournament.value.players;
+  const players = activeTournament.value.players.filter(p => p && !p.isPendingApproval);
   const matches = activeTournament.value.matches;
 
   const stats = players.map(p => {
@@ -2014,7 +2052,7 @@ const openLink = (url) => {
 
 // Bracket Generation & Start logic
 const handleStartTournament = async () => {
-  const players = activeTournament.value.players;
+  const players = activeTournament.value.players.filter(p => p && !p.isPendingApproval);
   if (players.length < 2) {
     ui.showToast('لا يمكن بدء البطولة بعدد لاعبين أقل من لاعبين اثنين!', 'warning');
     return;
@@ -3547,6 +3585,65 @@ onUnmounted(() => {
 }
 .logo-select-btn.logo-taken:hover {
   transform: none !important;
+}
+
+/* Side Panel / Drawer for Confirm Payment */
+.side-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1000000;
+  display: flex;
+  justify-content: flex-end; /* Align to the right for RTL flow */
+  transition: opacity 0.3s ease;
+}
+
+.side-panel-content {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Pulsing Confirm Button */
+.btn-pulse-green {
+  animation: pulse-glow-green 2s infinite !important;
+  position: relative;
+}
+
+@keyframes pulse-glow-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+    transform: scale(1.03);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    transform: scale(1);
+  }
 }
 
 </style>

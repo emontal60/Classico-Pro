@@ -126,7 +126,7 @@
             </div>
             <div class="stat-item">
               <span class="label">المشتركين</span>
-              <span class="value cyan-color">{{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}</span>
+              <span class="value cyan-color">{{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }}</span>
             </div>
             
             <div class="prizes-container-card">
@@ -191,10 +191,10 @@
             </div>
 
             <!-- If tournament is full -->
-            <div v-else-if="activeTournament.players.length >= activeTournament.maxPlayers" class="success-message-card" style="padding: 1.5rem 0.5rem; text-align: center;">
+            <div v-else-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.maxPlayers" class="success-message-card" style="padding: 1.5rem 0.5rem; text-align: center;">
               <div class="success-icon" style="font-size: 3.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));">🛑</div>
               <h4 style="font-size: 1.15rem; font-weight: 800; color: #ef4444; margin-bottom: 10px;">عذراً، اكتمل العدد المطلوب للتسجيل!</h4>
-              <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
+              <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
             </div>
 
             <form v-else @submit.prevent="openSummaryModal" class="registration-form">
@@ -381,10 +381,10 @@
               <button 
                 type="submit" 
                 class="btn btn-submit-neon" 
-                :disabled="submitting || activeTournament.players.length >= activeTournament.maxPlayers"
+                :disabled="submitting || activeTournament.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.maxPlayers"
               >
                 <span v-if="submitting">جاري تسجيل البيانات... ⌛</span>
-                <span v-else-if="activeTournament.players.length >= activeTournament.maxPlayers">عذراً، البطولة مكتملة العدد 🛑</span>
+                <span v-else-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.maxPlayers">عذراً، البطولة مكتملة العدد 🛑</span>
                 <span v-else-if="activeTournament.fee > 0">تأكيد تفاصيل الدفع والتسجيل المعلق 🏆</span>
                 <span v-else>تأكيد وتسجيل الاشتراك بالبطولة 🏆</span>
               </button>
@@ -1541,7 +1541,7 @@ const getPlayerLogoStyle = (id) => {
 const submitRegistration = async () => {
   if (!activeTournament.value || activeTournament.value.status !== 'registration') return;
   
-  if (activeTournament.value.players.length >= activeTournament.value.maxPlayers) {
+  if (activeTournament.value.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.value.maxPlayers) {
     alert('عذراً، البطولة مكتملة العدد بالفعل ولا يمكن قبول تسجيل إضافي.');
     return;
   }

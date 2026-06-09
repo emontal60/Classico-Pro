@@ -14,9 +14,9 @@ timeout /t 2 /nobreak >nul
 
 :: 3. Launch the UI
 if exist "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" (
-    start "" "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:3000
+    start "" "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --app=http://localhost:3000 --user-data-dir="%APPDATA%\ClassicoAppProfile"
 ) else if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
-    start "" "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --app=http://localhost:3000
+    start "" "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --app=http://localhost:3000 --user-data-dir="%APPDATA%\ClassicoAppProfile"
 ) else (
     start http://localhost:3000
 )

@@ -3,9 +3,12 @@
     {
       "id": 1,
       "name": "PlayStation 1",
-      "status": "stopped",
+      "status": "running",
       "hourPrice": 50,
-      "orders": []
+      "orders": [],
+      "startTime": "2026-06-09T19:25:39.072Z",
+      "prepaidSeconds": 0,
+      "usedTimeSeconds": 0
     },
     {
       "id": 2,
@@ -692,8 +695,8 @@
   "classico_archived_expenses": [],
   "classico_tournaments": [
     {
-      "id": "1780875090460",
-      "name": "صاصا",
+      "id": "1780957889869",
+      "name": "ايموو",
       "fee": 200,
       "maxPlayers": 8,
       "type": "cup",
@@ -716,35 +719,219 @@
           "value": "250 ج"
         }
       ],
-      "paymentNumber": "0198736635",
+      "paymentNumber": "0198773653",
       "paymentNumberInstapay": "",
-      "paymentNumberWallet": "0198736635",
+      "paymentNumberWallet": "0198773653",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "wallet",
+      "status": "registration",
+      "players": [
+        {
+          "id": "PLR-1780959325901-ixxl",
+          "paid": false,
+          "phone": "010373365",
+          "logoId": 2,
+          "paidAt": "2026-06-09T19:27:03.825Z",
+          "fullName": "ايمن",
+          "joinedAt": "2026-06-08T22:55:25.901Z",
+          "nickname": "ساس",
+          "amountPaid": 50,
+          "paymentType": "partial",
+          "senderNumber": "010373365",
+          "paymentMethod": "wallet",
+          "transactionId": "231453245",
+          "amountArchived": 0,
+          "amountConfirmed": 50,
+          "remainingAmount": 150,
+          "isPendingApproval": false
+        }
+      ],
+      "matches": [],
+      "createdAt": "2026-06-08T22:31:29.869Z"
+    },
+    {
+      "id": "1780958904903",
+      "name": "الفراعنه",
+      "fee": 250,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "019937363",
+      "paymentNumberInstapay": "",
+      "paymentNumberWallet": "019937363",
       "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
       "paymentMethod": "wallet",
       "status": "registration",
       "players": [],
       "matches": [],
-      "createdAt": "2026-06-07T23:31:30.460Z"
+      "createdAt": "2026-06-08T22:48:24.903Z"
     }
   ],
-  "classico_tournaments_history": [],
+  "classico_tournaments_history": [
+    {
+      "id": "1781033223825-0j7k",
+      "playerName": "ايمن",
+      "nickname": "ساس",
+      "tournamentName": "ايموو",
+      "amount": 50,
+      "timestamp": "2026-06-09T19:27:03.825Z",
+      "processedBy": "admin"
+    }
+  ],
   "classico_subscription": {
     "success": true,
     "status": "active",
     "activated_at": "2026-05-20T21:56:02.042+00:00",
     "created_at": "2026-05-20T21:55:55.838+00:00",
-    "expires_at": "2026-06-19T21:56:02.039+00:00",
+    "expires_at": "2026-06-27T21:56:02.039+00:00",
     "plan_type": "monthly",
     "max_devices": 3,
     "activation_keys": [],
-    "token": "384A46880B05|active|2026-06-19T21:56:02.039+00:00.72995e43da965dac0d46f903d015562e3c58877729b994a8f2b077483de50a37",
-    "last_online_check": "2026-06-08T21:09:51.231Z"
+    "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
+    "last_online_check": "2026-06-09T19:50:11.928Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
     "appName": "Classico"
   },
   "classico_activity_log": [
+    {
+      "id": 1781033223825.5154,
+      "timestamp": "2026-06-09T19:27:03.825Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب ساس بقيمة 50 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781033127566.5952,
+      "timestamp": "2026-06-09T19:25:27.566Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1780958904904.0278,
+      "timestamp": "2026-06-08T22:48:24.904Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه"
+    },
+    {
+      "id": 1780957889869.1672,
+      "timestamp": "2026-06-08T22:31:29.869Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ايموو"
+    },
+    {
+      "id": 1780957873878.7102,
+      "timestamp": "2026-06-08T22:31:13.878Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة ايمونتل"
+    },
+    {
+      "id": 1780957868552.98,
+      "timestamp": "2026-06-08T22:31:08.552Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة ايمووو"
+    },
+    {
+      "id": 1780957486997.7227,
+      "timestamp": "2026-06-08T22:24:46.997Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ايمونتل"
+    },
+    {
+      "id": 1780957382484.6184,
+      "timestamp": "2026-06-08T22:23:02.484Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ايمووو"
+    },
+    {
+      "id": 1780957365976.529,
+      "timestamp": "2026-06-08T22:22:45.976Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة ايمو"
+    },
+    {
+      "id": 1780957223405.0117,
+      "timestamp": "2026-06-08T22:20:23.405Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ايمو"
+    },
+    {
+      "id": 1780957205694.1355,
+      "timestamp": "2026-06-08T22:20:05.694Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة ايمو"
+    },
+    {
+      "id": 1780956763801.8174,
+      "timestamp": "2026-06-08T22:12:43.801Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ايمو"
+    },
+    {
+      "id": 1780956748001.0007,
+      "timestamp": "2026-06-08T22:12:28.001Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة ايمو"
+    },
+    {
+      "id": 1780956651668.1538,
+      "timestamp": "2026-06-08T22:10:51.668Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم ايمو"
+    },
+    {
+      "id": 1780956621047.116,
+      "timestamp": "2026-06-08T22:10:21.047Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة صاصا"
+    },
+    {
+      "id": 1780956609069.8394,
+      "timestamp": "2026-06-08T22:10:09.069Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1780956165070.1995,
+      "timestamp": "2026-06-08T22:02:45.070Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
     {
       "id": 1780947399021.8135,
       "timestamp": "2026-06-08T19:36:39.021Z",
@@ -1014,5 +1201,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-08T21:09:50.963Z"
+  "last_seen_time": "2026-06-09T19:50:10.646Z"
 }

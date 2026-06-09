@@ -1568,6 +1568,8 @@ setTimeout(runMaintenance, 60 * 1000);
 // using the authenticated admin JWT, ensuring maximum security.
 
 // 7. SPA Routing & Fallback (Must be last)
+app.use(express.static(path.join(__dirname, 'classico-v3/dist')));
+
 app.get('*', (req, res) => {
     if (!req.path.startsWith('/api/')) {
         const indexPath = path.join(__dirname, 'classico-v3/dist/index.html');
