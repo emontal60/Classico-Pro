@@ -175,9 +175,17 @@
         </div>
 
         <div v-if="viewMode === 'register'">
-          <!-- 1. Registration Form (Only if registration is open) -->
-          <div v-if="activeTournament.status === 'registration'" class="form-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
+          <!-- 1. Registration Form (Allowed during registration OR when active for late entries) -->
+          <div v-if="activeTournament.status === 'registration' || activeTournament.status === 'active'" class="form-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
             <h3 class="panel-title">📝 استمارة الاشتراك بالبطولة</h3>
+
+            <!-- Late Registration Notice -->
+            <div v-if="activeTournament.status === 'active'" style="margin-bottom: 1.2rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 10px; border-radius: 12px; text-align: center;">
+              <p style="color: #fbbf24; font-size: 0.82rem; margin: 0; font-weight: bold; line-height: 1.5;">
+                ⚠️ تنبيه: البطولة بدأت بالفعل (جارية الآن).<br>
+                يمكنك التسجيل كلاعب احتياط أو "متأخر"، وسيظهر اسمك للإدارة لإضافتك عند إعادة القرعة.
+              </p>
+            </div>
             
             <div v-if="registrationSuccess" class="success-message-card">
               <div class="success-icon">✅</div>
@@ -1539,7 +1547,7 @@ const getPlayerLogoStyle = (id) => {
 
 // Form submit action
 const submitRegistration = async () => {
-  if (!activeTournament.value || activeTournament.value.status !== 'registration') return;
+  if (!activeTournament.value || (activeTournament.value.status !== 'registration' && activeTournament.value.status !== 'active')) return;
   
   if (activeTournament.value.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.value.maxPlayers) {
     alert('عذراً، البطولة مكتملة العدد بالفعل ولا يمكن قبول تسجيل إضافي.');
