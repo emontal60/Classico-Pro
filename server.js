@@ -1506,32 +1506,54 @@ app.post('/api/system/archive-maintenance', async (req, res) => {
 });
 
 // 6. Background Maintenance (Backups & Auto-Sync)
+let maintenanceRunning = false; // Lock to prevent concurrent runs
+
 async function runMaintenance() {
+    // Prevent overlapping maintenance runs (can cause file I/O conflicts)
+    if (maintenanceRunning) {
+        console.log('[Maintenance] Already running, skipping this cycle.');
+        return;
+    }
+    maintenanceRunning = true;
     console.log('[Maintenance] Running scheduled tasks...');
     try {
         const mid = await getMid();
         const localPath = getDataPath();
-        if (!fs.existsSync(localPath)) return;
+        if (!fs.existsSync(localPath)) {
+            maintenanceRunning = false;
+            return;
+        }
 
-        const data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        let data;
+        try {
+            data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        } catch (parseErr) {
+            console.error('[Maintenance] Failed to parse database.json, skipping this cycle:', parseErr.message);
+            maintenanceRunning = false;
+            return;
+        }
 
         // A. Hourly Local Backup
-        const backupDir = path.join(path.dirname(localPath), 'backups');
-        if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+        try {
+            const backupDir = path.join(path.dirname(localPath), 'backups');
+            if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
 
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupFile = path.join(backupDir, `backup-${timestamp}.json`);
-        fs.writeFileSync(backupFile, JSON.stringify(data, null, 2));
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const backupFile = path.join(backupDir, `backup-${timestamp}.json`);
+            fs.writeFileSync(backupFile, JSON.stringify(data, null, 2));
 
-        // Rotate: Keep only last 24
-        const files = fs.readdirSync(backupDir)
-            .filter(f => f.startsWith('backup-'))
-            .map(f => ({ name: f, time: fs.statSync(path.join(backupDir, f)).mtime }))
-            .sort((a, b) => b.time - a.time);
+            // Rotate: Keep only last 24
+            const files = fs.readdirSync(backupDir)
+                .filter(f => f.startsWith('backup-'))
+                .map(f => ({ name: f, time: fs.statSync(path.join(backupDir, f)).mtime }))
+                .sort((a, b) => b.time - a.time);
 
-        if (files.length > 24) {
-            files.slice(24).forEach(f => fs.unlinkSync(path.join(backupDir, f.name)));
-            console.log(`[Maintenance] Rotated local backups. Deleted ${files.length - 24} old files.`);
+            if (files.length > 24) {
+                files.slice(24).forEach(f => { try { fs.unlinkSync(path.join(backupDir, f.name)); } catch(e){} });
+                console.log(`[Maintenance] Rotated local backups. Deleted ${files.length - 24} old files.`);
+            }
+        } catch (backupErr) {
+            console.error('[Maintenance] Local backup failed (non-fatal):', backupErr.message);
         }
 
         // B. Auto Cloud Sync (Every 12 Hours)
@@ -1539,28 +1561,35 @@ async function runMaintenance() {
         if (isDataEmpty) {
             console.warn('[Maintenance] Skipped scheduled cloud sync: local database is empty or invalid.');
         } else {
-            const cloudInfo = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=updated_at`);
-            const lastCloud = (cloudInfo && cloudInfo.length > 0) ? new Date(cloudInfo[0].updated_at) : new Date(0);
-            const now = new Date();
+            try {
+                const cloudInfo = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.${mid}&select=updated_at`);
+                const lastCloud = (cloudInfo && cloudInfo.length > 0) ? new Date(cloudInfo[0].updated_at) : new Date(0);
+                const now = new Date();
 
-            if (now - lastCloud > 12 * 60 * 60 * 1000) {
-                console.log('[Maintenance] Triggering scheduled cloud sync (12-hour interval)...');
-                if (cloudInfo && cloudInfo.length > 0) {
-                    await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, { data, updated_at: now.toISOString() });
-                } else {
-                    await SupabaseService.request('POST', '/rest/v1/cloud_backups', { machine_id: mid, data, updated_at: now.toISOString() });
+                if (now - lastCloud > 12 * 60 * 60 * 1000) {
+                    console.log('[Maintenance] Triggering scheduled cloud sync (12-hour interval)...');
+                    if (cloudInfo && cloudInfo.length > 0) {
+                        await SupabaseService.request('PATCH', `/rest/v1/cloud_backups?machine_id=eq.${mid}`, { data, updated_at: now.toISOString() });
+                    } else {
+                        await SupabaseService.request('POST', '/rest/v1/cloud_backups', { machine_id: mid, data, updated_at: now.toISOString() });
+                    }
+                    console.log('[Maintenance] Scheduled cloud sync completed.');
                 }
-                console.log('[Maintenance] Scheduled cloud sync completed.');
+            } catch (cloudErr) {
+                console.warn('[Maintenance] Cloud sync failed (non-fatal):', cloudErr.message || cloudErr);
             }
         }
     } catch (e) {
         console.error('[Maintenance] Task failed:', e.message);
+    } finally {
+        maintenanceRunning = false;
     }
 }
 
 // Run maintenance every hour
 setInterval(runMaintenance, 60 * 60 * 1000);
-setTimeout(runMaintenance, 60 * 1000);
+// Delay first run to 5 minutes after startup (let server boot cleanly first)
+setTimeout(runMaintenance, 5 * 60 * 1000);
 
 // --- ADMIN / OWNER PORTAL ENDPOINTS ---
 // Admin endpoints have been securely removed from the local server.

@@ -743,7 +743,7 @@
       "paymentNumberWallet": "0198773653",
       "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
       "paymentMethod": "wallet",
-      "status": "registration",
+      "status": "active",
       "players": [
         {
           "id": "PLR-1780959325901-ixxl",
@@ -788,7 +788,7 @@
           "paid": false,
           "phone": "01083763535",
           "logoId": 17,
-          "paidAt": null,
+          "paidAt": "2026-06-09T22:28:51.856Z",
           "fullName": "محمد ابراهيم",
           "joinedAt": "2026-06-09T19:57:14.021Z",
           "nickname": "حمو",
@@ -798,12 +798,185 @@
           "paymentMethod": "wallet",
           "transactionId": "33232323",
           "amountArchived": 0,
-          "amountConfirmed": 0,
-          "remainingAmount": 200,
-          "isPendingApproval": true
+          "amountConfirmed": 70,
+          "remainingAmount": 130,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781043952482-w4fr",
+          "paid": false,
+          "phone": "0108373636",
+          "logoId": 0,
+          "paidAt": "2026-06-09T22:28:54.170Z",
+          "fullName": "ابراهيم",
+          "joinedAt": "2026-06-09T22:25:52.482Z",
+          "nickname": "هيما",
+          "amountPaid": 20,
+          "paymentType": "partial",
+          "senderNumber": "0108373636",
+          "paymentMethod": "wallet",
+          "transactionId": "8292798729",
+          "amountArchived": 0,
+          "amountConfirmed": 20,
+          "remainingAmount": 180,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781043987321-wrn2",
+          "paid": false,
+          "phone": "01092872772",
+          "logoId": 21,
+          "paidAt": "2026-06-09T22:28:56.574Z",
+          "fullName": "سامى",
+          "joinedAt": "2026-06-09T22:26:27.321Z",
+          "nickname": "سامى",
+          "amountPaid": 30,
+          "paymentType": "partial",
+          "senderNumber": "01092872772",
+          "paymentMethod": "wallet",
+          "transactionId": "87278267826",
+          "amountArchived": 0,
+          "amountConfirmed": 30,
+          "remainingAmount": 170,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781044029147-qw6j",
+          "paid": true,
+          "phone": "0109287636",
+          "logoId": 16,
+          "paidAt": "2026-06-09T22:28:58.658Z",
+          "fullName": "احمد ابراهيم",
+          "joinedAt": "2026-06-09T22:27:09.147Z",
+          "nickname": "مو",
+          "amountPaid": 200,
+          "paymentType": "full",
+          "senderNumber": "0109287636",
+          "paymentMethod": "wallet",
+          "transactionId": "2223333",
+          "amountArchived": 0,
+          "amountConfirmed": 200,
+          "remainingAmount": 0,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781044060875-3gpd",
+          "paid": false,
+          "phone": "0108373663",
+          "logoId": 0,
+          "paidAt": "2026-06-09T22:29:01.538Z",
+          "fullName": "سمير",
+          "joinedAt": "2026-06-09T22:27:40.875Z",
+          "nickname": "سا",
+          "amountPaid": 33,
+          "paymentType": "partial",
+          "senderNumber": "0108373663",
+          "paymentMethod": "wallet",
+          "transactionId": "7268726782",
+          "amountArchived": 0,
+          "amountConfirmed": 33,
+          "remainingAmount": 167,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781044123856-6fes",
+          "paid": false,
+          "phone": "01087626666",
+          "logoId": 10,
+          "paidAt": "2026-06-09T22:29:03.808Z",
+          "fullName": "كارم مم",
+          "joinedAt": "2026-06-09T22:28:43.856Z",
+          "nickname": "موم",
+          "amountPaid": 60,
+          "paymentType": "partial",
+          "senderNumber": "01087626666",
+          "paymentMethod": "wallet",
+          "transactionId": "7237873982",
+          "amountArchived": 0,
+          "amountConfirmed": 60,
+          "remainingAmount": 140,
+          "isPendingApproval": false
         }
       ],
-      "matches": [],
+      "matches": [
+        {
+          "id": "c-m-0-0",
+          "player1Id": "PLR-1781044060875-3gpd",
+          "player2Id": "PLR-1781044123856-6fes",
+          "player1Score": null,
+          "player2Score": null,
+          "winnerId": "",
+          "played": false,
+          "roundIndex": 0,
+          "matchIndex": 0
+        },
+        {
+          "id": "c-m-0-1",
+          "player1Id": "PLR-1781043952482-w4fr",
+          "player2Id": "PLR-1780959325901-ixxl",
+          "player1Score": null,
+          "player2Score": null,
+          "winnerId": "",
+          "played": false,
+          "roundIndex": 0,
+          "matchIndex": 1
+        },
+        {
+          "id": "c-m-0-2",
+          "player1Id": "PLR-1781044029147-qw6j",
+          "player2Id": "PLR-1781035034021-pvdm",
+          "player1Score": 3,
+          "player2Score": 0,
+          "winnerId": "PLR-1781044029147-qw6j",
+          "played": true,
+          "roundIndex": 0,
+          "matchIndex": 2
+        },
+        {
+          "id": "c-m-0-3",
+          "player1Id": "PLR-1781043987321-wrn2",
+          "player2Id": "PLR-1781034856770-3cpn",
+          "player1Score": 0,
+          "player2Score": 2,
+          "winnerId": "PLR-1781034856770-3cpn",
+          "played": true,
+          "roundIndex": 0,
+          "matchIndex": 3
+        },
+        {
+          "id": "c-m-1-0",
+          "player1Id": null,
+          "player2Id": null,
+          "player1Score": null,
+          "player2Score": null,
+          "winnerId": "",
+          "played": false,
+          "roundIndex": 1,
+          "matchIndex": 0
+        },
+        {
+          "id": "c-m-1-1",
+          "player1Id": "PLR-1781044029147-qw6j",
+          "player2Id": "PLR-1781034856770-3cpn",
+          "player1Score": null,
+          "player2Score": null,
+          "winnerId": "",
+          "played": false,
+          "roundIndex": 1,
+          "matchIndex": 1
+        },
+        {
+          "id": "c-m-2-0",
+          "player1Id": null,
+          "player2Id": null,
+          "player1Score": null,
+          "player2Score": null,
+          "winnerId": "",
+          "played": false,
+          "roundIndex": 2,
+          "matchIndex": 0
+        }
+      ],
       "createdAt": "2026-06-08T22:31:29.869Z"
     },
     {
@@ -840,6 +1013,41 @@
       "players": [],
       "matches": [],
       "createdAt": "2026-06-08T22:48:24.903Z"
+    },
+    {
+      "id": "1781046751324",
+      "name": "فزعه",
+      "fee": 300,
+      "maxPlayers": 4,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "01093873737",
+      "paymentNumberInstapay": "",
+      "paymentNumberWallet": "01093873737",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "wallet",
+      "status": "registration",
+      "players": [],
+      "matches": [],
+      "createdAt": "2026-06-09T23:12:31.324Z"
     }
   ],
   "classico_tournaments_history": [
@@ -869,6 +1077,60 @@
       "amount": 100,
       "timestamp": "2026-06-09T19:55:49.548Z",
       "processedBy": "admin"
+    },
+    {
+      "id": "1781044131856-htb2",
+      "playerName": "محمد ابراهيم",
+      "nickname": "حمو",
+      "tournamentName": "ايموو",
+      "amount": 70,
+      "timestamp": "2026-06-09T22:28:51.856Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781044134170-4ots",
+      "playerName": "ابراهيم",
+      "nickname": "هيما",
+      "tournamentName": "ايموو",
+      "amount": 20,
+      "timestamp": "2026-06-09T22:28:54.170Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781044136574-q3y7",
+      "playerName": "سامى",
+      "nickname": "سامى",
+      "tournamentName": "ايموو",
+      "amount": 30,
+      "timestamp": "2026-06-09T22:28:56.574Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781044138658-ev0u",
+      "playerName": "احمد ابراهيم",
+      "nickname": "مو",
+      "tournamentName": "ايموو",
+      "amount": 200,
+      "timestamp": "2026-06-09T22:28:58.658Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781044141538-l2gp",
+      "playerName": "سمير",
+      "nickname": "سا",
+      "tournamentName": "ايموو",
+      "amount": 33,
+      "timestamp": "2026-06-09T22:29:01.538Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781044143808-30fg",
+      "playerName": "كارم مم",
+      "nickname": "موم",
+      "tournamentName": "ايموو",
+      "amount": 60,
+      "timestamp": "2026-06-09T22:29:03.808Z",
+      "processedBy": "admin"
     }
   ],
   "classico_subscription": {
@@ -881,13 +1143,118 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-09T20:50:10.515Z"
+    "last_online_check": "2026-06-10T00:12:41.313Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
     "appName": "Classico"
   },
   "classico_activity_log": [
+    {
+      "id": 1781050371966.844,
+      "timestamp": "2026-06-10T00:12:51.966Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة ايموو"
+    },
+    {
+      "id": 1781050362691.7712,
+      "timestamp": "2026-06-10T00:12:42.691Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة ايموو"
+    },
+    {
+      "id": 1781047411010.5203,
+      "timestamp": "2026-06-09T23:23:31.010Z",
+      "user": "admin",
+      "action": "بدء بطولة",
+      "details": "تم بدء فعاليات بطولة ايموو وجدولة المواجهات"
+    },
+    {
+      "id": 1781046751325.0771,
+      "timestamp": "2026-06-09T23:12:31.325Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم فزعه"
+    },
+    {
+      "id": 1781045199723.9727,
+      "timestamp": "2026-06-09T22:46:39.723Z",
+      "user": "admin",
+      "action": "بدء بطولة",
+      "details": "تم بدء فعاليات بطولة ايموو وجدولة المواجهات"
+    },
+    {
+      "id": 1781044143808.364,
+      "timestamp": "2026-06-09T22:29:03.808Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب موم بقيمة 60 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781044141538.6106,
+      "timestamp": "2026-06-09T22:29:01.538Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب سا بقيمة 33 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781044138658.572,
+      "timestamp": "2026-06-09T22:28:58.658Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب مو بقيمة 200 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781044136574.155,
+      "timestamp": "2026-06-09T22:28:56.574Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب سامى بقيمة 30 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781044134171.1594,
+      "timestamp": "2026-06-09T22:28:54.171Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب هيما بقيمة 20 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781044131857.676,
+      "timestamp": "2026-06-09T22:28:51.857Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب حمو بقيمة 70 ج لبطولة ايموو"
+    },
+    {
+      "id": 1781043902750.9897,
+      "timestamp": "2026-06-09T22:25:02.750Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781040587555.2893,
+      "timestamp": "2026-06-09T21:29:47.555Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781039831166.9426,
+      "timestamp": "2026-06-09T21:17:11.166Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781038386001.4287,
+      "timestamp": "2026-06-09T20:53:06.001Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
     {
       "id": 1781034949549.5454,
       "timestamp": "2026-06-09T19:55:49.549Z",
@@ -1289,6 +1656,5 @@
     }
   ],
   "is_activation": false,
-  "is_reset": false,
-  "last_seen_time": "2026-06-09T20:50:10.172Z"
+  "is_reset": false
 }
