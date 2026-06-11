@@ -42,7 +42,6 @@ try {
   runGitRm('favicon.svg');
   runGitRm('icons.svg');
   runGitRm('logo1.png');
-  runGitRm('logoapp.png');
   runGitRm('app-icon.png');
   runGitRm('logos');
 
@@ -78,7 +77,7 @@ try {
 
   // 5. Stage only the build files and push to master
   console.log('Committing and pushing to master...');
-  execSync('git add index.html manifest.json favicon.svg icons.svg logo1.png logoapp.png app-icon.png assets/ logos/', { stdio: 'inherit' });
+  execSync('git add index.html manifest.json favicon.svg icons.svg logo1.png app-icon.png assets/ logos/', { stdio: 'inherit' });
   execSync('git commit -m "Deploy: update public registration page with latest changes"', { stdio: 'inherit' });
   execSync('git push origin master', { stdio: 'inherit' });
 
