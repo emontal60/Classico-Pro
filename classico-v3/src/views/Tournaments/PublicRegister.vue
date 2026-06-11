@@ -178,21 +178,219 @@
           <!-- 1. Registration Form (Allowed during registration OR when active for late entries) -->
           <div v-if="activeTournament.status === 'registration' || activeTournament.status === 'active'" class="form-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
             <h3 class="panel-title">📝 استمارة الاشتراك بالبطولة</h3>
-            ...
+            
+            <div v-if="registrationSuccess" class="success-message-card">
+              <div class="success-icon">✅</div>
+              <h4>تم تسجيل البيانات بنجاح!</h4>
+              <p v-if="activeTournament.fee > 0" class="paid-hint" style="font-size: 0.9rem; border: 1px solid rgba(251, 191, 36, 0.25); background: rgba(251, 191, 36, 0.05); padding: 12px; border-radius: 12px; color: #fbbf24; line-height: 1.6; text-align: center; margin-top: 10px;">
+                ⏳ <strong>حالة الطلب: معلق بانتظار موافقة الإدارة</strong><br>
+                تم استلام تفاصيل سداد الاشتراك بنجاح (رقم العملية: <strong>{{ lastTxId }}</strong>).<br>
+                سيتم تأكيد وتفعيل اسمك بالبطولة فور مراجعة الإدارة للتحويل ومطابقته.
+              </p>
+              <p v-else class="paid-hint">🎉 تم تسجيلك وتأكيد اشتراكك بالبطولة مجاناً بنجاح!</p>
+            </div>
+
+            <!-- If tournament is full -->
+            <div v-else-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.maxPlayers" class="success-message-card" style="padding: 1.5rem 0.5rem; text-align: center;">
+              <div class="success-icon" style="font-size: 3.5rem; margin-bottom: 0.8rem; filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.4));">🛑</div>
+              <h4 style="font-size: 1.15rem; font-weight: 800; color: #ef4444; margin-bottom: 10px;">عذراً، اكتمل العدد المطلوب للتسجيل!</h4>
+              <p style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">لقد اكتمل العدد المطلوب للتسجيل في هذه البطولة ({{ activeTournament.players.filter(p => p && !p.isPendingApproval).length }} / {{ activeTournament.maxPlayers }}). يرجى الانتظار والمتابعة مع إدارة الصالة للمشاركة في بطولة أخرى قريباً! 🏆</p>
+            </div>
+
+            <form v-else @submit.prevent="openSummaryModal" class="registration-form">
+              <div class="input-group">
+                <label>الاسم رباعي بالكامل 👤</label>
+                <input 
+                  type="text" 
+                  v-model="form.fullName" 
+                  placeholder="أدخل اسمك رباعي كما هو في البطاقة"
+                  required
+                  class="premium-input"
+                >
+              </div>
+
+              <div class="input-group">
+                <label>الاسم الحركي / المستعار (Nickname) 👾</label>
+                <input 
+                  type="text" 
+                  v-model="form.nickname" 
+                  placeholder="مثال: Neo, Shadow, Sniper"
+                  required
+                  class="premium-input"
+                  maxLength="16"
+                  :class="{ 'input-error': isNicknameTaken }"
+                >
+                <span v-if="isNicknameTaken" class="error-msg-text animate-fade-in">⚠️ هذا الاسم المستعار محجوز بالفعل في هذه البطولة!</span>
+              </div>
+
+              <!-- Render phone field here ONLY if free tournament. If paid, it's rendered inside payment section -->
+              <div v-if="activeTournament.fee === 0" class="input-group">
+                <label>رقم الهاتف الخاص بك 📱</label>
+                <input 
+                  type="tel" 
+                  v-model="form.phone" 
+                  placeholder="مثال: 010xxxxxxxx"
+                  required
+                  class="premium-input"
+                >
+              </div>
+
+              <!-- Avatar Selection -->
+              <div class="input-group">
+                <label class="avatar-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span>اختر شعار فريقك (أندية ومنتخبات) ⚽</span>
+                  <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null" style="font-size: 0.78rem;">
+                    الشعار المحدد: <span style="color: #fbbf24; font-weight: bold;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
+                    <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)">{{ getLogoSymbol(form.logoId) }}</span>
+                  </span>
+                </label>
+                
+                <div class="logo-scroll-grid">
+                  <button
+                    type="button"
+                    v-for="(logo, idx) in CURATED_LOGOS"
+                    :key="idx"
+                    :class="['logo-select-btn', { active: form.logoId === idx, 'logo-taken': isLogoTaken(idx) && form.logoId !== idx }]"
+                    :style="getLogoStyle(idx)"
+                    :disabled="isLogoTaken(idx) && form.logoId !== idx"
+                    @click="form.logoId = idx"
+                    :title="isLogoTaken(idx) ? 'هذا الشعار محجوز بالفعل 🔒' : logo.name"
+                  >
+                    <span class="logo-symbol">{{ isLogoTaken(idx) && form.logoId !== idx ? '🔒' : logo.symbol }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- قسم السداد والدفع المالي للبطولة -->
+              <div v-if="activeTournament.fee > 0" class="payment-section-form glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(6, 182, 212, 0.25); background: rgba(6, 182, 212, 0.03); padding: 15px !important; border-radius: 14px; text-align: right;">
+                <h4 style="color: #06b6d4; font-weight: 800; font-size: 0.95rem; margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                  <span>💸 معلومات سداد قيمة الاشتراك</span>
+                </h4>
+                
+                <div style="background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 1rem; font-size: 0.8rem; line-height: 1.6; color: #e2e8f0;">
+                  <div>💰 <strong>رسوم الاشتراك:</strong> <span style="color: #10b981; font-weight: 900;">{{ activeTournament.fee }} ج</span></div>
+                  
+                  <!-- Display Instapay number if supported and selected -->
+                  <div v-if="form.paymentMethod === 'instapay' && activeTournament.paymentNumberInstapay" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                    <div>
+                      ⚡ <strong>رقم/عنوان حساب انستا باي:</strong> 
+                      <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px; margin-right: 5px;">{{ activeTournament.paymentNumberInstapay }}</span>
+                    </div>
+                    <button type="button" @click="copyPaymentNumber(activeTournament.paymentNumberInstapay)" class="copy-btn-small">نسخ 📋</button>
+                  </div>
+                  <!-- Display Wallet number if supported and selected -->
+                  <div v-if="form.paymentMethod === 'wallet' && activeTournament.paymentNumberWallet" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                    <div>
+                      📱 <strong>رقم محفظة الكاش:</strong> 
+                      <span style="color: #fbbf24; font-weight: bold; font-family: monospace; letter-spacing: 0.5px; margin-right: 5px;">{{ activeTournament.paymentNumberWallet }}</span>
+                    </div>
+                    <button type="button" @click="copyPaymentNumber(activeTournament.paymentNumberWallet)" class="copy-btn-small">نسخ الرقم 📋</button>
+                  </div>
+                  <!-- Display Cash instructions if supported and selected -->
+                  <div v-if="form.paymentMethod === 'cash' && activeTournament.paymentNumberCash">
+                    🏟️ <strong>تعليمات الدفع كاش:</strong> 
+                    <span style="color: #fbbf24; font-weight: bold;">{{ activeTournament.paymentNumberCash }}</span>
+                  </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1rem;" v-if="activeTournament.paymentMethod === 'both'">
+                  <label>وسيلة الدفع المفضلة 💳</label>
+                  <select v-model="form.paymentMethod" class="premium-input" style="width: 100%; background: rgba(0,0,0,0.3); color: #fff;">
+                    <option value="instapay">انستا باى ⚡</option>
+                    <option value="wallet">محفظه كاش 📱</option>
+                  </select>
+                </div>
+
+                <!-- خيارات السداد كامل / جزئي -->
+                <div class="input-group" style="margin-bottom: 1rem;">
+                  <label>خيار السداد المفضل 💸</label>
+                  <div class="payment-type-selector" style="display: flex; gap: 10px;">
+                    <button
+                      type="button"
+                      class="pay-type-btn"
+                      :class="{ active: form.paymentType === 'full' }"
+                      @click="setPaymentType('full')"
+                    >
+                      💵 سداد كامل الاشتراك
+                    </button>
+                    <button
+                      type="button"
+                      class="pay-type-btn"
+                      :class="{ active: form.paymentType === 'partial' }"
+                      @click="setPaymentType('partial')"
+                    >
+                      💸 سداد دفعة جزئية
+                    </button>
+                  </div>
+                </div>
+
+                <!-- حقل إدخال المبلغ المحوّل -->
+                <div class="input-group" style="margin-bottom: 1rem;">
+                  <label>المبلغ الذي قمت بتحويله (ج) 💸</label>
+                  <input 
+                    type="number" 
+                    v-model.number="form.amountPaid" 
+                    :min="1" 
+                    :max="activeTournament.fee" 
+                    placeholder="اكتب المبلغ الذي قمت بتحويله بالكامل أو جزء منه" 
+                    required
+                    class="premium-input amount-paid-input"
+                    :class="{ 'readonly-input': form.paymentType === 'full', 'partial-input': form.paymentType === 'partial' }"
+                    :readonly="form.paymentType === 'full'"
+                  >
+                  <span style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px; display: block;">سداد قيمة الاشتراك صحيحة لا تزيد عن قيمة الاشتراك الكاملة ({{ activeTournament.fee }} ج).</span>
+                </div>
+
+                <!-- حقل رقم الهاتف داخل قسم الدفع مع التنبيه -->
+                <div class="input-group" style="margin-bottom: 1.2rem;">
+                  <label>رقم الهاتف الخاص بك (رقم الدفع والمحفظة) 📱</label>
+                  <input 
+                    type="tel" 
+                    v-model="form.phone" 
+                    placeholder="مثال: 010xxxxxxxx"
+                    required
+                    class="premium-input"
+                    style="border-color: rgba(251, 191, 36, 0.4) !important;"
+                  >
+                  <span style="font-size: 0.76rem; color: #fbbf24; line-height: 1.5; margin-top: 6px; display: block; border: 1px solid rgba(251, 191, 36, 0.2); background: rgba(251, 191, 36, 0.04); padding: 8px 12px; border-radius: 8px;">
+                    ⚠️ <strong>تنبيه هام:</strong> يجب أن يكون رقم الهاتف المدخل هنا هو نفس الرقم الذي قمت بالتحويل منه لضمان مطابقة وإثبات عملية الدفع بنجاح.
+                  </span>
+                </div>
+
+                <!-- حقول انستاباي الخاصة -->
+                <div v-if="form.paymentMethod === 'instapay' || form.paymentMethod === 'wallet'" class="animate-scale-in" style="display: flex; flex-direction: column; gap: 1rem;">
+                  <!-- حقل رقم العملية -->
+                  <div class="input-group" style="margin-bottom: 0;">
+                    <label>رقم العملية المرجعي للتحويل (Reference / TxID) 🔢</label>
+                    <input 
+                      type="text" 
+                      v-model="form.transactionId" 
+                      placeholder="أدخل كود تأكيد التحويل من رسالة المحول" 
+                      required
+                      class="premium-input"
+                    >
+                  </div>
+                </div>
+                
+                <!-- رسالة توضيحية لدفعة الكاش بالصالة -->
+                <div v-else class="animate-scale-in" style="font-size: 0.8rem; color: #94a3b8; line-height: 1.5; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); text-align: center;">
+                  📣 يرجى التوجه لموظف الكاونتر بالصالة لسداد الرسوم نقداً وتأكيد اشتراكك في أقرب وقت. طلبك سيكون معلقاً ⏳ حتى إتمام الدفع.
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                class="btn btn-submit-neon" 
+                :disabled="submitting || activeTournament.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.maxPlayers"
+              >
+                <span v-if="submitting">جاري تسجيل البيانات... ⌛</span>
+                <span v-else-if="activeTournament.players.filter(p => p && !p.isPendingApproval).length >= activeTournament.maxPlayers">عذراً، البطولة مكتملة العدد 🛑</span>
+                <span v-else-if="activeTournament.fee > 0">تأكيد تفاصيل الدفع والتسجيل المعلق 🏆</span>
+                <span v-else>تأكيد وتسجيل الاشتراك بالبطولة 🏆</span>
+              </button>
+            </form>
           </div>
         </div>
-
-        <!-- ALWAYS show Live Matches and Registered Players if tournament has started or is public, except when in specific private dashboard sub-views -->
-        <template v-if="!loggedInPlayer || (loggedInPlayer && playerViewMode !== 'dashboard')">
-          <!-- 2. Live Tournament View (If Active or Completed) -->
-          <div v-if="activeTournament.status !== 'registration'" class="live-bracket-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
-            ...
-          </div>
-          <!-- 3. Registered Players Board -->
-          <div class="registered-players-board glass-panel animate-scale-in" style="margin-top: 1.5rem; margin-bottom: 2rem;">
-            ...
-          </div>
-        </template>
 
         <div v-else-if="viewMode === 'dashboard'">
           <!-- Follow Portal Login Form -->
@@ -295,6 +493,8 @@
           </div>
         </div>
 
+        <!-- ALWAYS show Live Matches and Registered Players if tournament has started or is public, except when in specific private dashboard sub-views -->
+        <template v-if="!loggedInPlayer || (loggedInPlayer && playerViewMode !== 'dashboard')">
         <!-- 2. Live Tournament View (If Active or Completed) -->
         <div v-if="activeTournament.status !== 'registration'" class="live-bracket-container glass-panel animate-scale-in" style="margin-top: 1.5rem;">
           <h3 class="panel-title">📊 خريطة وجدول مباريات البطولة حياً</h3>
@@ -693,6 +893,7 @@
             </div>
           </div>
         </div>
+        </template>
       </div>
     </div>
   </div>
