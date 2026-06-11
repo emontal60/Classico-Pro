@@ -1279,10 +1279,16 @@ const GLOWS = [
 ];
 
 const getLogoStyle = (idx) => {
-  const gIdx = idx % 12;
+  const gIdx = (idx || 0) % 12;
+  const glowColor = GLOWS[gIdx];
+  const borderColor = glowColor.replace('0.45', '0.85');
   return {
-    background: GRADIENTS[gIdx],
-    boxShadow: `0 0 12px ${GLOWS[gIdx]}`
+    background: 'rgba(11, 19, 38, 0.88)',
+    border: `2px solid ${borderColor}`,
+    boxShadow: `0 0 12px ${glowColor}`,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 };
 

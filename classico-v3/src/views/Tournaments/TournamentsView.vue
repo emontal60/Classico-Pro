@@ -1553,9 +1553,15 @@ const GLOWS = [
 
 const getLogoStyle = (idx) => {
   const gIdx = (idx || 0) % 12;
+  const glowColor = GLOWS[gIdx];
+  const borderColor = glowColor.replace('0.4', '0.85');
   return {
-    background: GRADIENTS[gIdx],
-    boxShadow: `0 0 10px ${GLOWS[gIdx]}`
+    background: 'rgba(11, 19, 38, 0.88)',
+    border: `2px solid ${borderColor}`,
+    boxShadow: `0 0 10px ${glowColor}`,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 };
 
@@ -3815,6 +3821,7 @@ onUnmounted(() => {
   justify-content: space-between !important;
   align-items: center !important;
   width: 100% !important;
+  height: 32px !important;
   padding: 6px 12px !important;
   background: rgba(6, 182, 212, 0.07) !important;
   border: none !important;

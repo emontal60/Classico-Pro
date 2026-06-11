@@ -782,6 +782,41 @@
       "players": [],
       "matches": [],
       "createdAt": "2026-06-11T20:36:35.994Z"
+    },
+    {
+      "id": "1781215499615",
+      "name": "فزعه",
+      "fee": 50,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "010928736",
+      "paymentNumberInstapay": "",
+      "paymentNumberWallet": "010928736",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "wallet",
+      "status": "registration",
+      "players": [],
+      "matches": [],
+      "createdAt": "2026-06-11T22:04:59.615Z"
     }
   ],
   "classico_tournaments_history": [],
@@ -795,7 +830,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-11T21:56:57.922Z"
+    "last_online_check": "2026-06-11T22:27:37.367Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -814,6 +849,13 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1781215499616.776,
+      "timestamp": "2026-06-11T22:04:59.616Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم فزعه"
+    },
     {
       "id": 1781210195994.2664,
       "timestamp": "2026-06-11T20:36:35.994Z",
@@ -859,5 +901,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-11T21:56:56.889Z"
+  "last_seen_time": "2026-06-11T22:27:31.864Z"
 }
