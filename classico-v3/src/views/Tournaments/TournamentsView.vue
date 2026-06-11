@@ -579,8 +579,8 @@
                                   <span :style="rank < 2 ? 'color: #fbbf24;' : 'color: #94a3b8;'">{{ rank + 1 }}</span>
                                 </td>
                                 <td style="text-align: right; display: flex; align-items: center; gap: 6px; font-weight: bold; padding: 6px 4px;">
-                                  <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)" style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                    {{ getPlayerLogoSymbol(p.id) }}
+                                  <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)" style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
+                                    <img :src="getPlayerLogoUrl(p.id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                   </span>
                                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 90px; color: #fff;">{{ p.nickname }}</span>
                                 </td>
@@ -605,8 +605,9 @@
                           >
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                               <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
-                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 16px; height: 16px; font-size: 0.6rem;">
-                                  {{ getPlayerLogoSymbol(match.player1Id) }}
+                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
+                                  <span v-if="match.player1Id === 'bye' || !match.player1Id">⭐</span>
+                                  <img v-else :src="getPlayerLogoUrl(match.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </span>
                                 <span style="font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1;">{{ getPlayerNickname(match.player1Id) }}</span>
                               </div>
@@ -617,8 +618,9 @@
                               
                               <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; justify-content: flex-end;">
                                 <span style="font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; color: #cbd5e1;">{{ getPlayerNickname(match.player2Id) }}</span>
-                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 16px; height: 16px; font-size: 0.6rem;">
-                                  {{ getPlayerLogoSymbol(match.player2Id) }}
+                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
+                                  <span v-if="match.player2Id === 'bye' || !match.player2Id">⭐</span>
+                                  <img v-else :src="getPlayerLogoUrl(match.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </span>
                               </div>
                             </div>
@@ -689,8 +691,9 @@
                             >
                               <!-- Player 1 -->
                               <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }">
-                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)">
-                                  {{ getPlayerLogoSymbol(match.player1Id) }}
+                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                                  <span v-if="match.player1Id === 'bye' || !match.player1Id" style="font-size: 0.65rem;">⭐</span>
+                                  <img v-else :src="getPlayerLogoUrl(match.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </span>
                                 <span class="player-nick" style="font-size: 0.9rem;">{{ getPlayerNickname(match.player1Id) }}</span>
                                 <span class="player-score" style="font-size: 1rem;">{{ match.played ? match.player1Score : '-' }}</span>
@@ -698,8 +701,9 @@
                               <div class="vs-divider" style="margin: 0.3rem 0; font-size: 0.75rem;">VS</div>
                               <!-- Player 2 -->
                               <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }">
-                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)">
-                                  {{ getPlayerLogoSymbol(match.player2Id) }}
+                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                                  <span v-if="match.player2Id === 'bye' || !match.player2Id" style="font-size: 0.65rem;">⭐</span>
+                                  <img v-else :src="getPlayerLogoUrl(match.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </span>
                                 <span class="player-nick" style="font-size: 0.9rem;">{{ getPlayerNickname(match.player2Id) }}</span>
                                 <span class="player-score" style="font-size: 1rem;">{{ match.played ? match.player2Score : '-' }}</span>
@@ -724,8 +728,9 @@
                         <div v-if="symmetricCupRounds.finalMatch" class="bracket-match-node final-match-node interactive-match-card" style="padding: 0.6rem; border-radius: 12px; background: rgba(15, 23, 42, 0.5); display: flex; flex-direction: column; gap: 4px; width: 230px; border: 2px solid #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.25) !important;" @click="openMatchScoreDialog(symmetricCupRounds.finalMatch)">
                           <!-- Player 1 -->
                           <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                            <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                              {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player1Id) }}
+                            <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                              <span v-if="symmetricCupRounds.finalMatch.player1Id === 'bye' || !symmetricCupRounds.finalMatch.player1Id" style="font-size: 0.65rem;">⭐</span>
+                              <img :src="getPlayerLogoUrl(symmetricCupRounds.finalMatch.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                             </span>
                             <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player1Id) }}</span>
                             <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player1Score : '-' }}</span>
@@ -733,8 +738,9 @@
                           <div class="vs-divider" style="color: #fbbf24; font-weight: 900; font-size: 0.8rem; text-align: center; margin: 0.2rem 0;">FINALS</div>
                           <!-- Player 2 -->
                           <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                            <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                              {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player2Id) }}
+                            <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                              <span v-if="symmetricCupRounds.finalMatch.player2Id === 'bye' || !symmetricCupRounds.finalMatch.player2Id" style="font-size: 0.65rem;">⭐</span>
+                              <img :src="getPlayerLogoUrl(symmetricCupRounds.finalMatch.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                             </span>
                             <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player2Id) }}</span>
                             <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player2Score : '-' }}</span>
@@ -756,8 +762,9 @@
                             >
                               <!-- Player 1 -->
                               <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }">
-                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)">
-                                  {{ getPlayerLogoSymbol(match.player1Id) }}
+                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                                  <span v-if="match.player1Id === 'bye' || !match.player1Id" style="font-size: 0.65rem;">⭐</span>
+                                  <img v-else :src="getPlayerLogoUrl(match.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </span>
                                 <span class="player-nick" style="font-size: 0.9rem;">{{ getPlayerNickname(match.player1Id) }}</span>
                                 <span class="player-score" style="font-size: 1rem;">{{ match.played ? match.player1Score : '-' }}</span>
@@ -765,8 +772,9 @@
                               <div class="vs-divider" style="margin: 0.3rem 0; font-size: 0.75rem;">VS</div>
                               <!-- Player 2 -->
                               <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }">
-                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)">
-                                  {{ getPlayerLogoSymbol(match.player2Id) }}
+                                <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                                  <span v-if="match.player2Id === 'bye' || !match.player2Id" style="font-size: 0.65rem;">⭐</span>
+                                  <img v-else :src="getPlayerLogoUrl(match.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                                 </span>
                                 <span class="player-nick" style="font-size: 0.9rem;">{{ getPlayerNickname(match.player2Id) }}</span>
                                 <span class="player-score" style="font-size: 1rem;">{{ match.played ? match.player2Score : '-' }}</span>
@@ -805,8 +813,8 @@
                             <span v-else>{{ rank + 1 }}</span>
                           </td>
                           <td style="text-align: right; display: flex; align-items: center; gap: 8px; font-weight: bold;">
-                            <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)">
-                              {{ getPlayerLogoSymbol(p.id) }}
+                            <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                              <img :src="getPlayerLogoUrl(p.id)" style="width: 100%; height: 100%; object-fit: contain;" />
                             </span>
                             <span>{{ p.nickname }}</span>
                           </td>
@@ -839,8 +847,9 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                           <!-- P1 -->
                           <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                            <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)">
-                              {{ getPlayerLogoSymbol(match.player1Id) }}
+                            <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                              <span v-if="match.player1Id === 'bye' || !match.player1Id">⭐</span>
+                              <img v-else :src="getPlayerLogoUrl(match.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                             </span>
                             <span class="player-nick" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ getPlayerNickname(match.player1Id) }}</span>
                           </div>
@@ -853,8 +862,9 @@
                           <!-- P2 -->
                           <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; justify-content: flex-end; text-align: left;">
                             <span class="player-nick" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; order: 1;">{{ getPlayerNickname(match.player2Id) }}</span>
-                            <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="order: 2;">
-                              {{ getPlayerLogoSymbol(match.player2Id) }}
+                            <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="order: 2; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                              <span v-if="match.player2Id === 'bye' || !match.player2Id">⭐</span>
+                              <img v-else :src="getPlayerLogoUrl(match.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                             </span>
                           </div>
                         </div>
@@ -910,7 +920,9 @@
               <span style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 800;">🎨 اختر شعار الفريق والرمز</span>
               <span v-if="manualPlayerForm.logoId !== null" style="font-size: 0.75rem; color: var(--accent-success); display: flex; align-items: center; gap: 5px;">
                 الشعار المحدد: <span class="text-highlight-yellow" style="margin-left: 5px;">{{ CURATED_LOGOS[manualPlayerForm.logoId]?.name }}</span>
-                <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)">{{ getLogoSymbol(manualPlayerForm.logoId) }}</span>
+                <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)" style="overflow: hidden; padding: 3px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;">
+                  <img :src="'/logos/logo_' + manualPlayerForm.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+                </span>
               </span>
             </label>
             <div class="logo-scroll-grid">
@@ -922,10 +934,13 @@
                 :style="getLogoStyle(idx)"
                 :disabled="isLogoTaken(idx) && manualPlayerForm.logoId !== idx"
                 @click="manualPlayerForm.logoId = idx"
-                style="width: 36px; height: 36px; font-size: 1.25rem;"
+                style="width: 36px; height: 36px;"
                 :title="isLogoTaken(idx) ? 'هذا الشعار محجوز بالفعل 🔒' : logo.name"
               >
-                {{ isLogoTaken(idx) && manualPlayerForm.logoId !== idx ? '🔒' : logo.symbol }}
+                <span class="logo-symbol" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 4px; overflow: hidden; border-radius: 50%;">
+                  <span v-if="isLogoTaken(idx) && manualPlayerForm.logoId !== idx" style="font-size: 0.9rem;">🔒</span>
+                  <img v-else :src="'/logos/logo_' + idx + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+                </span>
               </button>
             </div>
           </div>
@@ -993,8 +1008,9 @@
           <div style="display: flex; align-items: center; justify-content: space-around; gap: 1rem;">
             <!-- Player 1 -->
             <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-              <span class="player-logo-large" :style="getPlayerLogoStyle(activeMatch.player1Id)">
-                {{ getPlayerLogoSymbol(activeMatch.player1Id) }}
+              <span class="player-logo-large" :style="getPlayerLogoStyle(activeMatch.player1Id)" style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                <span v-if="activeMatch.player1Id === 'bye' || !activeMatch.player1Id" style="font-size: 1.5rem;">⭐</span>
+                <img v-else :src="getPlayerLogoUrl(activeMatch.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
               </span>
               <strong style="font-size: 1rem; color: var(--text-main);">{{ getPlayerNickname(activeMatch.player1Id) }}</strong>
               <input type="number" v-model="matchScore.score1" class="premium-input" style="text-align: center; font-size: 1.8rem; font-weight: 900; width: 80px; padding: 0.5rem; background: rgba(0,0,0,0.4);" min="0">
@@ -1004,8 +1020,9 @@
 
             <!-- Player 2 -->
             <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-              <span class="player-logo-large" :style="getPlayerLogoStyle(activeMatch.player2Id)">
-                {{ getPlayerLogoSymbol(activeMatch.player2Id) }}
+              <span class="player-logo-large" :style="getPlayerLogoStyle(activeMatch.player2Id)" style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                <span v-if="activeMatch.player2Id === 'bye' || !activeMatch.player2Id" style="font-size: 1.5rem;">⭐</span>
+                <img v-else :src="getPlayerLogoUrl(activeMatch.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
               </span>
               <strong style="font-size: 1rem; color: var(--text-main);">{{ getPlayerNickname(activeMatch.player2Id) }}</strong>
               <input type="number" v-model="matchScore.score2" class="premium-input" style="text-align: center; font-size: 1.8rem; font-weight: 900; width: 80px; padding: 0.5rem; background: rgba(0,0,0,0.4);" min="0">
@@ -1591,6 +1608,12 @@ const getPlayerLogoSymbol = (id) => {
   if (id === 'bye' || !id) return '⭐';
   const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? getLogoSymbol(player.logoId) : '❓';
+};
+
+const getPlayerLogoUrl = (id) => {
+  if (id === 'bye' || !id) return '';
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
+  return player ? `/logos/logo_${player.logoId}.png` : '';
 };
 
 const getPlayerLogoStyle = (id) => {

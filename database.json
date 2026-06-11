@@ -747,7 +747,43 @@
   "classico_lounge_history": [],
   "classico_expenses": [],
   "classico_archived_expenses": [],
-  "classico_tournaments": [],
+  "classico_tournaments": [
+    {
+      "id": "1781210195994",
+      "name": "الفراعنه",
+      "fee": 150,
+      "maxPlayers": 4,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: سمارت واتش\nالمركز الثاني 🥈: اير بود\nالمركز الثالث 🥉: اشتراك مجانى فى المسابقه القادمه ",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "سمارت واتش"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "اير بود"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "اشتراك مجانى فى المسابقه القادمه "
+        }
+      ],
+      "paymentNumber": "01094093993",
+      "paymentNumberInstapay": "",
+      "paymentNumberWallet": "01094093993",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "wallet",
+      "status": "registration",
+      "players": [],
+      "matches": [],
+      "createdAt": "2026-06-11T20:36:35.994Z"
+    }
+  ],
   "classico_tournaments_history": [],
   "classico_subscription": {
     "success": true,
@@ -759,11 +795,11 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-11T01:11:36.697Z"
+    "last_online_check": "2026-06-11T21:54:23.685Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
-    "appName": "Classico",
+    "appName": "Classico Zone",
     "appLogo": null,
     "userId": "",
     "subscriptionDays": 30,
@@ -777,8 +813,51 @@
       "gamepad": true
     }
   },
-  "classico_activity_log": [],
+  "classico_activity_log": [
+    {
+      "id": 1781210195994.2664,
+      "timestamp": "2026-06-11T20:36:35.994Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه"
+    },
+    {
+      "id": 1781210126628.1477,
+      "timestamp": "2026-06-11T20:35:26.628Z",
+      "user": "admin",
+      "action": "حذف جهاز",
+      "details": "تم حذف الجهاز PlayStation 6"
+    },
+    {
+      "id": 1781210122787.312,
+      "timestamp": "2026-06-11T20:35:22.787Z",
+      "user": "admin",
+      "action": "حذف جهاز",
+      "details": "تم حذف الجهاز PlayStation 7"
+    },
+    {
+      "id": 1781210119244.5408,
+      "timestamp": "2026-06-11T20:35:19.244Z",
+      "user": "admin",
+      "action": "إضافة جهاز",
+      "details": "تم إضافة جهاز جديد باسم PlayStation 7"
+    },
+    {
+      "id": 1781210118491.7874,
+      "timestamp": "2026-06-11T20:35:18.491Z",
+      "user": "admin",
+      "action": "إضافة جهاز",
+      "details": "تم إضافة جهاز جديد باسم PlayStation 6"
+    },
+    {
+      "id": 1781207263745.9043,
+      "timestamp": "2026-06-11T19:47:43.745Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    }
+  ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-11T01:11:35.375Z"
+  "last_seen_time": "2026-06-11T21:54:23.088Z"
 }

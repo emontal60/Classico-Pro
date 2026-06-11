@@ -117,7 +117,10 @@
               {{ getStatusLabel(activeTournament.status) }}
             </span>
           </div>
-          <h2 class="tournament-title">{{ activeTournament.name }}</h2>
+          <div class="tournament-name-section" style="text-align: center; margin-bottom: 1.2rem;">
+            <div style="font-size: 0.85rem; color: #94a3b8; font-weight: bold; margin-bottom: 2px;">اسم البطولة</div>
+            <h2 class="tournament-title-highlighted" style="font-size: 1.6rem; font-weight: 900; color: #00f2fe; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4); margin: 0;">{{ activeTournament.name }}</h2>
+          </div>
           
           <div class="stats-grid">
             <div class="stat-item">
@@ -241,7 +244,9 @@
                   <span>اختر شعار فريقك (أندية ومنتخبات) ⚽</span>
                   <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null" style="font-size: 0.78rem;">
                     الشعار المحدد: <span style="color: #fbbf24; font-weight: bold;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
-                    <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)">{{ getLogoSymbol(form.logoId) }}</span>
+                    <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)" style="overflow: hidden; padding: 3px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;">
+                      <img :src="'/logos/logo_' + form.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+                    </span>
                   </span>
                 </label>
                 
@@ -256,7 +261,10 @@
                     @click="form.logoId = idx"
                     :title="isLogoTaken(idx) ? 'هذا الشعار محجوز بالفعل 🔒' : logo.name"
                   >
-                    <span class="logo-symbol">{{ isLogoTaken(idx) && form.logoId !== idx ? '🔒' : logo.symbol }}</span>
+                    <span class="logo-symbol" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 4px; overflow: hidden; border-radius: 50%;">
+                      <span v-if="isLogoTaken(idx) && form.logoId !== idx" style="font-size: 1.1rem;">🔒</span>
+                      <img v-else :src="'/logos/logo_' + idx + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+                    </span>
                   </button>
                 </div>
               </div>
@@ -439,8 +447,8 @@
             <div class="player-welcome-card glass-panel" style="border-right: 4px solid #fbbf24; background: linear-gradient(90deg, rgba(251, 191, 36, 0.05) 0%, rgba(30, 41, 59, 0.45) 100%) !important;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 50px; height: 50px; font-size: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    {{ getLogoSymbol(loggedInPlayer.logoId) }}
+                  <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                    <img :src="'/logos/logo_' + loggedInPlayer.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
                   </span>
                   <div>
                     <h3 style="margin: 0; color: #fff; font-size: 1.15rem;">أهلاً بك، {{ loggedInPlayer.nickname }} 👋</h3>
@@ -463,8 +471,8 @@
               <div style="display: flex; align-items: center; justify-content: space-around; gap: 10px; margin: 15px 0;">
                 <!-- Current Player -->
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0;">
-                  <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 45px; height: 45px; font-size: 1.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    {{ getLogoSymbol(loggedInPlayer.logoId) }}
+                  <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                    <img :src="'/logos/logo_' + loggedInPlayer.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
                   </span>
                   <span style="font-size: 0.85rem; font-weight: bold; color: #fff; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{{ loggedInPlayer.nickname }}</span>
                 </div>
@@ -473,8 +481,9 @@
 
                 <!-- Opponent -->
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0;">
-                  <span class="player-logo-large" :style="getPlayerLogoStyle(playerNextMatch.opponentId)" style="width: 45px; height: 45px; font-size: 1.6rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    {{ getPlayerLogoSymbol(playerNextMatch.opponentId) }}
+                  <span class="player-logo-large" :style="getPlayerLogoStyle(playerNextMatch.opponentId)" style="width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                    <span v-if="playerNextMatch.opponentId === 'bye' || !playerNextMatch.opponentId" style="font-size: 1.5rem;">⭐</span>
+                    <img v-else :src="getPlayerLogoUrl(playerNextMatch.opponentId)" style="width: 100%; height: 100%; object-fit: contain;" />
                   </span>
                   <span style="font-size: 0.85rem; font-weight: bold; color: #fbbf24; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{{ getPlayerNickname(playerNextMatch.opponentId) }}</span>
                 </div>
@@ -516,8 +525,9 @@
                     >
                       <!-- Player 1 -->
                       <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                          {{ getPlayerLogoSymbol(match.player1Id) }}
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                          <span v-if="match.player1Id === 'bye' || !match.player1Id" style="font-size: 0.65rem;">⭐</span>
+                          <img v-else :src="getPlayerLogoUrl(match.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                         </span>
                         <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player1Id) }}</span>
                         <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player1Score : '-' }}</span>
@@ -525,8 +535,9 @@
                       <div class="vs-divider" style="font-size: 0.65rem; text-align: center; color: #475569; font-weight: bold; margin: 0.2rem 0;">ضد</div>
                       <!-- Player 2 -->
                       <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                          {{ getPlayerLogoSymbol(match.player2Id) }}
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                          <span v-if="match.player2Id === 'bye' || !match.player2Id" style="font-size: 0.65rem;">⭐</span>
+                          <img v-else :src="getPlayerLogoUrl(match.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                         </span>
                         <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player2Id) }}</span>
                         <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player2Score : '-' }}</span>
@@ -555,8 +566,9 @@
                 >
                   <!-- Player 1 -->
                   <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player1Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                    <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                      {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player1Id) }}
+                    <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                      <span v-if="symmetricCupRounds.finalMatch.player1Id === 'bye' || !symmetricCupRounds.finalMatch.player1Id" style="font-size: 0.65rem;">⭐</span>
+                      <img :src="getPlayerLogoUrl(symmetricCupRounds.finalMatch.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                     </span>
                     <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player1Id) }}</span>
                     <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player1Score : '-' }}</span>
@@ -564,8 +576,9 @@
                   <div class="vs-divider" style="color: #fbbf24; font-weight: 900; font-size: 0.75rem; text-align: center; margin: 0.2rem 0;">FINALS</div>
                   <!-- Player 2 -->
                   <div class="match-player-row" :class="{ winner: symmetricCupRounds.finalMatch.winnerId === symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played, lost: symmetricCupRounds.finalMatch.winnerId !== symmetricCupRounds.finalMatch.player2Id && symmetricCupRounds.finalMatch.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                    <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                      {{ getPlayerLogoSymbol(symmetricCupRounds.finalMatch.player2Id) }}
+                    <span class="player-logo-mini" :style="getPlayerLogoStyle(symmetricCupRounds.finalMatch.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                      <span v-if="symmetricCupRounds.finalMatch.player2Id === 'bye' || !symmetricCupRounds.finalMatch.player2Id" style="font-size: 0.65rem;">⭐</span>
+                      <img :src="getPlayerLogoUrl(symmetricCupRounds.finalMatch.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                     </span>
                     <span class="player-nick" style="font-weight: bold; font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(symmetricCupRounds.finalMatch.player2Id) }}</span>
                     <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center; font-size: 1.05rem;">{{ symmetricCupRounds.finalMatch.played ? symmetricCupRounds.finalMatch.player2Score : '-' }}</span>
@@ -587,8 +600,9 @@
                     >
                       <!-- Player 1 -->
                       <div class="match-player-row" :class="{ winner: match.winnerId === match.player1Id && match.played, lost: match.winnerId !== match.player1Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                          {{ getPlayerLogoSymbol(match.player1Id) }}
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player1Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                          <span v-if="match.player1Id === 'bye' || !match.player1Id" style="font-size: 0.65rem;">⭐</span>
+                          <img :src="getPlayerLogoUrl(match.player1Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                         </span>
                         <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player1Id) }}</span>
                         <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player1Score : '-' }}</span>
@@ -596,8 +610,9 @@
                       <div class="vs-divider" style="font-size: 0.65rem; text-align: center; color: #475569; font-weight: bold; margin: 0.2rem 0;">ضد</div>
                       <!-- Player 2 -->
                       <div class="match-player-row" :class="{ winner: match.winnerId === match.player2Id && match.played, lost: match.winnerId !== match.player2Id && match.played }" style="display: flex; align-items: center; gap: 8px; padding: 0.35rem 0.5rem; border-radius: 6px;">
-                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0;">
-                          {{ getPlayerLogoSymbol(match.player2Id) }}
+                        <span class="player-logo-mini" :style="getPlayerLogoStyle(match.player2Id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                          <span v-if="match.player2Id === 'bye' || !match.player2Id" style="font-size: 0.65rem;">⭐</span>
+                          <img :src="getPlayerLogoUrl(match.player2Id)" style="width: 100%; height: 100%; object-fit: contain;" />
                         </span>
                         <span class="player-nick" style="font-size: 0.85rem; color: #e2e8f0; flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ getPlayerNickname(match.player2Id) }}</span>
                         <span class="player-score" style="font-weight: 800; color: #fbbf24; min-width: 20px; text-align: center;">{{ match.played ? match.player2Score : '-' }}</span>
@@ -852,8 +867,8 @@
                       <span v-else>{{ rank + 1 }}</span>
                     </td>
                     <td style="text-align: right; display: flex; align-items: center; gap: 8px; font-weight: bold;">
-                      <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)">
-                        {{ getPlayerLogoSymbol(p.id) }}
+                      <span class="player-logo-mini" :style="getPlayerLogoStyle(p.id)" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 2px;">
+                        <img :src="getPlayerLogoUrl(p.id)" style="width: 100%; height: 100%; object-fit: contain;" />
                       </span>
                       <span>{{ p.nickname }}</span>
                     </td>
@@ -884,8 +899,8 @@
               class="player-badge-card"
               :class="{ 'player-highlight-card-border': loggedInPlayer && p.id === loggedInPlayer.id }"
             >
-              <span class="p-logo" :style="getLogoStyle(p.logoId)">
-                {{ getLogoSymbol(p.logoId) }}
+              <span class="p-logo" :style="getLogoStyle(p.logoId)" style="width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; padding: 3px;">
+                <img :src="'/logos/logo_' + p.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
               </span>
               <div class="p-info">
                 <span class="p-nick">{{ p.nickname }}</span>
@@ -926,7 +941,9 @@
           <div class="summary-row">
             <span class="summary-label">⚽ شعار الفريق</span>
             <span class="summary-value" style="display: flex; align-items: center; gap: 8px;">
-              <span :style="getLogoStyle(form.logoId)" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;">{{ getLogoSymbol(form.logoId) }}</span>
+              <span :style="getLogoStyle(form.logoId)" style="width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;">
+                <img :src="'/logos/logo_' + form.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+              </span>
               <span style="font-size:0.8rem;color:#94a3b8;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
             </span>
           </div>
@@ -1583,6 +1600,12 @@ const getPlayerLogoStyle = (id) => {
   }
   const player = activeTournament.value?.players.find(p => p && p.id === id);
   return player ? getLogoStyle(player.logoId) : {};
+};
+
+const getPlayerLogoUrl = (id) => {
+  if (id === 'bye' || !id) return '';
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
+  return player ? `/logos/logo_${player.logoId}.png` : '';
 };
 
 // Form submit action
@@ -2640,13 +2663,14 @@ watch(
 }
 .prizes-title {
   color: #fbbf24 !important;
-  font-size: 0.95rem !important;
-  font-weight: 800 !important;
-  margin: 0 0 1rem 0 !important;
-  text-align: right !important;
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.25) !important;
-  border-bottom: 1px solid rgba(251, 191, 36, 0.1) !important;
-  padding-bottom: 8px !important;
+  font-size: 1.05rem !important;
+  font-weight: 900 !important;
+  margin: 0 auto 1.2rem auto !important;
+  text-align: center !important;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.5) !important;
+  border-bottom: 2px solid rgba(251, 191, 36, 0.25) !important;
+  padding-bottom: 10px !important;
+  max-width: 90%;
 }
 .prizes-list {
   display: flex;
@@ -2657,42 +2681,71 @@ watch(
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.04) !important;
-  padding: 10px 14px !important;
-  border-radius: 10px !important;
-  transition: all 0.25s ease !important;
+  background: rgba(15, 23, 42, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 12px 16px !important;
+  border-radius: 14px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+.prize-item-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 .prize-item-row:hover {
-  background: rgba(255, 255, 255, 0.04) !important;
-  transform: translateX(-3px) !important;
+  background: rgba(30, 41, 59, 0.8) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Individual rank styling */
 .prize-item-row.rank-0 {
-  background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
-  border-color: rgba(251, 191, 36, 0.25) !important;
-  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.05) !important;
+  background: linear-gradient(95deg, rgba(251, 191, 36, 0.12) 0%, rgba(15, 23, 42, 0.75) 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.35) !important;
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.08), inset 0 0 8px rgba(251, 191, 36, 0.05) !important;
+}
+.prize-item-row.rank-0:hover {
+  border-color: rgba(251, 191, 36, 0.6) !important;
+  box-shadow: 0 6px 25px rgba(251, 191, 36, 0.15) !important;
 }
 .prize-item-row.rank-0 .prize-value {
   color: #fbbf24 !important;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.3) !important;
-  font-size: 1.05rem !important;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.4) !important;
+  font-size: 1.1rem !important;
 }
 .prize-item-row.rank-1 {
-  background: linear-gradient(90deg, rgba(148, 163, 184, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
-  border-color: rgba(148, 163, 184, 0.2) !important;
+  background: linear-gradient(95deg, rgba(148, 163, 184, 0.12) 0%, rgba(15, 23, 42, 0.75) 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(148, 163, 184, 0.05) !important;
+}
+.prize-item-row.rank-1:hover {
+  border-color: rgba(148, 163, 184, 0.5) !important;
+  box-shadow: 0 6px 25px rgba(148, 163, 184, 0.12) !important;
 }
 .prize-item-row.rank-1 .prize-value {
   color: #cbd5e1 !important;
-  font-size: 0.98rem !important;
+  text-shadow: 0 0 10px rgba(148, 163, 184, 0.3) !important;
+  font-size: 1.02rem !important;
 }
 .prize-item-row.rank-2 {
-  background: linear-gradient(90deg, rgba(180, 83, 9, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
-  border-color: rgba(180, 83, 9, 0.2) !important;
+  background: linear-gradient(95deg, rgba(180, 83, 9, 0.12) 0%, rgba(15, 23, 42, 0.75) 100%) !important;
+  border: 1px solid rgba(180, 83, 9, 0.3) !important;
+  box-shadow: 0 4px 20px rgba(180, 83, 9, 0.05) !important;
+}
+.prize-item-row.rank-2:hover {
+  border-color: rgba(180, 83, 9, 0.5) !important;
+  box-shadow: 0 6px 25px rgba(180, 83, 9, 0.12) !important;
 }
 .prize-item-row.rank-2 .prize-value {
   color: #d97706 !important;
+  text-shadow: 0 0 10px rgba(180, 83, 9, 0.3) !important;
   font-size: 0.95rem !important;
 }
 
