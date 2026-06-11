@@ -53,7 +53,8 @@ export const useAppStore = defineStore('app', {
     activityLog: [],
     multiBranchActive: localStorage.getItem('classico_multi_branch_active') === 'true',
     multiBranchData: [],
-    activeBranchFilter: 'all'
+    activeBranchFilter: 'all',
+    syncCompleted: false
   }),
 
   getters: {
@@ -236,29 +237,33 @@ export const useAppStore = defineStore('app', {
         }
 
         // Step 3: Load data from local server (fast, no internet needed)
-        await this.syncFromServer();
+        const syncSuccess = await this.syncFromServer();
 
-        // Step 4: Re-verify after loading fresh data from local DB
-        this.verifyLocalSubscription();
+        if (syncSuccess) {
+          // Step 4: Re-verify after loading fresh data from local DB
+          this.verifyLocalSubscription();
 
-        // Step 5: Restore session from localStorage
-        const savedSession = localStorage.getItem('classico_session');
-        if (savedSession) {
-          try {
-            const session = JSON.parse(savedSession);
-            if (Date.now() - session.loginTime < 21600000) {
-              this.session = session;
-            }
-          } catch(e) { localStorage.removeItem('classico_session'); }
-        }
+          // Step 5: Restore session from localStorage
+          const savedSession = localStorage.getItem('classico_session');
+          if (savedSession) {
+            try {
+              const session = JSON.parse(savedSession);
+              if (Date.now() - session.loginTime < 21600000) {
+                this.session = session;
+              }
+            } catch(e) { localStorage.removeItem('classico_session'); }
+          }
 
-        // Step 6: Ensure admin user exists
-        if (!this.users || Object.keys(this.users).length === 0 || !this.users['admin']) {
-          this.users = {
-            ...this.users,
-            'admin': { username: 'admin', password: 'admin', role: 'manager', permissions: {} }
-          };
-          await this.saveToDatabase(true);
+          // Step 6: Ensure admin user exists
+          if (!this.users || Object.keys(this.users).length === 0 || !this.users['admin']) {
+            this.users = {
+              ...this.users,
+              'admin': { username: 'admin', password: 'admin', role: 'manager', permissions: {} }
+            };
+            await this.saveToDatabase(true);
+          }
+        } else {
+          console.error("[Init] Server sync failed. Skipping default user initialization to protect database integrity.");
         }
 
         // Step 7: Online verification in background (non-blocking)
@@ -374,6 +379,10 @@ export const useAppStore = defineStore('app', {
     },
 
     async saveToDatabase(isActivation = false, isReset = false) {
+      if (!this.syncCompleted && !isReset) {
+        console.warn("[Save] Skipped saving to database: Server sync has not completed yet.");
+        return;
+      }
       try {
         const payload = {
           classico_devices: this.devices,
@@ -432,9 +441,13 @@ export const useAppStore = defineStore('app', {
           this.appSettings = data.classico_app_settings || { appName: 'Classico', userId: 'USR-' + Math.random().toString(36).substr(2, 6).toUpperCase() };
           this.activityLog = data.classico_activity_log || [];
           this.recalculateAllCurrentBalances();
+          this.syncCompleted = true;
+          return true;
         }
+        return false;
       } catch (err) {
         console.warn('[Sync] Local server unreachable, continuing with cached data:', err.message);
+        return false;
       }
     },
 

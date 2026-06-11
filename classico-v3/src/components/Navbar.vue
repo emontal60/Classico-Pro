@@ -185,9 +185,9 @@ const checkConnectionQuality = async () => {
     }
   }
 
-  // Active check to measure real latency with concurrent fetches for extreme sensitivity
+  // Active check to measure real latency with concurrent fetches
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout for fast offline detection
+  const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout for offline detection
   const startTime = performance.now();
 
   const fetchGoogle = fetch(`https://clients3.google.com/generate_204?cb=${Date.now()}`, {
@@ -210,7 +210,7 @@ const checkConnectionQuality = async () => {
     clearTimeout(timeoutId);
 
     const duration = performance.now() - startTime;
-    if (duration > 1000) {
+    if (duration > 2500) {
       connectionStatus.value = 'weak';
     } else {
       connectionStatus.value = 'online';
@@ -278,7 +278,7 @@ onMounted(() => {
   window.addEventListener('online', handleOnline);
   window.addEventListener('offline', handleOffline);
   window.addEventListener('focus', checkConnectionQuality);
-  connectionInterval = setInterval(checkConnectionQuality, 3000);
+  connectionInterval = setInterval(checkConnectionQuality, 30000);
 });
 
 onUnmounted(() => {

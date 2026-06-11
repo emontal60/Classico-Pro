@@ -325,6 +325,84 @@ function ensureDirectory(filePath) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
+// Atomically write data to database file to prevent corruption from abrupt closures/power cuts
+function safeWriteDatabase(filePath, data) {
+    ensureDirectory(filePath);
+    const tempPath = filePath + '.tmp';
+    const jsonStr = JSON.stringify(data, null, 2);
+    // Write to temp file first
+    fs.writeFileSync(tempPath, jsonStr, 'utf8');
+    // Rename to target file atomically
+    fs.renameSync(tempPath, filePath);
+}
+
+// Scans backups and attempts to restore the most recent valid backup
+function tryRestoreFromLatestBackup(localPath) {
+    try {
+        const backupDir = path.join(path.dirname(localPath), 'backups');
+        if (!fs.existsSync(backupDir)) return null;
+
+        const files = fs.readdirSync(backupDir)
+            .filter(f => f.startsWith('backup-') && f.endsWith('.json'))
+            .sort((a, b) => b.localeCompare(a));
+
+        for (const filename of files) {
+            const backupFilePath = path.join(backupDir, filename);
+            try {
+                const content = fs.readFileSync(backupFilePath, 'utf8');
+                const parsed = JSON.parse(content);
+                // Validate parsed structure
+                if (parsed && parsed.classico_menu && Array.isArray(parsed.classico_menu)) {
+                    console.log(`[Self-Healing] Found valid backup file: ${filename}`);
+                    
+                    // Backup the corrupted file first before overwriting it
+                    if (fs.existsSync(localPath)) {
+                        const corruptedBackupPath = localPath + `.corrupted_${Date.now()}`;
+                        try {
+                            fs.renameSync(localPath, corruptedBackupPath);
+                            console.warn(`[Self-Healing] Corrupted database archived to: ${corruptedBackupPath}`);
+                        } catch (renameErr) {
+                            console.error(`[Self-Healing] Failed to rename corrupted database:`, renameErr.message);
+                        }
+                    }
+                    
+                    // Write restored backup atomically
+                    safeWriteDatabase(localPath, parsed);
+                    return parsed;
+                }
+            } catch (err) {
+                console.error(`[Self-Healing] Backup file ${filename} is invalid/corrupt:`, err.message);
+            }
+        }
+    } catch (e) {
+        console.error("[Self-Healing] Error scanning backups directory:", e.message);
+    }
+    return null;
+}
+
+// Reads and parses database file safely with automatic fallback to latest working backup
+function safeReadDatabase(filePath) {
+    if (!fs.existsSync(filePath)) {
+        return null;
+    }
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        if (!content.trim()) {
+            throw new Error("File is empty");
+        }
+        return JSON.parse(content);
+    } catch (err) {
+        console.error(`[Data Recovery] Failed to read or parse database at ${filePath}:`, err.message);
+        const restoredData = tryRestoreFromLatestBackup(filePath);
+        if (restoredData) {
+            console.log(`[Data Recovery] Self-healing success. Restored database from latest valid backup.`);
+            return restoredData;
+        }
+        return null;
+    }
+}
+
+
 // Helper to get owner machine ID for a given machine ID
 async function getOwnerMachineId(mid) {
     try {
@@ -362,11 +440,10 @@ async function requireActiveSubscription(req, res, next) {
 
         const localPath = getDataPath();
 
-        if (!fs.existsSync(localPath)) {
-            return res.status(403).json({ success: false, error: 'Database not initialized, active license required.' });
+        const localData = safeReadDatabase(localPath);
+        if (!localData) {
+            return res.status(403).json({ success: false, error: 'Database not initialized or corrupted.' });
         }
-
-        const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
         const localSub = localData.classico_subscription;
 
         if (!localSub || localSub.status !== 'active' || !localSub.token) {
@@ -431,12 +508,10 @@ app.get('/api/data', requireActiveSubscription, async (req, res) => {
         console.log(`[Server] (--) Fetching data from: ${localPath}`);
         let data = null;
 
-        if (foundExisting && fs.existsSync(localPath)) {
-            try {
-                data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        if (foundExisting) {
+            data = safeReadDatabase(localPath);
+            if (data) {
                 console.log(`[Server] (OK) Data loaded successfully (${fs.statSync(localPath).size} bytes)`);
-            } catch (err) {
-                console.error("Failed to read local database.json:", err);
             }
         }
 
@@ -450,8 +525,7 @@ app.get('/api/data', requireActiveSubscription, async (req, res) => {
                 classico_app_settings: { appName: 'Classico' }
             };
             // Save defaults to local file for next time
-            ensureDirectory(localPath);
-            fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+            safeWriteDatabase(localPath, data);
         } else {
             // Ensure menu exists even if empty (optional: only if explicitly null/missing)
             if (!data.classico_menu || data.classico_menu.length === 0) {
@@ -463,23 +537,27 @@ app.get('/api/data', requireActiveSubscription, async (req, res) => {
         }
 
         // --- UNIFIED USER/STAFF SYNC (Shared Accounts) ---
-        try {
-            const ownerMid = await getOwnerMachineId(mid);
-            if (ownerMid) {
-                const sharedUsersRes = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.shared_users_${ownerMid}&select=data`);
-                if (sharedUsersRes && sharedUsersRes.length > 0 && sharedUsersRes[0].data) {
-                    const sharedUsers = sharedUsersRes[0].data.classico_users;
-                    if (sharedUsers && Object.keys(sharedUsers).length > 0) {
-                        data.classico_users = sharedUsers;
-                        // Cache it locally for offline resilience
-                        fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
-                        console.log(`[Users Sync] Centralized users updated successfully from shared_users_${ownerMid}`);
+        // Run in background (non-blocking) to prevent slow network boot delays
+        (async () => {
+            try {
+                const ownerMid = await getOwnerMachineId(mid);
+                if (ownerMid) {
+                    const sharedUsersRes = await SupabaseService.request('GET', `/rest/v1/cloud_backups?machine_id=eq.shared_users_${ownerMid}&select=data`);
+                    if (sharedUsersRes && sharedUsersRes.length > 0 && sharedUsersRes[0].data) {
+                        const sharedUsers = sharedUsersRes[0].data.classico_users;
+                        if (sharedUsers && Object.keys(sharedUsers).length > 0) {
+                            // Read fresh database content to avoid concurrency race condition issues
+                            const freshData = safeReadDatabase(localPath) || data;
+                            freshData.classico_users = sharedUsers;
+                            safeWriteDatabase(localPath, freshData);
+                            console.log(`[Users Sync] Centralized users updated successfully in background from shared_users_${ownerMid}`);
+                        }
                     }
                 }
+            } catch (uErr) {
+                console.warn("[Users Sync] Failed to fetch shared users list in background:", uErr.message);
             }
-        } catch (uErr) {
-            console.warn("[Users Sync] Failed to fetch shared users list:", uErr.message);
-        }
+        })();
 
         res.json(data);
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -494,8 +572,7 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
 
         // 1. Save locally IMMEDIATELY (Fast)
         try {
-            ensureDirectory(localPath);
-            fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+            safeWriteDatabase(localPath, data);
         } catch (err) {
             console.error("[Save] Failed to update local database.json:", err);
             return res.status(500).json({ success: false, error: 'Local Save Failed' });
@@ -590,7 +667,7 @@ app.post('/api/save', requireActiveSubscription, async (req, res) => {
 
                         if (mergedAny) {
                             try {
-                                fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+                                safeWriteDatabase(localPath, data);
                             } catch (writeErr) {
                                 console.error("[Sync Merge] Failed to write merged database.json:", writeErr.message);
                             }
@@ -642,23 +719,25 @@ app.get('/api/system/subscription-verify', async (req, res) => {
         const localPath = path.join(baseDir, 'database.json');
         if (fs.existsSync(localPath)) {
             try {
-                const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-                if (localData.last_seen_time) {
-                    const lastSeen = new Date(localData.last_seen_time);
-                    // Margin of 75 minutes (4,500,000 ms) to accommodate Daylight Saving changes + small clock drifts
-                    if (now < new Date(lastSeen.getTime() - 4500000)) {
-                        console.error(`[Security] Date tampering detected for ${mid}. Now: ${now.toISOString()}, LastSeen: ${lastSeen.toISOString()}`);
-                        return res.json({
-                            success: false,
-                            status: 'tampered',
-                            message: 'تنبيه أمني: تم اكتشاف تلاعب في تاريخ الجهاز. يرجى ضبط الساعة للوقت الحالي والاتصال بالإنترنت.'
-                        });
+                const localData = safeReadDatabase(localPath);
+                if (localData) {
+                    if (localData.last_seen_time) {
+                        const lastSeen = new Date(localData.last_seen_time);
+                        // Margin of 75 minutes (4,500,000 ms) to accommodate Daylight Saving changes + small clock drifts
+                        if (now < new Date(lastSeen.getTime() - 4500000)) {
+                            console.error(`[Security] Date tampering detected for ${mid}. Now: ${now.toISOString()}, LastSeen: ${lastSeen.toISOString()}`);
+                            return res.json({
+                                success: false,
+                                status: 'tampered',
+                                message: 'تنبيه أمني: تم اكتشاف تلاعب في تاريخ الجهاز. يرجى ضبط الساعة للوقت الحالي والاتصال بالإنترنت.'
+                            });
+                        }
                     }
-                }
-                // Update last seen if clock is moving forward
-                if (!localData.last_seen_time || now > new Date(localData.last_seen_time)) {
-                    localData.last_seen_time = now.toISOString();
-                    fs.writeFileSync(localPath, JSON.stringify(localData, null, 2));
+                    // Update last seen if clock is moving forward
+                    if (!localData.last_seen_time || now > new Date(localData.last_seen_time)) {
+                        localData.last_seen_time = now.toISOString();
+                        safeWriteDatabase(localPath, localData);
+                    }
                 }
             } catch (e) { console.warn("[Security] Could not verify last_seen_time", e.message); }
         }
@@ -682,12 +761,12 @@ app.get('/api/system/subscription-verify', async (req, res) => {
         const saveSubToLocal = (subData) => {
             try {
                 const dbPath = getDataPath();
-                if (fs.existsSync(dbPath)) {
-                    const localData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+                const localData = safeReadDatabase(dbPath);
+                if (localData) {
                     // Stamp the current time as last successful online verification
                     subData.last_online_check = new Date().toISOString();
                     localData.classico_subscription = subData;
-                    fs.writeFileSync(dbPath, JSON.stringify(localData, null, 2));
+                    safeWriteDatabase(dbPath, localData);
                     console.log(`[SubSync] Subscription auto-saved to local DB. Status: ${subData.status}`);
                 }
             } catch (e) {
@@ -761,70 +840,68 @@ app.get('/api/system/subscription-verify', async (req, res) => {
 
         // --- SECURE OFFLINE FALLBACK CRYPTOGRAPHIC VALIDATION ---
         const localPath = getDataPath();
-        if (fs.existsSync(localPath)) {
-            try {
-                const localData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-                const localSub = localData.classico_subscription;
+        try {
+            const localData = safeReadDatabase(localPath);
+            const localSub = localData ? localData.classico_subscription : null;
 
-                if (localSub && localSub.status === 'active' && localSub.token) {
-                    const tokenParts = localSub.token.split('.');
-                    const sig = tokenParts.pop();
-                    const tokenPayload = tokenParts.join('.');
-                    if (tokenPayload && sig) {
-                        const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(tokenPayload).digest('hex');
+            if (localSub && localSub.status === 'active' && localSub.token) {
+                const tokenParts = localSub.token.split('.');
+                const sig = tokenParts.pop();
+                const tokenPayload = tokenParts.join('.');
+                if (tokenPayload && sig) {
+                    const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(tokenPayload).digest('hex');
 
-                        if (sig === expectedSig) {
-                            const [cachedMid, status, expiryStr] = tokenPayload.split('|');
-                            if (status === 'active') {
-                                if (cachedMid !== mid) {
-                                    console.warn(`[Offline Fallback] Machine ID mismatch. Cached in token: ${cachedMid}, Current machine: ${mid}. Allowing because signature is verified.`);
-                                }
-                                const expiry = new Date(expiryStr);
-                                if (expiry > now) {
-                                    // Check 7-day offline connection limit
-                                    const lastOnlineStr = localSub.last_online_check;
-                                    if (lastOnlineStr) {
-                                        const lastOnline = new Date(lastOnlineStr);
-                                        const diffMs = now - lastOnline;
-                                        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-                                        if (diffDays > 7) {
-                                            console.warn(`[Offline Fallback] Offline limit exceeded. Last online: ${lastOnlineStr}`);
-                                            return res.json({
-                                                success: false,
-                                                status: 'expired_offline_limit',
-                                                message: 'يجب الاتصال بالإنترنت لتحديث حالة الاشتراك (مضى أكثر من 7 أيام دون اتصال).'
-                                            });
-                                        }
-                                    } else {
-                                        console.warn('[Offline Fallback] No last online check date found. Forcing check.');
+                    if (sig === expectedSig) {
+                        const [cachedMid, status, expiryStr] = tokenPayload.split('|');
+                        if (status === 'active') {
+                            if (cachedMid !== mid) {
+                                console.warn(`[Offline Fallback] Machine ID mismatch. Cached in token: ${cachedMid}, Current machine: ${mid}. Allowing because signature is verified.`);
+                            }
+                            const expiry = new Date(expiryStr);
+                            if (expiry > now) {
+                                // Check 7-day offline connection limit
+                                const lastOnlineStr = localSub.last_online_check;
+                                if (lastOnlineStr) {
+                                    const lastOnline = new Date(lastOnlineStr);
+                                    const diffMs = now - lastOnline;
+                                    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                                    if (diffDays > 7) {
+                                        console.warn(`[Offline Fallback] Offline limit exceeded. Last online: ${lastOnlineStr}`);
                                         return res.json({
                                             success: false,
                                             status: 'expired_offline_limit',
-                                            message: 'يجب الاتصال بالإنترنت مرة واحدة على الأقل لتنشيط ميزة التحقق الدوري.'
+                                            message: 'يجب الاتصال بالإنترنت لتحديث حالة الاشتراك (مضى أكثر من 7 أيام دون اتصال).'
                                         });
                                     }
-
-                                    console.log(`[Security] Secure offline subscription verified for machine: ${mid}`);
+                                } else {
+                                    console.warn('[Offline Fallback] No last online check date found. Forcing check.');
                                     return res.json({
-                                        success: true,
-                                        status: 'active',
-                                        activated_at: localSub.activated_at || localSub.created_at,
-                                        created_at: localSub.created_at,
-                                        expires_at: localSub.expires_at,
-                                        plan_type: localSub.plan_type,
-                                        max_devices: localSub.max_devices || 1,
-                                        activation_keys: localSub.activation_keys || [],
-                                        token: localSub.token,
-                                        last_online_check: localSub.last_online_check
+                                        success: false,
+                                        status: 'expired_offline_limit',
+                                        message: 'يجب الاتصال بالإنترنت مرة واحدة على الأقل لتنشيط ميزة التحقق الدوري.'
                                     });
                                 }
+
+                                console.log(`[Security] Secure offline subscription verified for machine: ${mid}`);
+                                return res.json({
+                                    success: true,
+                                    status: 'active',
+                                    activated_at: localSub.activated_at || localSub.created_at,
+                                    created_at: localSub.created_at,
+                                    expires_at: localSub.expires_at,
+                                    plan_type: localSub.plan_type,
+                                    max_devices: localSub.max_devices || 1,
+                                    activation_keys: localSub.activation_keys || [],
+                                    token: localSub.token,
+                                    last_online_check: localSub.last_online_check
+                                });
                             }
                         }
                     }
                 }
-            } catch (err) {
-                console.error("[Security] Offline cryptographic check error:", err.message);
             }
+        } catch (err) {
+            console.error("[Security] Offline cryptographic check error:", err.message);
         }
         res.json({ success: false, status: 'error', message: 'خطأ في الاتصال بسيرفر التحقق ولم يتم العثور على تفعيل محلي موثق.' });
     }
@@ -840,10 +917,10 @@ app.post('/api/system/sync-subscription', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing subscription data' });
         }
         const dbPath = getDataPath();
-        if (!fs.existsSync(dbPath)) {
-            return res.status(404).json({ success: false, error: 'Database not found' });
+        const localData = safeReadDatabase(dbPath);
+        if (!localData) {
+            return res.status(404).json({ success: false, error: 'Database not found or corrupted' });
         }
-        const localData = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
 
         // Preserve last_online_check if it exists in local storage but is missing in frontend sync payload
         if (localData.classico_subscription && localData.classico_subscription.last_online_check && !subData.last_online_check) {
@@ -851,7 +928,7 @@ app.post('/api/system/sync-subscription', async (req, res) => {
         }
 
         localData.classico_subscription = subData;
-        fs.writeFileSync(dbPath, JSON.stringify(localData, null, 2));
+        safeWriteDatabase(dbPath, localData);
         console.log(`[SubSync] Manual subscription sync saved. Status: ${subData.status}`);
         res.json({ success: true });
     } catch (e) {
@@ -1270,9 +1347,7 @@ app.get('/api/admin/multi-branch-data', async (req, res) => {
                 let dbData = null;
                 if (node.machine_id === mid) {
                     const localPath = getDataPath();
-                    if (fs.existsSync(localPath)) {
-                        dbData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-                    }
+                    dbData = safeReadDatabase(localPath);
                 }
 
                 // If not current machine or local read failed, load from Supabase backup
@@ -1367,8 +1442,8 @@ app.post('/api/system/manual-cloud-backup', async (req, res) => {
     try {
         const mid = (await getMid()).toUpperCase().trim();
         const localPath = getDataPath();
-        if (fs.existsSync(localPath)) {
-            const data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        const data = safeReadDatabase(localPath);
+        if (data) {
             const isDataEmpty = !data || !data.classico_menu || data.classico_menu.length === 0;
             if (isDataEmpty) {
                 return res.status(400).json({ error: 'قاعدة البيانات فارغة أو غير صالحة، لا يمكن رفع نسخة احتياطية فارغة.' });
@@ -1426,7 +1501,7 @@ app.post('/api/system/factory-reset', async (req, res) => {
         if (fs.existsSync(localPath)) {
             fs.renameSync(localPath, localPath + '.factory_reset_bak');
         }
-        fs.writeFileSync(localPath, JSON.stringify(cleanData, null, 2));
+        safeWriteDatabase(localPath, cleanData);
 
         if (fs.existsSync(backupDir)) {
             const files = fs.readdirSync(backupDir);
@@ -1447,9 +1522,8 @@ app.post('/api/system/archive-maintenance', async (req, res) => {
     try {
         const { monthsThreshold = 6 } = req.body;
         const localPath = getDataPath();
-        if (!fs.existsSync(localPath)) return res.status(404).json({ error: 'Database not found' });
-
-        const data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+        const data = safeReadDatabase(localPath);
+        if (!data) return res.status(404).json({ error: 'Database not found or corrupted' });
         const now = new Date();
         const thresholdDate = new Date();
         thresholdDate.setMonth(now.getMonth() - monthsThreshold);
@@ -1494,8 +1568,8 @@ app.post('/api/system/archive-maintenance', async (req, res) => {
 
         if (totalArchived > 0) {
             const archiveFileName = `archive-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-            fs.writeFileSync(path.join(archivesDir, archiveFileName), JSON.stringify(archivedData, null, 2));
-            fs.writeFileSync(localPath, JSON.stringify(data, null, 2));
+            safeWriteDatabase(path.join(archivesDir, archiveFileName), archivedData);
+            safeWriteDatabase(localPath, data);
             res.json({ success: true, archivedCount: totalArchived, fileName: archiveFileName });
         } else {
             res.json({ success: true, archivedCount: 0, message: 'No old data found to archive' });
@@ -1524,11 +1598,9 @@ async function runMaintenance() {
             return;
         }
 
-        let data;
-        try {
-            data = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-        } catch (parseErr) {
-            console.error('[Maintenance] Failed to parse database.json, skipping this cycle:', parseErr.message);
+        let data = safeReadDatabase(localPath);
+        if (!data) {
+            console.error('[Maintenance] Failed to read database.json or database is empty, skipping this cycle');
             maintenanceRunning = false;
             return;
         }
@@ -1538,19 +1610,39 @@ async function runMaintenance() {
             const backupDir = path.join(path.dirname(localPath), 'backups');
             if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
 
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const backupFile = path.join(backupDir, `backup-${timestamp}.json`);
-            fs.writeFileSync(backupFile, JSON.stringify(data, null, 2));
-
-            // Rotate: Keep only last 24
+            // Rotate: Keep only last 24, also find latest backup file
             const files = fs.readdirSync(backupDir)
-                .filter(f => f.startsWith('backup-'))
+                .filter(f => f.startsWith('backup-') && f.endsWith('.json'))
                 .map(f => ({ name: f, time: fs.statSync(path.join(backupDir, f)).mtime }))
                 .sort((a, b) => b.time - a.time);
 
-            if (files.length > 24) {
-                files.slice(24).forEach(f => { try { fs.unlinkSync(path.join(backupDir, f.name)); } catch(e){} });
-                console.log(`[Maintenance] Rotated local backups. Deleted ${files.length - 24} old files.`);
+            let shouldBackup = true;
+            if (files.length > 0) {
+                const latestBackupTime = files[0].time;
+                const now = new Date();
+                const diffMs = now - latestBackupTime;
+                if (diffMs < 50 * 60 * 1000) { // Less than 50 minutes
+                    console.log(`[Maintenance] Skipping local backup creation: last backup was created ${Math.round(diffMs / 60000)} minutes ago.`);
+                    shouldBackup = false;
+                }
+            }
+
+            if (shouldBackup) {
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const backupFile = path.join(backupDir, `backup-${timestamp}.json`);
+                safeWriteDatabase(backupFile, data);
+                console.log(`[Maintenance] Created local backup: ${backupFile}`);
+
+                // Update files list after backup creation to properly rotate
+                const updatedFiles = fs.readdirSync(backupDir)
+                    .filter(f => f.startsWith('backup-') && f.endsWith('.json'))
+                    .map(f => ({ name: f, time: fs.statSync(path.join(backupDir, f)).mtime }))
+                    .sort((a, b) => b.time - a.time);
+
+                if (updatedFiles.length > 24) {
+                    updatedFiles.slice(24).forEach(f => { try { fs.unlinkSync(path.join(backupDir, f.name)); } catch(e){} });
+                    console.log(`[Maintenance] Rotated local backups. Deleted ${updatedFiles.length - 24} old files.`);
+                }
             }
         } catch (backupErr) {
             console.error('[Maintenance] Local backup failed (non-fatal):', backupErr.message);

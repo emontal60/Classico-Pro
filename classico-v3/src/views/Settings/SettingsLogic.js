@@ -947,12 +947,20 @@ export function useSettingsLogic() {
       const session = localStorage.getItem('classico_session');
       const fontSize = localStorage.getItem('classico_font_size');
       const multiBranch = localStorage.getItem('classico_multi_branch_active');
+      const theme = localStorage.getItem('classico_theme');
+      const batteryProfiles = localStorage.getItem('classico_battery_profiles_v3');
+      const archiveTab = localStorage.getItem('classico_archive_active_tab');
+      const settingsTab = localStorage.getItem('classico_settings_tab');
 
       localStorage.clear();
 
       if (session) localStorage.setItem('classico_session', session);
       if (fontSize) localStorage.setItem('classico_font_size', fontSize);
       if (multiBranch) localStorage.setItem('classico_multi_branch_active', multiBranch);
+      if (theme) localStorage.setItem('classico_theme', theme);
+      if (batteryProfiles) localStorage.setItem('classico_battery_profiles_v3', batteryProfiles);
+      if (archiveTab) localStorage.setItem('classico_archive_active_tab', archiveTab);
+      if (settingsTab) localStorage.setItem('classico_settings_tab', settingsTab);
 
       await ui.alert(`تم الانتهاء! تم تنظيف ${results.cleanedCount} سجل مؤقت وتوفير مساحة تقريبية. سيتم الآن إعادة تشغيل الواجهة.`, 'نجاح التنظيف', 'success');
       window.location.reload();
@@ -1127,6 +1135,8 @@ export function useSettingsLogic() {
             loungeHistory: data.classico_lounge_history || data.loungeHistory || [],
             expenses: data.classico_expenses || data.expenses || [],
             archivedExpenses: data.classico_archived_expenses || data.archivedExpenses || [],
+            tournaments: data.classico_tournaments || data.tournaments || [],
+            tournamentsHistory: data.classico_tournaments_history || data.tournamentsHistory || [],
             localSubscription: data.classico_subscription || data.localSubscription || null,
             lastJournalClosure: data.classico_last_journal_closure || data.lastJournalClosure || new Date().toISOString(),
             appSettings: data.classico_app_settings || data.appSettings || {}

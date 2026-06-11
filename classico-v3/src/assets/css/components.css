@@ -190,6 +190,7 @@ select:disabled {
     height: 100%;
     position: relative;
     min-height: 200px;
+    padding-bottom: 2rem;
 }
 
 .table-container::before {

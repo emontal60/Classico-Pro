@@ -197,20 +197,14 @@ ipcMain.on('print-html', (event, html) => {
   });
 });
 
-// IPC Handler to select backup file natively with defaultPath set to backups folder
+// IPC Handler to select backup file natively with defaultPath set to Downloads folder
 ipcMain.handle('select-backup-file', async () => {
   const { dialog } = require('electron');
-  const userDataPath = app.getPath('userData');
-  const backupsPath = path.join(userDataPath, 'backups');
-  
-  const fs = require('fs');
-  if (!fs.existsSync(backupsPath)) {
-    fs.mkdirSync(backupsPath, { recursive: true });
-  }
+  const downloadsPath = app.getPath('downloads');
 
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'استعادة نسخة احتياطية',
-    defaultPath: backupsPath,
+    defaultPath: downloadsPath,
     filters: [
       { name: 'Backup Files', extensions: ['json'] }
     ],
@@ -219,6 +213,7 @@ ipcMain.handle('select-backup-file', async () => {
 
   if (!result.canceled && result.filePaths.length > 0) {
     const filePath = result.filePaths[0];
+    const fs = require('fs');
     const fileContent = fs.readFileSync(filePath, 'utf8');
     return { success: true, filePath, content: fileContent };
   }
