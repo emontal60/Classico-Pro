@@ -2222,6 +2222,11 @@ const submitManualPlayer = () => {
     return;
   }
 
+  if (manualPlayerForm.logoId === null || isLogoTaken(manualPlayerForm.logoId)) {
+    ui.showToast('هذا الشعار محجوز بالفعل في هذه البطولة! يرجى اختيار شعار آخر.', 'warning');
+    return;
+  }
+
   const isPending = manualPlayerForm.paymentStatus === 'unpaid';
   const paid = manualPlayerForm.paymentStatus === 'full';
   const fee = activeTournament.value?.fee || 0;

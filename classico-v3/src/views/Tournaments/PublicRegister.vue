@@ -249,6 +249,9 @@
                     </span>
                   </span>
                 </label>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px; margin-bottom: 8px; text-align: right;">
+                  الشعار هو مجرد رمز لك فقط فى البطوله وليس هو الفريق المشارك
+                </div>
                 
                 <div class="logo-scroll-grid">
                   <button
@@ -1022,6 +1025,9 @@ const openSummaryModal = () => {
   if (t.players && t.players.find(p => p && p.phone && p.phone.trim() === form.phone.trim())) {
     alert('رقم الهاتف هذا مسجل بالفعل في هذه البطولة!'); return;
   }
+  if (form.logoId === null || isLogoTaken(form.logoId)) {
+    alert('هذا الشعار محجوز بالفعل في هذه البطولة! يرجى اختيار شعار آخر.'); return;
+  }
   showSummaryModal.value = true;
 };
 
@@ -1631,6 +1637,11 @@ const submitRegistration = async () => {
   const dupPhone = activeTournament.value.players.find(p => p && p.phone && p.phone.trim() === form.phone.trim());
   if (dupPhone) {
     alert('رقم الهاتف هذا مسجل بالفعل في هذه البطولة!');
+    return;
+  }
+
+  if (form.logoId === null || isLogoTaken(form.logoId)) {
+    alert('هذا الشعار محجوز بالفعل في هذه البطولة! يرجى اختيار شعار آخر.');
     return;
   }
 
