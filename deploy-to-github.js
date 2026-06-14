@@ -8,6 +8,11 @@ try {
   // 1. Build the Vue application
   console.log('Building Vue application...');
   execSync('npm run build --prefix classico-v3', { stdio: 'inherit' });
+  
+  // Copy OwnerPortal.html and logoapp.png to the dist directory before deployment
+  console.log('Copying OwnerPortal.html and logoapp.png to dist...');
+  fs.copyFileSync(path.join(__dirname, 'OwnerPortal.html'), path.join(distDir, 'OwnerPortal.html'));
+  fs.copyFileSync(path.join(__dirname, 'logoapp.png'), path.join(distDir, 'logoapp.png'));
 } catch (err) {
   console.error('Build failed:', err.message);
   process.exit(1);
@@ -77,8 +82,8 @@ try {
 
   // 5. Stage only the build files and push to master
   console.log('Committing and pushing to master...');
-  execSync('git add index.html manifest.json favicon.svg icons.svg logo1.png app-icon.png assets/ logos/', { stdio: 'inherit' });
-  execSync('git commit -m "Deploy: update public registration page with latest changes"', { stdio: 'inherit' });
+  execSync('git add index.html manifest.json favicon.svg icons.svg logo1.png app-icon.png assets/ logos/ OwnerPortal.html logoapp.png', { stdio: 'inherit' });
+  execSync('git commit -m "Deploy: update public registration page and owner portal with latest changes"', { stdio: 'inherit' });
   execSync('git push origin master', { stdio: 'inherit' });
 
   console.log('Deployment to master branch successful!');
