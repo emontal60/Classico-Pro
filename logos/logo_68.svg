@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+    <defs>
+      <linearGradient id="spartanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ff3366"/>
+        <stop offset="100%" stop-color="#800020"/>
+      </linearGradient>
+      <linearGradient id="helmetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#e2e8f0"/>
+        <stop offset="100%" stop-color="#64748b"/>
+      </linearGradient>
+    </defs>
+    <path d="M50,92 L20,62 L20,22 L50,8 L80,22 L80,62 Z" fill="#0f172a" stroke="url(#spartanGrad)" stroke-width="2" />
+    <path d="M50,12 C34,12 30,28 30,38 C30,30 38,20 50,20 C62,20 70,30 70,38 C70,28 66,12 50,12 Z" fill="url(#spartanGrad)" />
+    <path d="M36,25 L40,16 M44,22 L46,14 M50,20 L50,12 M56,22 L54,14 M64,25 L60,16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+    <path d="M35,38 L65,38 L65,58 C65,68 50,75 50,75 C50,75 35,68 35,58 Z" fill="url(#helmetGrad)" />
+    <path d="M50,42 L38,50 L46,50 L48,65 L52,65 L54,50 L62,50 Z" fill="#0f172a" stroke="url(#spartanGrad)" stroke-width="1.5" />
+    <path d="M35,50 L28,62 L35,58 Z" fill="#64748b" />
+    <path d="M65,50 L72,62 L65,58 Z" fill="#64748b" />
+  </svg>

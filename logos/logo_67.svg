@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+    <defs>
+      <linearGradient id="goldLion" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffe066"/>
+        <stop offset="50%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#b45309"/>
+      </linearGradient>
+    </defs>
+    <path d="M50,92 L20,62 L20,22 L50,8 L80,22 L80,62 Z" fill="#0f172a" stroke="url(#goldLion)" stroke-width="2" />
+    <path d="M30,22 L22,35 L32,38 L25,52 L36,52 L32,68 L44,64 L50,80 L56,64 L68,68 L64,52 L75,52 L68,38 L78,35 L70,22 Z" fill="url(#goldLion)" />
+    <path d="M38,36 L62,36 L58,62 L50,70 L42,62 Z" fill="#1e293b" stroke="url(#goldLion)" stroke-width="2" />
+    <polygon points="50,38 42,46 46,50 50,46 54,50 58,46" fill="url(#goldLion)" />
+    <polygon points="48,50 52,50 50,58" fill="#ffe066" />
+    <polygon points="40,43 45,45 42,41" fill="#ef4444" />
+    <polygon points="60,43 55,45 58,41" fill="#ef4444" />
+    <path d="M44,58 C44,65 50,66 50,66 C50,66 56,65 56,58 C56,62 50,62 50,62 C50,62 44,62 44,58 Z" fill="url(#goldLion)" />
+  </svg>
