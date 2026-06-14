@@ -295,8 +295,8 @@ async function run() {
   console.log('Starting downloading of 64 football and eSports logos...');
   
   for (let idx = 0; idx < 64; idx++) {
-    const publicPath = path.join(publicLogosDir, `logo_${idx}.png`);
-    const rootPath = path.join(rootLogosDir, `logo_${idx}.png`);
+    const publicPath = path.join(publicLogosDir, `logo_${idx}.svg`);
+    const rootPath = path.join(rootLogosDir, `logo_${idx}.svg`);
     
     if (idx >= 52) {
       // eSports / Special symbols (handcrafted vector SVGs)

@@ -403,6 +403,9 @@ BEGIN
         IF trim(player_item->>'phone') = phone THEN
             RETURN jsonb_build_object('success', false, 'message', 'رقم الهاتف هذا مسجل بالفعل في هذه البطولة!');
         END IF;
+        IF (player_item->>'logoId')::int = (new_player->>'logoId')::int THEN
+            RETURN jsonb_build_object('success', false, 'message', 'هذا الشعار محجوز بالفعل في هذه البطولة! يرجى اختيار شعار آخر.');
+        END IF;
     END LOOP;
 
     -- Append new player to array

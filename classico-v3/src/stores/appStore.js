@@ -1027,6 +1027,9 @@ export const useAppStore = defineStore('app', {
         );
         if (alreadyExists) return { success: false, message: 'رقم الهاتف أو الاسم الحركي مسجل بالفعل!' };
 
+        const logoTaken = t.players.some(p => p && Number(p.logoId) === Number(player.logoId));
+        if (logoTaken) return { success: false, message: 'هذا الشعار محجوز بالفعل في هذه البطولة!' };
+
         const isPending = player.isPendingApproval || false;
         const amtPaid = Number(player.amountPaid) || 0;
         const amtConfirmed = !isPending ? (player.paymentType === 'partial' ? amtPaid : (player.paid ? t.fee : 0)) : 0;

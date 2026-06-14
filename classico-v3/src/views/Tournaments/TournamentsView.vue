@@ -154,20 +154,25 @@
               <div class="form-header-v3">🔗 روابط الاشتراك والتسويق للبطولة</div>
               
               <div class="active-tour-meta-card">
-                <div class="active-tour-title-row">
-                  <h3 class="active-tournament-title-highlight">
+                <div class="active-tour-title-row" style="align-items: flex-start;">
+                  <h3 class="active-tournament-title-highlight" style="margin-top: 4px;">
                     🏆 {{ activeTournament.name }}
                   </h3>
-                  <button @click="handleDeleteTournament" class="btn-delete-tour-icon" title="حزف وإلغاء البطولة بالكامل 🗑️">
-                    حزف والغاء البطوله 🗑️
-                  </button>
+                  <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end; flex-shrink: 0;">
+                    <button @click="handleDeleteTournament" class="btn-delete-tour-icon" title="حزف وإلغاء البطولة بالكامل 🗑️">
+                      حزف والغاء البطوله 🗑️
+                    </button>
+                    <button @click="showTournamentDetailsModal = true" class="btn-details-tour-icon" title="تفاصيل البطولة وجوائزها ℹ️">
+                      ℹ️ تفاصيل البطوله
+                    </button>
+                  </div>
                 </div>
-                <div class="active-tour-badges">
+                <div class="active-tour-badges" style="margin-top: 10px;">
                   <span class="badge" :class="activeTournament.type">
                     {{ activeTournament.type === 'cup' ? 'كأس' : activeTournament.type === 'league' ? 'دوري' : 'مجموعات وتصفيات' }}
                   </span>
                   <span class="badge" :class="activeTournament.status">
-                    {{ activeTournament.status === 'registration' ? 'مرحلة التسجيل' : 'نشطة الآن' }}
+                    {{ activeTournament.status === 'registration' ? 'مرحلة التسجيل' : activeTournament.status === 'completed' ? 'منتهية 🏆' : 'نشطة الآن' }}
                   </span>
                 </div>
               </div>
@@ -370,47 +375,122 @@
             <!-- 4. Active Tournament Match Viewer Panel (If in progress or completed) -->
             <div v-else-if="activeTournament && activeTournament.status !== 'registration'" class="form-card-v3 animate-scale-in">
               
-              <!-- Winners Ceremony card if completed -->
-              <div v-if="activeTournament.status === 'completed'" class="ceremony-container glass-panel animate-scale-in">
-                <div class="trophy-ceremony">👑🏆👑</div>
-                <h2 class="glow-text gold-color">حفل تتويج أبطال الصالة</h2>
-                <p style="color: var(--text-muted); font-weight: bold; font-size: 0.95rem;">تهانينا الحارة لجميع المشاركين ومحترفي البطولة!</p>
-                
-                <div class="podium-grid">
-                  <!-- Second Place -->
-                  <div class="podium-card silver animate-scale-in" style="animation-delay: 0.3s;">
-                    <span class="medal-icon">🥈</span>
-                    <span class="player-logo-large" :style="getPlayerLogoStyle(activeTournament.winners?.second)">
-                      {{ getPlayerLogoSymbol(activeTournament.winners?.second) }}
-                    </span>
-                    <span class="podium-nick">{{ getPlayerNickname(activeTournament.winners?.second) }}</span>
-                    <span class="rank-title">المركز الثاني</span>
-                  </div>
+              <!-- Winners Ceremony certificate (matching print report design exactly) -->
+              <div v-if="activeTournament.status === 'completed'" class="certificate-container glass-panel animate-scale-in" style="margin: 0 auto; max-width: 760px;">
 
-                  <!-- First Place -->
-                  <div class="podium-card gold animate-scale-in" style="animation-delay: 0.1s;">
-                    <span class="medal-icon glow">👑🥇</span>
-                    <span class="player-logo-large" :style="getPlayerLogoStyle(activeTournament.winners?.first)">
-                      {{ getPlayerLogoSymbol(activeTournament.winners?.first) }}
-                    </span>
-                    <span class="podium-nick gold-color">{{ getPlayerNickname(activeTournament.winners?.first) }}</span>
-                    <span class="rank-title">البطل والمركز الأول 🏆</span>
-                  </div>
+                <!-- Action Buttons at TOP of report (no-print) -->
+                <div style="text-align: center; margin-bottom: 1.2rem; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; width: 100%;" class="no-print">
+                  <button @click="showShareModal = true" class="btn btn-green-v3" style="font-size: 0.88rem; padding: 8px 18px; font-weight: bold;">
+                    🔗 مشاركة / طباعة التقرير
+                  </button>
+                  <button @click="archiveAndResetTournament" class="btn secondary-btn btn-archive-reset" style="font-weight: bold; font-size: 0.88rem; padding: 8px 18px;">
+                    🗄️ إرسال البطولة للأرشيف والبدء من جديد
+                  </button>
+                </div>
 
-                  <!-- Third Place -->
-                  <div class="podium-card bronze animate-scale-in" style="animation-delay: 0.5s;">
-                    <span class="medal-icon">🥉</span>
-                    <span class="player-logo-large" :style="getPlayerLogoStyle(activeTournament.winners?.third)">
-                      {{ getPlayerLogoSymbol(activeTournament.winners?.third) }}
-                    </span>
-                    <span class="podium-nick">{{ getPlayerNickname(activeTournament.winners?.third) }}</span>
-                    <span class="rank-title">المركز الثالث</span>
+                <div class="header">
+                  <div class="lounge-name">🎮 {{ store.appSettings?.appName || 'الصالة' }}</div>
+                  <h2 class="report-title">التقرير الرسمي لتتويج أبطال الصالة 🏆</h2>
+                  <div class="tournament-title" style="margin-top: 5px;">
+                    <span class="tournament-label" style="font-size: 1.1rem; opacity: 0.85;">بطولة</span>
+                    <span class="tournament-name-highlight" style="font-size: 1.7rem; font-weight: 900; text-shadow: 0 0 15px rgba(251, 191, 36, 0.4); margin-right: 6px; white-space: nowrap;">"{{ activeTournament.name }}"</span>
                   </div>
                 </div>
 
-                <button @click="archiveAndResetTournament" class="btn secondary-btn btn-archive-reset" style="font-weight: bold; margin-top: 1.5rem; padding: 0.6rem 2rem;">
-                  🗄️ إرسال البطولة للأرشيف والبدء من جديد
-                </button>
+                <div class="podium-section">
+                  <!-- Second Place -->
+                  <div v-if="activeTournament.winners?.second" class="podium-card silver animate-scale-in" style="animation-delay: 0.3s;">
+                    <div class="winner-logo" :style="getPlayerLogoStyle(activeTournament.winners.second)" style="padding: 6px; display: flex; align-items: center; justify-content: center;">
+                      <img :src="getPlayerLogoUrl(activeTournament.winners.second)" style="width: 100%; height: 100%; object-fit: contain;" />
+                    </div>
+                    <span class="winner-nick">{{ getPlayerNickname(activeTournament.winners.second) }}</span>
+                    <span class="rank-text">المركز الثاني</span>
+                    <div class="podium-medal" style="font-size: 2.5rem; margin-top: 5px;">🥈</div>
+                  </div>
+
+                  <!-- First Place -->
+                  <div v-if="activeTournament.winners?.first" class="podium-card gold animate-scale-in" style="animation-delay: 0.1s;">
+                    <div class="winner-logo" :style="getPlayerLogoStyle(activeTournament.winners.first)" style="padding: 6px; display: flex; align-items: center; justify-content: center;">
+                      <img :src="getPlayerLogoUrl(activeTournament.winners.first)" style="width: 100%; height: 100%; object-fit: contain;" />
+                    </div>
+                    <span class="winner-nick gold-color">{{ getPlayerNickname(activeTournament.winners.first) }}</span>
+                    <span class="rank-text">البطل والمركز الأول 🏆</span>
+                    <div class="podium-medal" style="font-size: 3rem; margin-top: 5px; filter: drop-shadow(0 0 8px rgba(251,191,36,0.5));">🏆🥇</div>
+                  </div>
+
+                  <!-- Third Place -->
+                  <div v-if="activeTournament.winners?.third" class="podium-card bronze animate-scale-in" style="animation-delay: 0.5s;">
+                    <div class="winner-logo" :style="getPlayerLogoStyle(activeTournament.winners.third)" style="padding: 6px; display: flex; align-items: center; justify-content: center;">
+                      <img :src="getPlayerLogoUrl(activeTournament.winners.third)" style="width: 100%; height: 100%; object-fit: contain;" />
+                    </div>
+                    <span class="winner-nick">{{ getPlayerNickname(activeTournament.winners.third) }}</span>
+                    <span class="rank-text">المركز الثالث</span>
+                    <div class="podium-medal" style="font-size: 2.5rem; margin-top: 5px;">🥉</div>
+                  </div>
+                </div>
+
+                <!-- Prizes Details Table -->
+                <div class="winners-table-container" style="margin-top: 15px; width: 100%;">
+                  <h3 class="table-title" style="text-align: center; font-size: 1.05rem; margin-bottom: 8px; font-weight: 800;">🏆 تفاصيل الجوائز والتكريم</h3>
+                  <table class="winners-report-table" style="width: 100%; border-collapse: collapse; text-align: center; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 10px; overflow: hidden;">
+                    <thead>
+                      <tr style="background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                        <th style="padding: 8px; font-weight: bold; font-size: 0.8rem; width: 25%;">المركز</th>
+                        <th style="padding: 8px; font-weight: bold; font-size: 0.8rem; width: 45%;">اللاعب</th>
+                        <th style="padding: 8px; font-weight: bold; font-size: 0.8rem; width: 30%;">الجائزة المحددة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Gold -->
+                      <tr v-if="activeTournament.winners?.first" style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                        <td style="padding: 8px; font-weight: bold; color: #fbbf24; font-size: 0.85rem;">🥇 الأول</td>
+                        <td style="padding: 8px; font-weight: bold; color: #ffffff; font-size: 0.85rem;">
+                          {{ getPlayerNickname(activeTournament.winners.first) }}
+                          <span style="font-size: 0.72rem; font-weight: normal;">({{ getPlayerFullName(activeTournament.winners.first) }})</span>
+                        </td>
+                        <td style="padding: 8px; font-weight: bold; color: #fbbf24; font-size: 0.85rem;">{{ getPrizeForRank(1) || 'ميدالية ذهبية' }}</td>
+                      </tr>
+                      <!-- Silver -->
+                      <tr v-if="activeTournament.winners?.second" style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                        <td style="padding: 8px; font-weight: bold; color: #cbd5e1; font-size: 0.85rem;">🥈 الثاني</td>
+                        <td style="padding: 8px; font-weight: bold; color: #ffffff; font-size: 0.85rem;">
+                          {{ getPlayerNickname(activeTournament.winners.second) }}
+                          <span style="font-size: 0.72rem; font-weight: normal;">({{ getPlayerFullName(activeTournament.winners.second) }})</span>
+                        </td>
+                        <td style="padding: 8px; font-weight: bold; color: #cbd5e1; font-size: 0.85rem;">{{ getPrizeForRank(2) || 'ميدالية فضية' }}</td>
+                      </tr>
+                      <!-- Bronze -->
+                      <tr v-if="activeTournament.winners?.third">
+                        <td style="padding: 8px; font-weight: bold; color: #fb923c; font-size: 0.85rem;">🥉 الثالث</td>
+                        <td style="padding: 8px; font-weight: bold; color: #ffffff; font-size: 0.85rem;">
+                          {{ getPlayerNickname(activeTournament.winners.third) }}
+                          <span style="font-size: 0.72rem; font-weight: normal;">({{ getPlayerFullName(activeTournament.winners.third) }})</span>
+                        </td>
+                        <td style="padding: 8px; font-weight: bold; color: #fb923c; font-size: 0.85rem;">{{ getPrizeForRank(3) || 'ميدالية برونزية' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="footer-section" style="margin-top: 20px;">
+                  <div class="meta-time">تاريخ الإصدار: {{ new Date().toLocaleDateString('ar-EG') }}</div>
+                  <div class="stamp-area" style="display: flex; flex-direction: column; align-items: center; margin-top: -10px;">
+                    <div class="stamp-title">اعتماد إدارة الصالة</div>
+                    <div class="official-stamp">
+                      <div class="stamp-outer-ring">
+                        <div class="stamp-inner-ring">
+                          <div class="stamp-content">
+                            <span class="stamp-icon">🏆</span>
+                            <span class="stamp-lounge-name">{{ store.appSettings?.appName || 'الصالة' }}</span>
+                            <span class="stamp-tagline">اعتماد رسمي</span>
+                            <span class="stamp-brand">CLASSICO</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Bracket or League Points table view -->
@@ -921,7 +1001,7 @@
               <span v-if="manualPlayerForm.logoId !== null" style="font-size: 0.75rem; color: var(--accent-success); display: flex; align-items: center; gap: 5px;">
                 الشعار المحدد: <span class="text-highlight-yellow" style="margin-left: 5px;">{{ CURATED_LOGOS[manualPlayerForm.logoId]?.name }}</span>
                 <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)" style="overflow: hidden; padding: 3px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;">
-                  <img :src="'/logos/logo_' + manualPlayerForm.logoId + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+                  <img :src="'/logos/logo_' + manualPlayerForm.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                 </span>
               </span>
             </label>
@@ -939,7 +1019,7 @@
               >
                 <span class="logo-symbol" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 4px; overflow: hidden; border-radius: 50%;">
                   <span v-if="isLogoTaken(idx) && manualPlayerForm.logoId !== idx" style="font-size: 0.9rem;">🔒</span>
-                  <img v-else :src="'/logos/logo_' + idx + '.png'" style="width: 100%; height: 100%; object-fit: contain;" />
+                  <img v-else :src="'/logos/logo_' + idx + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                 </span>
               </button>
             </div>
@@ -1115,6 +1195,101 @@
       </div>
     </div>
 
+    
+    <!-- Share Modal -->
+    <div v-if="showShareModal && activeTournament" class="modal-overlay" @click.self="showShareModal = false" style="direction: rtl; z-index: 1000000 !important;">
+      <div class="modal-content share-modal-box" style="max-width: 550px; width: 90%;">
+        <div class="modal-header">
+          <h2 class="share-modal-title">🔗 خيارات تصدير ومشاركة التقرير</h2>
+          <button @click="showShareModal = false" class="btn-icon">✖</button>
+        </div>
+        <div class="modal-body-v3" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 20px; text-align: center;">
+          <p class="share-modal-desc" style="font-size: 0.95rem; margin: 0;">
+            اختر أحد الخيارات التالية لمشاركة أو حفظ التقرير الرسمي لتتويج أبطال الصالة:
+          </p>
+          
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 10px;">
+            <!-- Option 1: PDF -->
+            <button @click="handleExportCrowningReportPDF(); showShareModal = false;" class="share-option-card card-pdf">
+              <span class="share-icon">📄</span>
+              <span class="share-title">تصدير كـ PDF</span>
+              <span class="share-desc">حفظ كملف PDF عالي الجودة</span>
+            </button>
+            
+            <!-- Option 2: Image -->
+            <button @click="handleExportCrowningReportImage(); showShareModal = false;" class="share-option-card card-image">
+              <span class="share-icon">🖼️</span>
+              <span class="share-title">تصدير كصورة</span>
+              <span class="share-desc">تنزيل صورة PNG بجودة عالية</span>
+            </button>
+            
+            <!-- Option 3: Social Share -->
+            <button @click="handleShareSocial(); showShareModal = false;" class="share-option-card card-social">
+              <span class="share-icon">🔗</span>
+              <span class="share-title">مشاركة اجتماعية</span>
+              <span class="share-desc">نسخ التقرير والإرسال للواتساب</span>
+            </button>
+            
+            <!-- Option 4: Print -->
+            <button @click="handlePrintCrowningReport(); showShareModal = false;" class="share-option-card card-print">
+              <span class="share-icon">🖨️</span>
+              <span class="share-title">طباعة التقرير</span>
+              <span class="share-desc">إرسال مباشر إلى الطابعة</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tournament Details Modal -->
+    <div v-if="showTournamentDetailsModal && activeTournament" class="modal-overlay" @click.self="showTournamentDetailsModal = false" style="direction: rtl; z-index: 1000000 !important;">
+      <div class="modal-content details-modal-box" style="max-width: 500px; width: 90%;">
+        <div class="modal-header">
+          <h2 class="details-modal-title">ℹ️ تفاصيل البطولة وجوائزها</h2>
+          <button @click="showTournamentDetailsModal = false" class="btn-icon">✖</button>
+        </div>
+        <div class="modal-body-v3" style="padding: 1rem 0; display: flex; flex-direction: column; gap: 15px;">
+          <!-- Financials FIRST -->
+          <div v-if="activeTournament.fee > 0" class="details-section">
+            <h3 class="details-section-title details-title-green">💰 ملخص الحسابات</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+              <div class="stat-card-detail card-green">
+                <div class="stat-title">رسوم الاشتراك</div>
+                <div class="stat-value">{{ activeTournament.fee }} ج</div>
+              </div>
+              <div class="stat-card-detail card-blue">
+                <div class="stat-title">عدد المشتركين</div>
+                <div class="stat-value">{{ activeTournament.players?.filter(p => !p.isPendingApproval).length || 0 }}</div>
+              </div>
+              <div class="stat-card-detail card-rose">
+                <div class="stat-title">إجمالي التحصيلات</div>
+                <div class="stat-value">
+                  {{ (activeTournament.players || []).reduce((sum, p) => sum + (p.amountConfirmed || 0), 0) }} ج
+                </div>
+              </div>
+              <div class="stat-card-detail card-amber">
+                <div class="stat-title">المتبقي للدفع</div>
+                <div class="stat-value">
+                  {{ (activeTournament.players || []).reduce((sum, p) => sum + (p.remainingAmount || 0), 0) }} ج
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Prizes SECOND -->
+          <div v-if="activeTournament.prizesList && activeTournament.prizesList.length" class="details-section">
+            <h3 class="details-section-title details-title-cyan">🏆 الجوائز المعتمدة</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div v-for="(p, i) in activeTournament.prizesList" :key="i" class="prize-row-detail">
+                <span class="prize-label-detail">{{ p.label }}</span>
+                <span class="prize-value-detail">{{ p.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <!-- 5. Financial Accounts Summary Modal -->
     <div v-if="showAccountsModal" class="modal-overlay" @click.self="showAccountsModal = false" style="direction: rtl; z-index: 1000000 !important;">
       <div class="modal-content glass-panel" style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
@@ -1227,6 +1402,7 @@ import { ref, computed, reactive, onMounted, onUnmounted, watch } from 'vue';
 import { useAppStore } from '../../stores/appStore';
 import { useUIStore } from '../../stores/uiStore';
 import axios from 'axios';
+import { printCrowningReport, exportTournamentReportAsPDF, exportTournamentReportAsImage } from '../../utils/printSystem';
 
 const store = useAppStore();
 const ui = useUIStore();
@@ -1245,7 +1421,9 @@ const viewMode = ref(null);
 const selectedLeagueRound = ref(0);
 
 // Selection state for multiple tournaments sidebar
-const selectedTournamentId = ref(null);
+const selectedTournamentId = ref(localStorage.getItem('classico_last_selected_tournament_id') || null);
+const showShareModal = ref(false);
+const showTournamentDetailsModal = ref(false);
 const showCreateForm = ref(false);
 
 // Fetch active tournament
@@ -1286,9 +1464,14 @@ const filteredPlayers = computed(() => {
   });
 });
 
-watch(selectedTournamentId, () => {
+watch(selectedTournamentId, (newId) => {
   playerSearchQuery.value = '';
   viewMode.value = null;
+  if (newId) {
+    localStorage.setItem('classico_last_selected_tournament_id', newId);
+  } else {
+    localStorage.removeItem('classico_last_selected_tournament_id');
+  }
 });
 
 // Handlers for payments
@@ -1610,6 +1793,12 @@ const getPlayerNickname = (id) => {
   return player ? player.nickname : '---';
 };
 
+const getPlayerFullName = (id) => {
+  if (id === 'bye' || !id) return '---';
+  const player = activeTournament.value?.players.find(p => p && p.id === id);
+  return player ? player.fullName : '---';
+};
+
 const getPlayerLogoSymbol = (id) => {
   if (id === 'bye' || !id) return '⭐';
   const player = activeTournament.value?.players.find(p => p && p.id === id);
@@ -1619,7 +1808,7 @@ const getPlayerLogoSymbol = (id) => {
 const getPlayerLogoUrl = (id) => {
   if (id === 'bye' || !id) return '';
   const player = activeTournament.value?.players.find(p => p && p.id === id);
-  return player ? `/logos/logo_${player.logoId}.png` : '';
+  return player ? `/logos/logo_${player.logoId}.svg` : '';
 };
 
 const getPlayerLogoStyle = (id) => {
@@ -1850,7 +2039,7 @@ const handleCreateTournament = () => {
   // Filter out empty prize values
   const filteredPrizes = createForm.prizesList.filter(p => p.value.trim() !== '');
   // Compile into a readable multi-line text for backward compatibility
-  const compiledPrizesText = filteredPrizes.map(p => `${p.label}: ${p.value}`).join('\n');
+  const compiledPrizesText = filteredPrizes.map(p => `${p.label}: ${p.value}`).join('\r\n');
 
   const legacyPaymentNumber = createForm.paymentMethod === 'instapay' 
     ? createForm.paymentNumberInstapay.trim() 
@@ -1897,13 +2086,13 @@ const handleDeleteTournament = async () => {
 
   if (hasUnpaidPlayers) {
     const totalRemaining = unpaidPlayers.reduce((sum, p) => sum + (p.remainingAmount || 0), 0);
-    warningMessage = `تنبيه مالي هام ⚠️: يوجد لاعبين لم يكملوا سداد اشتراكهم بعد! المبالغ المتبقية غير المحصلة هي [ ${totalRemaining} ج ] لـ ${unpaidPlayers.length} لاعبين.\n\n${warningMessage}`;
+    warningMessage = `تنبيه مالي هام ⚠️: يوجد لاعبين لم يكملوا سداد اشتراكهم بعد! المبالغ المتبقية غير المحصلة هي [ ${totalRemaining} ج ] لـ ${unpaidPlayers.length} لاعبين.\r\n\r\n${warningMessage}`;
   }
 
   if (hasPaidPlayers) {
     const totalRefund = paidPlayers.reduce((sum, p) => sum + (p.amountConfirmed || 0), 0);
-    const playersListText = paidPlayers.map(p => `- ${p.nickname} (سدد: ${p.amountConfirmed} ج)`).join('\n');
-    warningMessage = `تنبيه مالي ⚠️: هذه البطولة تحتوي على مبالغ تم تحصيلها بالفعل بقيمة إجمالية قدرها [ ${totalRefund} ج ] لـ ${paidPlayers.length} لاعبين:\n${playersListText}\n\nهل تريد حذف البطولة وتأكيد ترحيل هذه المبالغ كمرتجع مالي لخصمها من خزينة الوردية الحالية؟ (اختر إلغاء إذا كنت تريد الحذف فقط دون ترحيل المرتجع المالي)`;
+    const playersListText = paidPlayers.map(p => `- ${p.nickname} (سدد: ${p.amountConfirmed} ج)`).join('\r\n');
+    warningMessage = `تنبيه مالي ⚠️: هذه البطولة تحتوي على مبالغ تم تحصيلها بالفعل بقيمة إجمالية قدرها [ ${totalRefund} ج ] لـ ${paidPlayers.length} لاعبين:\r\n${playersListText}\r\n\r\nهل تريد حذف البطولة وتأكيد ترحيل هذه المبالغ كمرتجع مالي لخصمها من خزينة الوردية الحالية؟ (اختر إلغاء إذا كنت تريد الحذف فقط دون ترحيل المرتجع المالي)`;
   }
 
   const confirmed = await ui.confirm({
@@ -1997,7 +2186,7 @@ const handleRemovePlayer = async (p) => {
   let warningMessage = `هل أنت متأكد من رغبتك في إزالة اللاعب ${p.nickname} من البطولة؟`;
   
   if (isPaid) {
-    warningMessage = `تنبيه مالي ⚠️: اللاعب ${p.nickname} قد قام بسداد مبلغ [ ${p.amountConfirmed} ج ].\n\nهل تريد إلغاء اشتراكه وتسجيل مرتجع مالي لخصم هذا المبلغ من كاش الوردية الحالية؟ (اختر إلغاء إذا كنت تريد إزالته فقط دون خصم المرتجع المالي)`;
+    warningMessage = `تنبيه مالي ⚠️: اللاعب ${p.nickname} قد قام بسداد مبلغ [ ${p.amountConfirmed} ج ].\r\n\r\nهل تريد إلغاء اشتراكه وتسجيل مرتجع مالي لخصم هذا المبلغ من كاش الوردية الحالية؟ (اختر إلغاء إذا كنت تريد إزالته فقط دون خصم المرتجع المالي)`;
   }
 
   const confirmed = await ui.confirm({
@@ -2757,6 +2946,146 @@ const syncCloudPlayers = async (silent = false) => {
 
 const manualSyncCloudPlayers = async () => {
   await syncCloudPlayers(false);
+};
+
+const getPrizeForRank = (rankNumber) => {
+  if (!activeTournament.value || !activeTournament.value.prizesList) return null;
+  const p = activeTournament.value.prizesList.find(pr => {
+    const title = pr.label || pr.rankTitle || '';
+    if (rankNumber === 1 && title.includes('الأول')) return true;
+    if (rankNumber === 2 && title.includes('الثاني')) return true;
+    if (rankNumber === 3 && title.includes('الثالث')) return true;
+    return false;
+  });
+  return p ? (p.value || p.prizeAmount) : null;
+};
+
+const compileWinnersData = () => {
+  if (!activeTournament.value || !activeTournament.value.winners) return null;
+  
+  const getPlayerById = (id) => {
+    if (!id || !activeTournament.value.players) return null;
+    return activeTournament.value.players.find(p => p && p.id === id) || null;
+  };
+
+  const objectToCssString = (obj) => {
+    if (!obj) return '';
+    return Object.entries(obj).map(([k, v]) => `${k.replace(/[A-Z]/g, match => '-' + match.toLowerCase())}: ${v}`).join('; ');
+  };
+
+  const w = activeTournament.value.winners;
+  const p1 = w ? getPlayerById(w.first) : null;
+  const p2 = w ? getPlayerById(w.second) : null;
+  const p3 = w ? getPlayerById(w.third) : null;
+
+  return {
+    first: p1 ? { 
+      fullName: p1.fullName, 
+      nickname: p1.nickname, 
+      logoId: p1.logoId, 
+      logoSymbol: getPlayerLogoSymbol(w.first), 
+      logoUrl: getPlayerLogoUrl(w.first), 
+      logoStyle: objectToCssString(getPlayerLogoStyle(w.first)),
+      prize: getPrizeForRank(1) 
+    } : null,
+    second: p2 ? { 
+      fullName: p2.fullName, 
+      nickname: p2.nickname, 
+      logoId: p2.logoId, 
+      logoSymbol: getPlayerLogoSymbol(w.second), 
+      logoUrl: getPlayerLogoUrl(w.second), 
+      logoStyle: objectToCssString(getPlayerLogoStyle(w.second)),
+      prize: getPrizeForRank(2) 
+    } : null,
+    third: p3 ? { 
+      fullName: p3.fullName, 
+      nickname: p3.nickname, 
+      logoId: p3.logoId, 
+      logoSymbol: getPlayerLogoSymbol(w.third), 
+      logoUrl: getPlayerLogoUrl(w.third), 
+      logoStyle: objectToCssString(getPlayerLogoStyle(w.third)),
+      prize: getPrizeForRank(3) 
+    } : null
+  };
+};
+
+const handlePrintCrowningReport = () => {
+  const winnersData = compileWinnersData();
+  if (!winnersData) return;
+  printCrowningReport(
+    activeTournament.value.name,
+    store.appSettings?.appName || 'الصالة',
+    winnersData
+  );
+};
+
+const handleExportCrowningReportPDF = () => {
+  const winnersData = compileWinnersData();
+  if (!winnersData) return;
+  exportTournamentReportAsPDF(
+    activeTournament.value.name,
+    store.appSettings?.appName || 'الصالة',
+    winnersData
+  );
+};
+
+const handleExportCrowningReportImage = () => {
+  const winnersData = compileWinnersData();
+  if (!winnersData) return;
+  exportTournamentReportAsImage(
+    activeTournament.value.name,
+    store.appSettings?.appName || 'الصالة',
+    winnersData
+  );
+};
+
+const handleShareSocial = async () => {
+  const winnersData = compileWinnersData();
+  if (!winnersData) return;
+
+  const tName = activeTournament.value.name;
+  const lName = store.appSettings?.appName || 'الصالة';
+  
+  let text = `🏆 التقرير الرسمي لتتويج أبطال الصالة 🏆\n`;
+  text += `بطولة: "${tName}"\n`;
+  text += `🎮 صالة: ${lName}\n`;
+  text += `تاريخ التتويج: ${new Date().toLocaleDateString('ar-EG')}\n\n`;
+  text += `النتائج النهائية والتكريم:\n`;
+  
+  if (winnersData.first) {
+    text += `🥇 الأول: ${winnersData.first.nickname} (${winnersData.first.fullName || ''}) - الجائزة: ${winnersData.first.prize || 'ميدالية ذهبية'}\n`;
+  }
+  if (winnersData.second) {
+    text += `🥈 الثاني: ${winnersData.second.nickname} (${winnersData.second.fullName || ''}) - الجائزة: ${winnersData.second.prize || 'ميدالية فضية'}\n`;
+  }
+  if (winnersData.third) {
+    text += `🥉 الثالث: ${winnersData.third.nickname} (${winnersData.third.fullName || ''}) - الجائزة: ${winnersData.third.prize || 'ميدالية برونزية'}\n`;
+  }
+  
+  text += `\nتهانينا لجميع الأبطال! 🎉🏆`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    ui.showToast('تم نسخ تقرير التتويج إلى الحافظة بنجاح! 📋', 'success');
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+
+  // Check Web Share API support
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `تقرير تتويج بطولة ${tName}`,
+        text: text
+      });
+    } catch (err) {
+      console.log('Share canceled or failed:', err);
+    }
+  } else {
+    // Open WhatsApp send link
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
 };
 
 let syncInterval = null;
@@ -3724,10 +4053,23 @@ onUnmounted(() => {
   background: rgba(15, 23, 42, 0.35) !important;
   backdrop-filter: blur(5px) !important;
 }
-:global(.light-mode .modal-content) {
+:global(.light-mode .modal-content),
+:global(.light-mode .modal-content.glass-panel) {
   background: #ffffff !important;
-  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  border: 1px solid #e2e8f0 !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:global(.light-mode .modal-content .modal-body-v3) {
+  color: #0f172a !important;
+}
+:global(.light-mode .modal-content .modal-header) {
+  border-bottom-color: #e2e8f0 !important;
+}
+:global(.light-mode .modal-content .btn-icon) {
+  color: #dc2626 !important;
 }
 
 /* Inner groups inside modals (manual registration dialog) */
@@ -4122,4 +4464,832 @@ onUnmounted(() => {
   color: #ffffff;
 }
 
+
+/* New styles for details modal and prize highlight */
+.prize-highlight {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+.prize-highlight.silver {
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #cbd5e1;
+}
+.prize-highlight.bronze {
+  background: rgba(180, 83, 9, 0.2);
+  border-color: rgba(180, 83, 9, 0.4);
+  color: #fb923c;
+}
+
+.btn-details-tour-icon {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10b981;
+  padding: 6px 12px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.btn-details-tour-icon:hover {
+  background: #10b981;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+:global(.light-mode) .btn-details-tour-icon {
+  background: #e6f4ea !important;
+  border-color: #a3cfec !important;
+  color: #137333 !important;
+}
+:global(.light-mode) .btn-details-tour-icon:hover {
+  background: #137333 !important;
+  color: #ffffff !important;
+}
+
+.details-section {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 12px;
+}
+:global(.light-mode .details-modal-box .details-section) {
+  background: #faf8f2 !important;
+  border: 1px solid #e2ddd5 !important;
+}
+
+.prize-row-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.02);
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+:global(.light-mode .details-modal-box .prize-row-detail) {
+  background: #ffffff !important;
+  border: 1px solid #e2ddd5 !important;
+}
+
+.prize-label-detail {
+  font-weight: 600;
+  color: #fbbf24;
+}
+:global(.light-mode .details-modal-box .prize-label-detail) {
+  color: #b45309 !important;
+}
+
+.prize-value-detail {
+  font-weight: bold;
+  color: #fff;
+}
+:global(.light-mode .details-modal-box .prize-value-detail) {
+  color: #0f172a !important;
+}
+
+.stat-card-detail {
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+.stat-card-detail .stat-title {
+  font-size: 0.82rem;
+  margin-bottom: 5px;
+}
+:global(.light-mode .details-modal-box .stat-card-detail .stat-title) {
+  color: #475569 !important;
+}
+.stat-card-detail .stat-value {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #fff;
+}
+:global(.light-mode .details-modal-box .stat-card-detail .stat-value) {
+  color: #0f172a !important;
+}
+
+.stat-card-detail.card-green {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+:global(.light-mode .details-modal-box .stat-card-detail.card-green) {
+  background: #e6f4ea !important;
+  border-color: #34d399 !important;
+  color: #137333 !important;
+}
+
+.stat-card-detail.card-blue {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+}
+:global(.light-mode .details-modal-box .stat-card-detail.card-blue) {
+  background: #e0f2fe !important;
+  border-color: #38bdf8 !important;
+  color: #0369a1 !important;
+}
+
+.stat-card-detail.card-rose {
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.2);
+  color: #fb7185;
+}
+:global(.light-mode .details-modal-box .stat-card-detail.card-rose) {
+  background: #ffe4e6 !important;
+  border-color: #fb7185 !important;
+  color: #b91c1c !important;
+}
+
+.stat-card-detail.card-amber {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+  color: #fcd34d;
+}
+:global(.light-mode .details-modal-box .stat-card-detail.card-amber) {
+  background: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #b45309 !important;
+}
+
+
+/* Details Modal — dedicated box class (bypasses glass-panel global) */
+.details-modal-box {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.97) 100%) !important;
+  border: 1px solid rgba(6, 182, 212, 0.25) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+  padding: 2rem !important;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #e2e8f0 !important;
+}
+:global(.light-mode .details-modal-box) {
+  background: #faf9f6 !important;
+  border: 1px solid #d1ccc0 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+  color: #1e293b !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:global(.light-mode .details-modal-box .modal-header) {
+  border-bottom-color: #e2ddd5 !important;
+}
+:global(.light-mode .details-modal-box .modal-body-v3) {
+  color: #1e293b !important;
+}
+:global(.light-mode .details-modal-box .btn-icon) {
+  color: #dc2626 !important;
+}
+
+/* Details Modal Title classes */
+.details-modal-title {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #fbbf24;
+  margin: 0;
+}
+:global(.light-mode .details-modal-title) {
+  color: #b45309 !important;
+}
+
+/* Share Modal CSS (same manner as details modal) */
+.share-modal-box {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(30, 41, 59, 0.97) 100%) !important;
+  border: 1px solid rgba(251, 191, 36, 0.25) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+  padding: 2rem !important;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #e2e8f0 !important;
+}
+:global(.light-mode .share-modal-box) {
+  background: #faf9f6 !important;
+  border: 1px solid #d1ccc0 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+  color: #1e293b !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:global(.light-mode .share-modal-box .modal-header) {
+  border-bottom-color: #e2ddd5 !important;
+}
+:global(.light-mode .share-modal-box .modal-body-v3) {
+  color: #1e293b !important;
+}
+:global(.light-mode .share-modal-box .btn-icon) {
+  color: #dc2626 !important;
+}
+
+.share-modal-title {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #fbbf24;
+  margin: 0;
+}
+:global(.light-mode .share-modal-title) {
+  color: #b45309 !important;
+}
+
+.share-modal-desc {
+  color: #cbd5e1;
+}
+:global(.light-mode .share-modal-box .share-modal-desc) {
+  color: #475569 !important;
+}
+
+.details-section-title {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  font-weight: 800;
+}
+
+.details-title-green {
+  color: #10b981;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+}
+:global(.light-mode .details-title-green) {
+  color: #047857 !important;
+  border-bottom-color: rgba(4, 120, 87, 0.25) !important;
+}
+
+.details-title-cyan {
+  color: #06b6d4;
+  border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+}
+:global(.light-mode) .details-title-cyan {
+  color: #0369a1 !important;
+  border-bottom-color: rgba(3, 105, 161, 0.25) !important;
+}
+
+
+/* UI Crowning Certificate Layout Styles */
+.certificate-container .tournament-title .tournament-label {
+  color: #fbbf24;
+}
+.certificate-container .tournament-title .tournament-name-highlight {
+  color: #fbbf24;
+}
+.certificate-container .winners-table-container .table-title {
+  color: #fbbf24;
+}
+.certificate-container .winners-report-table th {
+  color: #94a3b8;
+}
+.certificate-container .winners-report-table td span {
+  color: #94a3b8;
+}
+
+.certificate-container {
+  background: radial-gradient(circle at 50% 30%, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.25) !important;
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.certificate-container .header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.certificate-container .lounge-name {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%) !important;
+  color: #fff !important;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.35rem 0.9rem;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.4);
+  display: inline-block;
+}
+
+.certificate-container .report-title {
+  font-size: 1.8rem;
+  color: #00f2fe;
+  text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+  margin: 5px 0;
+  font-weight: 900;
+  text-align: center;
+}
+
+.certificate-container .tournament-title {
+  font-size: 1.4rem;
+  color: #fbbf24;
+  font-weight: 800;
+  margin-top: 5px;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+  white-space: nowrap;
+  text-align: center;
+  width: 100%;
+}
+
+.certificate-container .podium-section {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 20px;
+  margin: 30px 0 15px 0;
+}
+
+.certificate-container .podium-card {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 16px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 155px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.certificate-container .podium-card.gold {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.15) !important;
+  padding: 2.2rem 1.2rem;
+  transform: translateY(-15px);
+  width: 175px;
+}
+
+.certificate-container .podium-card.silver {
+  border-color: rgba(203, 213, 225, 0.3) !important;
+}
+
+.certificate-container .podium-card.bronze {
+  border-color: rgba(180, 83, 9, 0.3) !important;
+}
+
+.certificate-container .medal-badge {
+  font-size: 2rem;
+  position: absolute;
+  top: -20px;
+}
+
+.certificate-container .winner-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  font-size: 2.3rem;
+}
+
+.certificate-container .gold .winner-logo {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+  width: 75px;
+  height: 75px;
+  font-size: 2.8rem;
+}
+
+.certificate-container .winner-nick {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  text-align: center;
+}
+
+.certificate-container .gold .winner-nick {
+  color: #fbbf24;
+}
+
+.certificate-container .rank-text {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: bold;
+}
+
+.certificate-container .footer-section {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.certificate-container .stamp-area {
+  text-align: right;
+}
+
+.certificate-container .stamp-title {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 25px;
+}
+
+.certificate-container .stamp-line {
+  width: 120px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.certificate-container .meta-time {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Light mode overrides for the screen certificate with high contrast */
+:global(.light-mode .certificate-container) {
+  background: radial-gradient(circle at 50% 30%, rgba(180, 83, 9, 0.03) 0%, #ffffff 100%) !important;
+  border: 1px solid rgba(180, 83, 9, 0.2) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+:global(.light-mode .certificate-container .header) {
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+:global(.light-mode .certificate-container .report-title) {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+:global(.light-mode .certificate-container .tournament-title .tournament-label) {
+  color: #475569 !important;
+}
+:global(.light-mode .certificate-container .tournament-title .tournament-name-highlight) {
+  color: #b45309 !important;
+  text-shadow: none !important;
+}
+:global(.light-mode .certificate-container .winner-nick) {
+  color: #0f172a !important;
+}
+:global(.light-mode .certificate-container .winner-nick.gold-color) {
+  color: #b45309 !important;
+}
+:global(.light-mode .certificate-container .rank-text) {
+  color: #475569 !important;
+}
+:global(.light-mode .certificate-container .podium-card) {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+}
+:global(.light-mode .certificate-container .podium-card.gold) {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15) !important;
+}
+:global(.light-mode .certificate-container .footer-section) {
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+  color: #475569 !important;
+}
+:global(.light-mode .certificate-container .stamp-title) {
+  color: #475569 !important;
+}
+:global(.light-mode .winners-table-container .table-title) {
+  color: #b45309 !important;
+}
+:global(.light-mode .official-stamp) {
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
+}
+:global(.light-mode .official-stamp .stamp-mid) {
+  border-color: #dc2626 !important;
+}
+:global(.light-mode .certificate-container .winners-report-table th) {
+  color: #475569 !important;
+}
+:global(.light-mode .certificate-container .winners-report-table td span) {
+  color: #475569 !important;
+}
+
+
+
+/* UI Crowning Certificate Layout Styles */
+.certificate-container .winner-logo, .certificate-container .player-logo-large {
+  font-size: 1.6rem !important; /* Scale down so flag emojis with symbols fit nicely */
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+.certificate-container .gold .winner-logo {
+  font-size: 2rem !important;
+}
+
+/* Official red ink stamp styled in CSS */
+/* ============================================
+   Modern Premium Official Stamp Design
+   ============================================ */
+.official-stamp {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: rotate(-8deg) !important;
+  cursor: default !important;
+}
+
+.stamp-outer-ring {
+  width: 140px !important;
+  height: 140px !important;
+  border-radius: 50% !important;
+  border: 3px solid #ef4444 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  background: rgba(239, 68, 68, 0.04) !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.18) !important;
+  will-change: auto !important;
+}
+
+.stamp-outer-ring::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 5px !important;
+  border-radius: 50% !important;
+  border: 1px dashed rgba(239,68,68,0.5) !important;
+}
+
+.stamp-inner-ring {
+  width: 110px !important;
+  height: 110px !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(239,68,68,0.55) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(239, 68, 68, 0.03) !important;
+}
+
+.stamp-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 1px !important;
+  padding: 4px !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.stamp-icon {
+  font-size: 1.3rem !important;
+  line-height: 1 !important;
+  display: block !important;
+}
+
+.stamp-lounge-name {
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  color: #ef4444 !important;
+  font-family: 'Cairo', sans-serif !important;
+  letter-spacing: 0.2px !important;
+  padding: 2px 4px !important;
+  border-top: 1px solid rgba(239,68,68,0.55) !important;
+  border-bottom: 1px solid rgba(239,68,68,0.55) !important;
+  max-width: 96px !important;
+  word-break: break-word !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: block !important;
+  text-align: center !important;
+  line-height: 1.25 !important;
+}
+
+.stamp-tagline {
+  font-size: 0.5rem !important;
+  font-weight: 700 !important;
+  color: #ef4444 !important;
+  font-family: 'Cairo', sans-serif !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase !important;
+  display: block !important;
+  opacity: 0.85 !important;
+}
+
+.stamp-brand {
+  font-size: 0.45rem !important;
+  font-weight: 800 !important;
+  color: rgba(239,68,68,0.7) !important;
+  font-family: 'Cairo', sans-serif !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  display: block !important;
+}
+
+.stamp-title {
+  font-size: 0.7rem !important;
+  color: #94a3b8 !important;
+  margin-bottom: 6px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px !important;
+}
+
+/* Winners table container styles */
+.winners-report-table th, .winners-report-table td {
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+:global(.light-mode) .winners-report-table {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+:global(.light-mode) .winners-report-table th {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+:global(.light-mode) .winners-report-table td {
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+:global(.light-mode) .winners-report-table td span {
+  color: #64748b !important;
+}
+:global(.light-mode) .official-stamp .stamp-outer-ring {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 1.5px rgba(220,38,38,0.2), inset 0 0 0 1.5px rgba(220,38,38,0.15), 0 0 18px rgba(220,38,38,0.15) !important;
+}
+:global(.light-mode) .official-stamp .stamp-outer-ring::before {
+  border-color: rgba(220,38,38,0.5) !important;
+}
+:global(.light-mode) .official-stamp .stamp-inner-ring {
+  border-color: rgba(220,38,38,0.6) !important;
+}
+:global(.light-mode) .official-stamp .stamp-lounge-name {
+  color: #dc2626 !important;
+  border-color: rgba(220,38,38,0.6) !important;
+}
+:global(.light-mode) .official-stamp .stamp-tagline,
+:global(.light-mode) .official-stamp .stamp-brand {
+  color: #dc2626 !important;
+}
+:global(.light-mode) .stamp-title {
+  color: #64748b !important;
+}
+
+/* Share Modal Cards */
+.share-option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 15px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  box-sizing: border-box;
+  background: rgba(30, 41, 59, 0.4);
+}
+
+.share-option-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.share-option-card .share-icon {
+  font-size: 2.2rem;
+  transition: transform 0.3s ease;
+}
+
+.share-option-card:hover .share-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.share-option-card .share-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.share-option-card .share-desc {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* Gradients for option hover effects */
+.share-option-card.card-pdf:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(249, 115, 22, 0.1) 100%);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.share-option-card.card-pdf .share-title {
+  color: #ef4444;
+}
+
+.share-option-card.card-image:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+.share-option-card.card-image .share-title {
+  color: #3b82f6;
+}
+
+.share-option-card.card-social:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.1) 100%);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.share-option-card.card-social .share-title {
+  color: #10b981;
+}
+
+.share-option-card.card-print:hover {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 145, 178, 0.1) 100%);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+.share-option-card.card-print .share-title {
+  color: #06b6d4;
+}
+
+/* Light mode support for cards */
+:global(.light-mode .share-modal-box .share-option-card) {
+  background: #ffffff !important;
+  border: 1px solid #e2ddd5 !important;
+  color: #1e293b !important;
+}
+:global(.light-mode .share-modal-box .share-option-card .share-title) {
+  color: #1e293b !important;
+}
+:global(.light-mode .share-modal-box .share-option-card .share-desc) {
+  color: #64748b !important;
+}
+:global(.light-mode .share-modal-box .share-option-card:hover) {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Gradients for option hover effects in light mode */
+:global(.light-mode .share-modal-box .share-option-card.card-pdf:hover) {
+  background: #ffebee !important;
+  border-color: #ef4444 !important;
+}
+:global(.light-mode .share-modal-box .share-option-card.card-pdf:hover .share-title) {
+  color: #ef4444 !important;
+}
+
+:global(.light-mode .share-modal-box .share-option-card.card-image:hover) {
+  background: #e3f2fd !important;
+  border-color: #3b82f6 !important;
+}
+:global(.light-mode .share-modal-box .share-option-card.card-image:hover .share-title) {
+  color: #3b82f6 !important;
+}
+
+:global(.light-mode .share-modal-box .share-option-card.card-social:hover) {
+  background: #e8f5e9 !important;
+  border-color: #10b981 !important;
+}
+:global(.light-mode .share-modal-box .share-option-card.card-social:hover .share-title) {
+  color: #10b981 !important;
+}
+
+:global(.light-mode .share-modal-box .share-option-card.card-print:hover) {
+  background: #e0f7fa !important;
+  border-color: #06b6d4 !important;
+}
+:global(.light-mode .share-modal-box .share-option-card.card-print:hover .share-title) {
+  color: #06b6d4 !important;
+}
+
 </style>
+

@@ -749,41 +749,6 @@
   "classico_archived_expenses": [],
   "classico_tournaments": [
     {
-      "id": "1781210195994",
-      "name": "الفراعنه",
-      "fee": 150,
-      "maxPlayers": 4,
-      "type": "cup",
-      "groupsCount": 4,
-      "playersPerGroup": 4,
-      "stage": "",
-      "groups": {},
-      "prizes": "المركز الأول 🥇: سمارت واتش\nالمركز الثاني 🥈: اير بود\nالمركز الثالث 🥉: اشتراك مجانى فى المسابقه القادمه ",
-      "prizesList": [
-        {
-          "label": "المركز الأول 🥇",
-          "value": "سمارت واتش"
-        },
-        {
-          "label": "المركز الثاني 🥈",
-          "value": "اير بود"
-        },
-        {
-          "label": "المركز الثالث 🥉",
-          "value": "اشتراك مجانى فى المسابقه القادمه "
-        }
-      ],
-      "paymentNumber": "01094093993",
-      "paymentNumberInstapay": "",
-      "paymentNumberWallet": "01094093993",
-      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
-      "paymentMethod": "wallet",
-      "status": "registration",
-      "players": [],
-      "matches": [],
-      "createdAt": "2026-06-11T20:36:35.994Z"
-    },
-    {
       "id": "1781215499615",
       "name": "فزعه",
       "fee": 50,
@@ -813,13 +778,273 @@
       "paymentNumberWallet": "010928736",
       "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
       "paymentMethod": "wallet",
+      "status": "completed",
+      "players": [
+        {
+          "id": "PLR-1781381026182-hr5w",
+          "paid": true,
+          "phone": "صثثصث",
+          "logoId": 0,
+          "paidAt": "2026-06-13T20:04:58.597Z",
+          "fullName": "صثصثصص",
+          "joinedAt": "2026-06-13T20:03:46.182Z",
+          "nickname": "صثثثص",
+          "amountPaid": 50,
+          "paymentType": "full",
+          "senderNumber": "صثثصث",
+          "paymentMethod": "wallet",
+          "transactionId": "صثصثثصصث",
+          "amountArchived": 0,
+          "amountConfirmed": 50,
+          "remainingAmount": 0,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781381053422-rs5f",
+          "paid": true,
+          "phone": "صثصثصثثصثثص",
+          "logoId": 0,
+          "paidAt": "2026-06-13T20:05:01.275Z",
+          "fullName": "ثصثصثصثص",
+          "joinedAt": "2026-06-13T20:04:13.422Z",
+          "nickname": "ثصثصثص",
+          "amountPaid": 50,
+          "paymentType": "full",
+          "senderNumber": "صثصثصثثصثثص",
+          "paymentMethod": "wallet",
+          "transactionId": "ثضثثضثض",
+          "amountArchived": 0,
+          "amountConfirmed": 50,
+          "remainingAmount": 0,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781381069757-wobo",
+          "paid": true,
+          "phone": "ثصصثصث",
+          "logoId": 0,
+          "paidAt": "2026-06-13T20:05:03.405Z",
+          "fullName": "ثثصصثصث",
+          "joinedAt": "2026-06-13T20:04:29.757Z",
+          "nickname": "صثصثصث",
+          "amountPaid": 50,
+          "paymentType": "full",
+          "senderNumber": "ثصصثصث",
+          "paymentMethod": "wallet",
+          "transactionId": "صثصثصث",
+          "amountArchived": 0,
+          "amountConfirmed": 50,
+          "remainingAmount": 0,
+          "isPendingApproval": false
+        },
+        {
+          "id": "PLR-1781381088975-z8yj",
+          "paid": true,
+          "phone": "صصثصث",
+          "logoId": 0,
+          "paidAt": "2026-06-13T20:05:06.215Z",
+          "fullName": "يصصصيصصصث",
+          "joinedAt": "2026-06-13T20:04:48.975Z",
+          "nickname": "صثثصث",
+          "amountPaid": 50,
+          "paymentType": "full",
+          "senderNumber": "صصثصث",
+          "paymentMethod": "wallet",
+          "transactionId": "صثصث",
+          "amountArchived": 0,
+          "amountConfirmed": 50,
+          "remainingAmount": 0,
+          "isPendingApproval": false
+        }
+      ],
+      "matches": [
+        {
+          "id": "c-m-0-0",
+          "player1Id": "PLR-1781381053422-rs5f",
+          "player2Id": "PLR-1781381026182-hr5w",
+          "player1Score": 0,
+          "player2Score": 2,
+          "winnerId": "PLR-1781381026182-hr5w",
+          "played": true,
+          "roundIndex": 0,
+          "matchIndex": 0
+        },
+        {
+          "id": "c-m-0-1",
+          "player1Id": "PLR-1781381088975-z8yj",
+          "player2Id": "PLR-1781381069757-wobo",
+          "player1Score": 1,
+          "player2Score": 0,
+          "winnerId": "PLR-1781381088975-z8yj",
+          "played": true,
+          "roundIndex": 0,
+          "matchIndex": 1
+        },
+        {
+          "id": "c-m-1-0",
+          "player1Id": "PLR-1781381026182-hr5w",
+          "player2Id": "PLR-1781381088975-z8yj",
+          "player1Score": 1,
+          "player2Score": 0,
+          "winnerId": "PLR-1781381026182-hr5w",
+          "played": true,
+          "roundIndex": 1,
+          "matchIndex": 0
+        }
+      ],
+      "createdAt": "2026-06-11T22:04:59.615Z",
+      "winners": {
+        "first": "PLR-1781381026182-hr5w",
+        "second": "PLR-1781381088975-z8yj",
+        "third": "PLR-1781381053422-rs5f"
+      }
+    },
+    {
+      "id": "1781391994250",
+      "name": "الفراعنه",
+      "fee": 150,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\nالمركز الثاني 🥈: 500 ج\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "0192987378386",
+      "paymentNumberInstapay": "",
+      "paymentNumberWallet": "0192987378386",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "wallet",
       "status": "registration",
       "players": [],
       "matches": [],
-      "createdAt": "2026-06-11T22:04:59.615Z"
+      "createdAt": "2026-06-13T23:06:34.250Z"
     }
   ],
-  "classico_tournaments_history": [],
+  "classico_tournaments_history": [
+    {
+      "id": "1781378098658-npgd",
+      "playerName": "hfhfj",
+      "nickname": "wdkwdk",
+      "tournamentName": "الفراعنه",
+      "amount": 150,
+      "timestamp": "2026-06-13T19:14:58.658Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781378101637-zb0i",
+      "playerName": "ywihwkhs",
+      "nickname": "33222",
+      "tournamentName": "الفراعنه",
+      "amount": 30,
+      "timestamp": "2026-06-13T19:15:01.637Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781378116893-c2by",
+      "playerName": "2wqsq",
+      "nickname": "wqw",
+      "tournamentName": "الفراعنه",
+      "amount": 150,
+      "timestamp": "2026-06-13T19:15:16.893Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781378119179-nh9t",
+      "playerName": "wqwqw",
+      "nickname": "wqwq",
+      "tournamentName": "الفراعنه",
+      "amount": 150,
+      "timestamp": "2026-06-13T19:15:19.179Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781379718622-0th0",
+      "playerName": "hfhfj",
+      "nickname": "wdkwdk",
+      "tournamentName": "الفراعنه (مرتجع حذف البطولة)",
+      "amount": -150,
+      "timestamp": "2026-06-13T19:41:58.622Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781379718623-87ce",
+      "playerName": "ywihwkhs",
+      "nickname": "33222",
+      "tournamentName": "الفراعنه (مرتجع حذف البطولة)",
+      "amount": -30,
+      "timestamp": "2026-06-13T19:41:58.623Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781379718623-px4u",
+      "playerName": "2wqsq",
+      "nickname": "wqw",
+      "tournamentName": "الفراعنه (مرتجع حذف البطولة)",
+      "amount": -150,
+      "timestamp": "2026-06-13T19:41:58.623Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781379718623-9qxy",
+      "playerName": "wqwqw",
+      "nickname": "wqwq",
+      "tournamentName": "الفراعنه (مرتجع حذف البطولة)",
+      "amount": -150,
+      "timestamp": "2026-06-13T19:41:58.623Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781381098597-mqhr",
+      "playerName": "صثصثصص",
+      "nickname": "صثثثص",
+      "tournamentName": "فزعه",
+      "amount": 50,
+      "timestamp": "2026-06-13T20:04:58.597Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781381101275-w2z0",
+      "playerName": "ثصثصثصثص",
+      "nickname": "ثصثصثص",
+      "tournamentName": "فزعه",
+      "amount": 50,
+      "timestamp": "2026-06-13T20:05:01.275Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781381103405-825y",
+      "playerName": "ثثصصثصث",
+      "nickname": "صثصثصث",
+      "tournamentName": "فزعه",
+      "amount": 50,
+      "timestamp": "2026-06-13T20:05:03.406Z",
+      "processedBy": "admin"
+    },
+    {
+      "id": "1781381106215-yn8u",
+      "playerName": "يصصصيصصصث",
+      "nickname": "صثثصث",
+      "tournamentName": "فزعه",
+      "amount": 50,
+      "timestamp": "2026-06-13T20:05:06.215Z",
+      "processedBy": "admin"
+    }
+  ],
   "classico_subscription": {
     "success": true,
     "status": "active",
@@ -830,7 +1055,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-11T22:27:37.367Z"
+    "last_online_check": "2026-06-14T23:20:58.191Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -849,6 +1074,209 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1781475642099.9543,
+      "timestamp": "2026-06-14T22:20:42.099Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781460622564.6704,
+      "timestamp": "2026-06-14T18:10:22.564Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781392919379.3533,
+      "timestamp": "2026-06-13T23:21:59.379Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781391994251.9604,
+      "timestamp": "2026-06-13T23:06:34.251Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم الفراعنه"
+    },
+    {
+      "id": 1781385695684.745,
+      "timestamp": "2026-06-13T21:21:35.684Z",
+      "user": "admin",
+      "action": "انتهاء بطولة",
+      "details": "تم انتهاء بطولة فزعه وتتويج الأبطال"
+    },
+    {
+      "id": 1781385695653.9187,
+      "timestamp": "2026-06-13T21:21:35.653Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة فزعه"
+    },
+    {
+      "id": 1781385689073.5518,
+      "timestamp": "2026-06-13T21:21:29.073Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة فزعه"
+    },
+    {
+      "id": 1781385681688.502,
+      "timestamp": "2026-06-13T21:21:21.688Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة فزعه"
+    },
+    {
+      "id": 1781384451327.6184,
+      "timestamp": "2026-06-13T21:00:51.327Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781382906598.2144,
+      "timestamp": "2026-06-13T20:35:06.598Z",
+      "user": "admin",
+      "action": "بدء بطولة",
+      "details": "تم بدء فعاليات بطولة فزعه وجدولة المواجهات"
+    },
+    {
+      "id": 1781381130160.8215,
+      "timestamp": "2026-06-13T20:05:30.160Z",
+      "user": "admin",
+      "action": "بدء بطولة",
+      "details": "تم بدء فعاليات بطولة فزعه وجدولة المواجهات"
+    },
+    {
+      "id": 1781381109943.2776,
+      "timestamp": "2026-06-13T20:05:09.943Z",
+      "user": "admin",
+      "action": "بدء بطولة",
+      "details": "تم بدء فعاليات بطولة فزعه وجدولة المواجهات"
+    },
+    {
+      "id": 1781381106215.9175,
+      "timestamp": "2026-06-13T20:05:06.215Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب صثثصث بقيمة 50 ج لبطولة فزعه"
+    },
+    {
+      "id": 1781381103406.7317,
+      "timestamp": "2026-06-13T20:05:03.406Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب صثصثصث بقيمة 50 ج لبطولة فزعه"
+    },
+    {
+      "id": 1781381101275.2444,
+      "timestamp": "2026-06-13T20:05:01.275Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب ثصثصثص بقيمة 50 ج لبطولة فزعه"
+    },
+    {
+      "id": 1781381098598.2615,
+      "timestamp": "2026-06-13T20:04:58.598Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب صثثثص بقيمة 50 ج لبطولة فزعه"
+    },
+    {
+      "id": 1781379718639.4941,
+      "timestamp": "2026-06-13T19:41:58.639Z",
+      "user": "admin",
+      "action": "حذف بطولة",
+      "details": "تم حذف البطولة الفراعنه"
+    },
+    {
+      "id": 1781379718623.944,
+      "timestamp": "2026-06-13T19:41:58.623Z",
+      "user": "admin",
+      "action": "مرتجع حذف بطولة",
+      "details": "تم تسجيل مرتجعات مالية لبطولة الفراعنه"
+    },
+    {
+      "id": 1781379631822.914,
+      "timestamp": "2026-06-13T19:40:31.822Z",
+      "user": "admin",
+      "action": "انتهاء بطولة",
+      "details": "تم انتهاء بطولة الفراعنه وتتويج الأبطال"
+    },
+    {
+      "id": 1781379631787.4387,
+      "timestamp": "2026-06-13T19:40:31.787Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة الفراعنه"
+    },
+    {
+      "id": 1781379616683.1685,
+      "timestamp": "2026-06-13T19:40:16.683Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة الفراعنه"
+    },
+    {
+      "id": 1781378228792.2957,
+      "timestamp": "2026-06-13T19:17:08.792Z",
+      "user": "admin",
+      "action": "تحديث نتيجة مباراة",
+      "details": "تم تحديث مباراة في بطولة الفراعنه"
+    },
+    {
+      "id": 1781378125605.288,
+      "timestamp": "2026-06-13T19:15:25.605Z",
+      "user": "admin",
+      "action": "بدء بطولة",
+      "details": "تم بدء فعاليات بطولة الفراعنه وجدولة المواجهات"
+    },
+    {
+      "id": 1781378119179.7358,
+      "timestamp": "2026-06-13T19:15:19.179Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب wqwq بقيمة 150 ج لبطولة الفراعنه"
+    },
+    {
+      "id": 1781378116894.1865,
+      "timestamp": "2026-06-13T19:15:16.894Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب wqw بقيمة 150 ج لبطولة الفراعنه"
+    },
+    {
+      "id": 1781378101638.3809,
+      "timestamp": "2026-06-13T19:15:01.638Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب 33222 بقيمة 30 ج لبطولة الفراعنه"
+    },
+    {
+      "id": 1781378098658.657,
+      "timestamp": "2026-06-13T19:14:58.658Z",
+      "user": "admin",
+      "action": "تأكيد سداد لاعب",
+      "details": "تم تأكيد سداد اللاعب wdkwdk بقيمة 150 ج لبطولة الفراعنه"
+    },
+    {
+      "id": 1781377903262.56,
+      "timestamp": "2026-06-13T19:11:43.262Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781217620692.301,
+      "timestamp": "2026-06-11T22:40:20.692Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
     {
       "id": 1781215499616.776,
       "timestamp": "2026-06-11T22:04:59.616Z",
@@ -901,5 +1329,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-11T22:27:31.864Z"
+  "last_seen_time": "2026-06-14T23:21:53.741Z"
 }

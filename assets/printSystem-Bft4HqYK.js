@@ -1,30 +1,14 @@
-/**
- * printSystem.js - Professional Thermal Printing Engine for Classico V3
- * Optimized for 58mm and 80mm thermal printers.
- * Uses a popup window to ensure proper print preview support in Electron.
- */
-
-import { useAppStore } from '../stores/appStore';
-
-export const printUnifiedInvoice = (data, isQuick = false) => {
-  const store = useAppStore();
-  const appName = store.appSettings?.appName || 'Classico';
-  const appLogo = store.appSettings?.appLogo || '/logo1.png';
-
-  // Format orders table rows
-  const ordersHtml = (data.orders || []).map(o => `
+import{t as e}from"./appStore-DqM9iLGi.js";var t=(t,n=!1)=>{let r=e(),i=r.appSettings?.appName||`Classico`,a=r.appSettings?.appLogo||`/logo1.png`,o=(t.orders||[]).map(e=>`
     <div class="invoice-row">
-      <span class="val-bold">${(o.total || 0).toFixed(2)} ج</span>
-      <span class="item-name">${o.qty}x ${o.name}</span>
+      <span class="val-bold">${(e.total||0).toFixed(2)} ج</span>
+      <span class="item-name">${e.qty}x ${e.name}</span>
     </div>
-  `).join('');
-
-  const html = `
+  `).join(``),s=`
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
     <head>
       <meta charset="UTF-8">
-      <title>طباعة فاتورة - ${appName}</title>
+      <title>طباعة فاتورة - ${i}</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         
@@ -78,54 +62,54 @@ export const printUnifiedInvoice = (data, isQuick = false) => {
     </head>
     <body>
       <div class="header">
-        <img src="${appLogo}" class="logo" onerror="this.style.display='none'">
-        <div class="main-title">${appName}</div>
+        <img src="${a}" class="logo" onerror="this.style.display='none'">
+        <div class="main-title">${i}</div>
       </div>
 
       <div class="line-bold"></div>
       
       <div class="invoice-type">
-        ${data.deviceName ? `فاتورة جهاز: ${data.deviceName}` : (data.loungeName ? `فاتورة صالة: ${data.loungeName}` : (data.customerName ? `كشف حساب: ${data.customerName}` : 'فاتورة حساب'))}
+        ${t.deviceName?`فاتورة جهاز: ${t.deviceName}`:t.loungeName?`فاتورة صالة: ${t.loungeName}`:t.customerName?`كشف حساب: ${t.customerName}`:`فاتورة حساب`}
       </div>
       
       <div class="line"></div>
 
       <div class="info-group">
-        <span>التاريخ: <span class="val-bold">${data.dateStr || new Date().toLocaleDateString('ar-EG')}</span></span>
-        <span>الوقت: <span class="val-bold">${data.timeStr || new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</span></span>
+        <span>التاريخ: <span class="val-bold">${t.dateStr||new Date().toLocaleDateString(`ar-EG`)}</span></span>
+        <span>الوقت: <span class="val-bold">${t.timeStr||new Date().toLocaleTimeString(`ar-EG`,{hour:`2-digit`,minute:`2-digit`})}</span></span>
       </div>
 
       <div class="line-dashed"></div>
 
-      ${data.deviceName ? `
+      ${t.deviceName?`
         <div class="section-header">تفاصيل الوقت</div>
-        <div class="invoice-row"><span>وقت البدء:</span><span class="val-bold">${data.startTimeFormatted || '--:--'}</span></div>
-        <div class="invoice-row"><span>وقت الانتهاء:</span><span class="val-bold">${data.endTimeFormatted || '--:--'}</span></div>
+        <div class="invoice-row"><span>وقت البدء:</span><span class="val-bold">${t.startTimeFormatted||`--:--`}</span></div>
+        <div class="invoice-row"><span>وقت الانتهاء:</span><span class="val-bold">${t.endTimeFormatted||`--:--`}</span></div>
         <div class="line-dashed"></div>
-        <div class="invoice-row" style="font-size: 14px;"><span>المدة:</span><span class="val-bold">${data.usedDuration || '00:00:00'}</span></div>
-        <div class="invoice-row" style="font-size: 14px;"><span>تكلفة الوقت:</span><span class="val-bold">${(data.timeCost || 0).toFixed(2)} ج</span></div>
+        <div class="invoice-row" style="font-size: 14px;"><span>المدة:</span><span class="val-bold">${t.usedDuration||`00:00:00`}</span></div>
+        <div class="invoice-row" style="font-size: 14px;"><span>تكلفة الوقت:</span><span class="val-bold">${(t.timeCost||0).toFixed(2)} ج</span></div>
         <div class="line-dashed"></div>
-      ` : ''}
+      `:``}
 
-      ${data.orders && data.orders.length > 0 ? `
+      ${t.orders&&t.orders.length>0?`
         <div class="section-header">الطلبات والمشروبات</div>
-        ${ordersHtml}
+        ${o}
         <div class="line-dashed"></div>
-        <div class="invoice-row"><span>إجمالي الطلبات:</span><span class="val-bold">${(data.ordersCost || 0).toFixed(2)} ج</span></div>
-      ` : ''}
+        <div class="invoice-row"><span>إجمالي الطلبات:</span><span class="val-bold">${(t.ordersCost||0).toFixed(2)} ج</span></div>
+      `:``}
 
-      ${data.ledger && data.ledger.length > 0 ? `
+      ${t.ledger&&t.ledger.length>0?`
         <div class="section-header">سجل مديونية العميل</div>
-        ${data.ledger.map(l => `
+        ${t.ledger.map(e=>`
           <div class="invoice-row">
-            <span class="val-bold">${l.type === 'debt' ? '+' : '-'}${l.amount.toFixed(2)}</span>
-            <span class="item-name" style="font-size: 11px;">${l.note}</span>
+            <span class="val-bold">${e.type===`debt`?`+`:`-`}${e.amount.toFixed(2)}</span>
+            <span class="item-name" style="font-size: 11px;">${e.note}</span>
           </div>
-        `).join('')}
-      ` : ''}
+        `).join(``)}
+      `:``}
 
       <div class="total-box">
-        <span class="total-value">${(data.totalCost || 0).toFixed(2)} ج</span>
+        <span class="total-value">${(t.totalCost||0).toFixed(2)} ج</span>
         <span class="total-label">الإجمالي:</span>
       </div>
 
@@ -134,84 +118,17 @@ export const printUnifiedInvoice = (data, isQuick = false) => {
         <div style="font-size: 11px; margin-top: 5px;">Classico System V3</div>
       </div>
       
-      <div class="developer-note">تاريخ الطباعة: ${new Date().toLocaleString()} | المستخدم: ${data.processedBy || 'Admin'}</div>
+      <div class="developer-note">تاريخ الطباعة: ${new Date().toLocaleString()} | المستخدم: ${t.processedBy||`Admin`}</div>
 
       <script>
         window.onload = () => {
           window.print();
           setTimeout(() => { window.close(); }, 1000);
         };
-      </script>
+      <\/script>
     </body>
     </html>
-  `;
-
-  const printWin = window.open('', '_blank', 'width=600,height=800');
-  printWin.document.open();
-  printWin.document.write(html);
-  printWin.document.close();
-
-  // 🚀 Native Electron Print (for better system integration)
-  if (window.electronAPI && window.electronAPI.send) {
-    window.electronAPI.send('print-html', html);
-  }
-};
-
-/**
- * Quick Print Order Bon (Kitchen/Bar Ticket)
- */
-export const printOrderBon = (deviceName, orderItem) => {
-  const html = `
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; margin: 0; padding: 5px; width: 72mm; text-align: center; }
-        .title { font-size: 22px; font-weight: 900; background: #000; color: #fff; padding: 5px; margin-bottom: 10px; }
-        .device { font-size: 28px; font-weight: 900; margin: 10px 0; border: 3px solid #000; display: inline-block; padding: 0 20px; }
-        .order { font-size: 24px; font-weight: 700; margin-top: 15px; }
-        .time { font-size: 12px; margin-top: 20px; opacity: 0.7; }
-      </style>
-    </head>
-    <body>
-      <div class="title">بون طلب</div>
-      <div class="device">${deviceName}</div>
-      <div class="order">${orderItem.qty}x ${orderItem.name}</div>
-      <div class="time">${new Date().toLocaleTimeString('ar-EG')}</div>
-      <script>
-        window.onload = () => { 
-          window.print(); 
-          setTimeout(() => { window.close(); }, 1000);
-        };
-      </script>
-    </body>
-    </html>
-  `;
-
-  const printWin = window.open('', '_blank', 'width=400,height=500');
-  printWin.document.open();
-  printWin.document.write(html);
-  printWin.document.close();
-
-  if (window.electronAPI && window.electronAPI.send) {
-    window.electronAPI.send('print-html', html);
-  }
-};
-
-/**
- * Print Tournament Crowning Ceremony Report
- */
-
-/** Internal: build the full HTML for the crowning report */
-const buildCrowningReportHTML = (tournamentName, loungeName, winners, mode = 'print') => {
-  const isPDF = mode === 'pdf';
-  const isImage = mode === 'image';
-
-  // Support for direct PDF download via html2pdf.js and Image via html2canvas
-  const scriptBlock = isPDF
-    ? `<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  `,c=window.open(``,`_blank`,`width=600,height=800`);c.document.open(),c.document.write(s),c.document.close(),window.electronAPI&&window.electronAPI.send&&window.electronAPI.send(`print-html`,s)},n=(e,t,n,r=`print`)=>{let i=r===`pdf`,a=r===`image`,o=i?`<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
        <script>
         window.onload = () => {
           const btn = document.getElementById('save-pdf-btn');
@@ -220,7 +137,7 @@ const buildCrowningReportHTML = (tournamentName, loungeName, winners, mode = 'pr
             const element = document.querySelector('.certificate-container');
             const opt = {
               margin: 0,
-              filename: 'تقرير-تتويج-${tournamentName.replace(/'/g, "")}.pdf',
+              filename: 'تقرير-تتويج-${e.replace(/'/g,``)}.pdf',
               image: { type: 'jpeg', quality: 0.98 },
               html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0b0f19' },
               jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -228,9 +145,7 @@ const buildCrowningReportHTML = (tournamentName, loungeName, winners, mode = 'pr
             html2pdf().set(opt).from(element).save();
           });
         };
-      </script>`
-    : isImage
-      ? `<script>
+      <\/script>`:a?`<script>
         window.onload = () => {
           const btn = document.getElementById('save-img-btn');
           btn.style.display = 'block';
@@ -250,34 +165,9 @@ const buildCrowningReportHTML = (tournamentName, loungeName, winners, mode = 'pr
             };
           });
         };
-      </script>`
-      : `<script>
+      <\/script>`:`<script>
         window.onload = () => { window.print(); setTimeout(() => { window.close(); }, 1500); };
-      </script>`;
-
-  const saveImageBtn = isImage
-    ? `<div style="text-align:center;margin:20px 0;" class="no-print">
-        <button id="save-img-btn" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:1rem;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif;">
-          🖼️ حفظ كصورة PNG
-        </button>
-       </div>`
-    : '';
-
-  const savePdfBtn = isPDF
-    ? `<div style="text-align:center;margin:20px 0;" class="no-print">
-        <button id="save-pdf-btn" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:1rem;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif;">
-          📄 تنزيل ملف PDF الآن
-        </button>
-       </div>`
-    : '';
-
-  const pdfHint = isPDF
-    ? `<div style="text-align:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px;margin:10px auto;max-width:600px;font-family:Cairo,sans-serif;color:#10b981;font-size:0.85rem;font-weight:600;" class="no-print">
-        💡 اضغط <strong>Ctrl + P</strong> ثم اختر «حفظ كـ PDF» من قائمة الطابعة
-       </div>`
-    : '';
-
-  return `
+      <\/script>`;return`
     <!DOCTYPE html>
     <html dir="rtl" lang="ar">
     <head>
@@ -600,55 +490,65 @@ const buildCrowningReportHTML = (tournamentName, loungeName, winners, mode = 'pr
       </style>
     </head>
     <body>
-      ${pdfHint}
-      ${saveImageBtn}
-      ${savePdfBtn}
+      ${i?`<div style="text-align:center;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px;margin:10px auto;max-width:600px;font-family:Cairo,sans-serif;color:#10b981;font-size:0.85rem;font-weight:600;" class="no-print">
+        💡 اضغط <strong>Ctrl + P</strong> ثم اختر «حفظ كـ PDF» من قائمة الطابعة
+       </div>`:``}
+      ${a?`<div style="text-align:center;margin:20px 0;" class="no-print">
+        <button id="save-img-btn" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:1rem;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif;">
+          🖼️ حفظ كصورة PNG
+        </button>
+       </div>`:``}
+      ${i?`<div style="text-align:center;margin:20px 0;" class="no-print">
+        <button id="save-pdf-btn" style="display:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:1rem;font-weight:800;cursor:pointer;font-family:Cairo,sans-serif;">
+          📄 تنزيل ملف PDF الآن
+        </button>
+       </div>`:``}
       <div class="certificate-container">
         <div class="header">
-          <div class="lounge-name">🎮 ${loungeName}</div>
+          <div class="lounge-name">🎮 ${t}</div>
           <h2 class="report-title">التقرير الرسمي لتتويج أبطال الصالة 🏆</h2>
           <div class="tournament-title" style="margin-top: 5px;">
             <span class="tournament-label" style="font-size: 1.1rem; opacity: 0.85; color: #fbbf24;">بطولة</span>
-            <span class="tournament-name-highlight" style="font-size: 1.7rem; font-weight: 900; color: #fbbf24; text-shadow: 0 0 15px rgba(251, 191, 36, 0.4); margin-right: 6px; white-space: nowrap;">"${tournamentName}"</span>
+            <span class="tournament-name-highlight" style="font-size: 1.7rem; font-weight: 900; color: #fbbf24; text-shadow: 0 0 15px rgba(251, 191, 36, 0.4); margin-right: 6px; white-space: nowrap;">"${e}"</span>
           </div>
         </div>
         
         <div class="podium-section">
           <!-- Silver -->
-          ${winners.second ? `
+          ${n.second?`
           <div class="podium-card silver">
-            <div class="winner-logo" style="${winners.second.logoStyle || ''}; padding: 6px; display: flex; align-items: center; justify-content: center;">
-              ${winners.second.logoUrl ? `<img src="${winners.second.logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" />` : '🏆'}
+            <div class="winner-logo" style="${n.second.logoStyle||``}; padding: 6px; display: flex; align-items: center; justify-content: center;">
+              ${n.second.logoUrl?`<img src="${n.second.logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" />`:`🏆`}
             </div>
-            <span class="winner-nick">${winners.second.nickname}</span>
+            <span class="winner-nick">${n.second.nickname}</span>
             <span class="rank-text">المركز الثاني</span>
             <div class="podium-medal" style="font-size: 2.5rem; margin-top: 5px;">🥈</div>
           </div>
-          ` : ''}
+          `:``}
           
           <!-- Gold -->
-          ${winners.first ? `
+          ${n.first?`
           <div class="podium-card gold">
-            <div class="winner-logo" style="${winners.first.logoStyle || ''}; padding: 6px; display: flex; align-items: center; justify-content: center;">
-              ${winners.first.logoUrl ? `<img src="${winners.first.logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" />` : '🏆'}
+            <div class="winner-logo" style="${n.first.logoStyle||``}; padding: 6px; display: flex; align-items: center; justify-content: center;">
+              ${n.first.logoUrl?`<img src="${n.first.logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" />`:`🏆`}
             </div>
-            <span class="winner-nick gold-color">${winners.first.nickname}</span>
+            <span class="winner-nick gold-color">${n.first.nickname}</span>
             <span class="rank-text">البطل والمركز الأول 🏆</span>
             <div class="podium-medal" style="font-size: 3rem; margin-top: 5px; filter: drop-shadow(0 0 8px rgba(251,191,36,0.5));">🏆🥇</div>
           </div>
-          ` : ''}
+          `:``}
           
           <!-- Bronze -->
-          ${winners.third ? `
+          ${n.third?`
           <div class="podium-card bronze">
-            <div class="winner-logo" style="${winners.third.logoStyle || ''}; padding: 6px; display: flex; align-items: center; justify-content: center;">
-              ${winners.third.logoUrl ? `<img src="${winners.third.logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" />` : '🏆'}
+            <div class="winner-logo" style="${n.third.logoStyle||``}; padding: 6px; display: flex; align-items: center; justify-content: center;">
+              ${n.third.logoUrl?`<img src="${n.third.logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" />`:`🏆`}
             </div>
-            <span class="winner-nick">${winners.third.nickname}</span>
+            <span class="winner-nick">${n.third.nickname}</span>
             <span class="rank-text">المركز الثالث</span>
             <div class="podium-medal" style="font-size: 2.5rem; margin-top: 5px;">🥉</div>
           </div>
-          ` : ''}
+          `:``}
         </div>
 
         <!-- Prizes Details Table -->
@@ -664,86 +564,56 @@ const buildCrowningReportHTML = (tournamentName, loungeName, winners, mode = 'pr
             </thead>
             <tbody>
               <!-- Gold -->
-              ${winners.first ? `
+              ${n.first?`
               <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
                 <td style="padding: 8px; font-weight: bold; color: #fbbf24; font-size: 0.85rem;">🥇 الأول</td>
                 <td style="padding: 8px; font-weight: bold; color: #ffffff; font-size: 0.85rem;">
-                  ${winners.first.nickname}
-                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">(${winners.first.fullName || ''})</span>
+                  ${n.first.nickname}
+                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">(${n.first.fullName||``})</span>
                 </td>
-                <td style="padding: 8px; font-weight: bold; color: #fbbf24; font-size: 0.85rem;">${winners.first.prize || 'ميدالية ذهبية'}</td>
+                <td style="padding: 8px; font-weight: bold; color: #fbbf24; font-size: 0.85rem;">${n.first.prize||`ميدالية ذهبية`}</td>
               </tr>
-              ` : ''}
+              `:``}
               <!-- Silver -->
-              ${winners.second ? `
+              ${n.second?`
               <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
                 <td style="padding: 8px; font-weight: bold; color: #cbd5e1; font-size: 0.85rem;">🥈 الثاني</td>
                 <td style="padding: 8px; font-weight: bold; color: #ffffff; font-size: 0.85rem;">
-                  ${winners.second.nickname}
-                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">(${winners.second.fullName || ''})</span>
+                  ${n.second.nickname}
+                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">(${n.second.fullName||``})</span>
                 </td>
-                <td style="padding: 8px; font-weight: bold; color: #cbd5e1; font-size: 0.85rem;">${winners.second.prize || 'ميدالية فضية'}</td>
+                <td style="padding: 8px; font-weight: bold; color: #cbd5e1; font-size: 0.85rem;">${n.second.prize||`ميدالية فضية`}</td>
               </tr>
-              ` : ''}
+              `:``}
               <!-- Bronze -->
-              ${winners.third ? `
+              ${n.third?`
               <tr>
                 <td style="padding: 8px; font-weight: bold; color: #fb923c; font-size: 0.85rem;">🥉 الثالث</td>
                 <td style="padding: 8px; font-weight: bold; color: #ffffff; font-size: 0.85rem;">
-                  ${winners.third.nickname}
-                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">(${winners.third.fullName || ''})</span>
+                  ${n.third.nickname}
+                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: normal;">(${n.third.fullName||``})</span>
                 </td>
-                <td style="padding: 8px; font-weight: bold; color: #fb923c; font-size: 0.85rem;">${winners.third.prize || 'ميدالية برونزية'}</td>
+                <td style="padding: 8px; font-weight: bold; color: #fb923c; font-size: 0.85rem;">${n.third.prize||`ميدالية برونزية`}</td>
               </tr>
-              ` : ''}
+              `:``}
             </tbody>
           </table>
         </div>
 
         <div class="footer-section" style="margin-top: 15px;">
-          <div class="meta-time">تاريخ الإصدار: ${new Date().toLocaleDateString('ar-EG')}</div>
+          <div class="meta-time">تاريخ الإصدار: ${new Date().toLocaleDateString(`ar-EG`)}</div>
           <div class="stamp-area" style="display: flex; flex-direction: column; align-items: center; margin-top: -10px;">
             <div class="stamp-title" style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px;">اعتماد إدارة الصالة</div>
             <div class="official-stamp">
               <span class="stamp-top">🏆 CLASSICO 🏆</span>
-              <span class="stamp-mid">${loungeName}</span>
+              <span class="stamp-mid">${t}</span>
               <span class="stamp-bot">اعتماد رسمي</span>
             </div>
           </div>
         </div>
       </div>
       
-      ${scriptBlock}
+      ${o}
     </body>
     </html>
-  `;
-};
-
-export const printCrowningReport = (tournamentName, loungeName, winners) => {
-  const html = buildCrowningReportHTML(tournamentName, loungeName, winners, 'print');
-
-  const printWin = window.open('', '_blank', 'width=850,height=900');
-  printWin.document.open();
-  printWin.document.write(html);
-  printWin.document.close();
-
-  if (window.electronAPI && window.electronAPI.send) {
-    window.electronAPI.send('print-html', html);
-  }
-};
-
-export const exportTournamentReportAsPDF = (tournamentName, loungeName, winners) => {
-  const html = buildCrowningReportHTML(tournamentName, loungeName, winners, 'pdf');
-  const win = window.open('', '_blank', 'width=850,height=900');
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-};
-
-export const exportTournamentReportAsImage = (tournamentName, loungeName, winners) => {
-  const html = buildCrowningReportHTML(tournamentName, loungeName, winners, 'image');
-  const win = window.open('', '_blank', 'width=850,height=900');
-  win.document.open();
-  win.document.write(html);
-  win.document.close();
-};
+  `},r=(e,t,r)=>{let i=n(e,t,r,`print`),a=window.open(``,`_blank`,`width=850,height=900`);a.document.open(),a.document.write(i),a.document.close(),window.electronAPI&&window.electronAPI.send&&window.electronAPI.send(`print-html`,i)},i=(e,t,r)=>{let i=n(e,t,r,`pdf`),a=window.open(``,`_blank`,`width=850,height=900`);a.document.open(),a.document.write(i),a.document.close()},a=(e,t,r)=>{let i=n(e,t,r,`image`),a=window.open(``,`_blank`,`width=850,height=900`);a.document.open(),a.document.write(i),a.document.close()};export{t as i,i as n,r,a as t};
