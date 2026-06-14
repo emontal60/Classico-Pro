@@ -245,7 +245,7 @@
                   <span class="selected-badge-preview animate-scale-in" v-if="form.logoId !== null" style="font-size: 0.78rem;">
                     الشعار المحدد: <span style="color: #fbbf24; font-weight: bold;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
                     <span class="logo-preview-icon" :style="getLogoStyle(form.logoId)" style="  display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; ">
-                      <img :src="'/logos/logo_' + form.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                      <img :src="'logos/logo_' + form.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                     </span>
                   </span>
                 </label>
@@ -263,7 +263,7 @@
                   >
                     <span class="logo-symbol" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;   ">
                       <span v-if="isLogoTaken(idx) && form.logoId !== idx" style="font-size: 1.1rem;">🔒</span>
-                      <img v-else :src="'/logos/logo_' + idx + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                      <img v-else :src="'logos/logo_' + idx + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                     </span>
                   </button>
                 </div>
@@ -448,7 +448,7 @@
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                   <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 50px; height: 50px;  display: flex; align-items: center; justify-content: center;  ">
-                    <img :src="'/logos/logo_' + loggedInPlayer.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                    <img :src="'logos/logo_' + loggedInPlayer.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                   </span>
                   <div>
                     <h3 style="margin: 0; color: #fff; font-size: 1.15rem;">أهلاً بك، {{ loggedInPlayer.nickname }} 👋</h3>
@@ -472,7 +472,7 @@
                 <!-- Current Player -->
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 0;">
                   <span class="player-logo-large" :style="getLogoStyle(loggedInPlayer.logoId)" style="width: 45px; height: 45px;  display: flex; align-items: center; justify-content: center;  ">
-                    <img :src="'/logos/logo_' + loggedInPlayer.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                    <img :src="'logos/logo_' + loggedInPlayer.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                   </span>
                   <span style="font-size: 0.85rem; font-weight: bold; color: #fff; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{{ loggedInPlayer.nickname }}</span>
                 </div>
@@ -900,7 +900,7 @@
               :class="{ 'player-highlight-card-border': loggedInPlayer && p.id === loggedInPlayer.id }"
             >
               <span class="p-logo" :style="getLogoStyle(p.logoId)" style="width: 32px; height: 32px;  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;  ">
-                <img :src="'/logos/logo_' + p.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                <img :src="'logos/logo_' + p.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
               </span>
               <div class="p-info">
                 <span class="p-nick">{{ p.nickname }}</span>
@@ -942,7 +942,7 @@
             <span class="summary-label">⚽ شعار الفريق</span>
             <span class="summary-value" style="display: flex; align-items: center; gap: 8px;">
               <span :style="getLogoStyle(form.logoId)" style="width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;">
-                <img :src="'/logos/logo_' + form.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                <img :src="'logos/logo_' + form.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
               </span>
               <span style="font-size:0.8rem;color:#94a3b8;">{{ CURATED_LOGOS[form.logoId]?.name }}</span>
             </span>
@@ -1609,7 +1609,7 @@ const getPlayerLogoStyle = (id) => {
 const getPlayerLogoUrl = (id) => {
   if (id === 'bye' || !id) return '';
   const player = activeTournament.value?.players.find(p => p && p.id === id);
-  return player ? `/logos/logo_${player.logoId}.svg` : '';
+  return player ? `logos/logo_${player.logoId}.svg` : '';
 };
 
 // Form submit action

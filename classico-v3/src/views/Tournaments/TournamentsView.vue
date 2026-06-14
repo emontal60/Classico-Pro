@@ -1001,7 +1001,7 @@
               <span v-if="manualPlayerForm.logoId !== null" style="font-size: 0.75rem; color: var(--accent-success); display: flex; align-items: center; gap: 5px;">
                 الشعار المحدد: <span class="text-highlight-yellow" style="margin-left: 5px;">{{ CURATED_LOGOS[manualPlayerForm.logoId]?.name }}</span>
                 <span class="logo-preview-icon" :style="getLogoStyle(manualPlayerForm.logoId)" style="overflow: hidden; padding: 3px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%;">
-                  <img :src="'/logos/logo_' + manualPlayerForm.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                  <img :src="'logos/logo_' + manualPlayerForm.logoId + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                 </span>
               </span>
             </label>
@@ -1019,7 +1019,7 @@
               >
                 <span class="logo-symbol" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 4px; overflow: hidden; border-radius: 50%;">
                   <span v-if="isLogoTaken(idx) && manualPlayerForm.logoId !== idx" style="font-size: 0.9rem;">🔒</span>
-                  <img v-else :src="'/logos/logo_' + idx + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
+                  <img v-else :src="'logos/logo_' + idx + '.svg'" style="width: 100%; height: 100%; object-fit: contain;" />
                 </span>
               </button>
             </div>
@@ -1808,7 +1808,7 @@ const getPlayerLogoSymbol = (id) => {
 const getPlayerLogoUrl = (id) => {
   if (id === 'bye' || !id) return '';
   const player = activeTournament.value?.players.find(p => p && p.id === id);
-  return player ? `/logos/logo_${player.logoId}.svg` : '';
+  return player ? `logos/logo_${player.logoId}.svg` : '';
 };
 
 const getPlayerLogoStyle = (id) => {
