@@ -933,6 +933,41 @@
       "players": [],
       "matches": [],
       "createdAt": "2026-06-13T23:06:34.250Z"
+    },
+    {
+      "id": "1781480316386",
+      "name": "eeee",
+      "fee": 50,
+      "maxPlayers": 8,
+      "type": "cup",
+      "groupsCount": 4,
+      "playersPerGroup": 4,
+      "stage": "",
+      "groups": {},
+      "prizes": "المركز الأول 🥇: 1000 ج + الميدالية الذهبية\r\nالمركز الثاني 🥈: 500 ج\r\nالمركز الثالث 🥉: 250 ج",
+      "prizesList": [
+        {
+          "label": "المركز الأول 🥇",
+          "value": "1000 ج + الميدالية الذهبية"
+        },
+        {
+          "label": "المركز الثاني 🥈",
+          "value": "500 ج"
+        },
+        {
+          "label": "المركز الثالث 🥉",
+          "value": "250 ج"
+        }
+      ],
+      "paymentNumber": "eee / eee",
+      "paymentNumberInstapay": "eee",
+      "paymentNumberWallet": "eee",
+      "paymentNumberCash": "الدفع نقداً بالصالة عند الكاونتر",
+      "paymentMethod": "both",
+      "status": "registration",
+      "players": [],
+      "matches": [],
+      "createdAt": "2026-06-14T23:38:36.386Z"
     }
   ],
   "classico_tournaments_history": [
@@ -1055,7 +1090,7 @@
     "max_devices": 3,
     "activation_keys": [],
     "token": "384A46880B05|active|2026-06-27T21:56:02.039+00:00.d0ee939ba65d50c46c84e2f8b64fe295522b09c74bc49b9fd01f68f54ccd1b32",
-    "last_online_check": "2026-06-14T23:20:58.191Z"
+    "last_online_check": "2026-06-15T00:08:43.685Z"
   },
   "classico_last_journal_closure": "2024-01-01T00:00:00.000Z",
   "classico_app_settings": {
@@ -1074,6 +1109,20 @@
     }
   },
   "classico_activity_log": [
+    {
+      "id": 1781481896234.4214,
+      "timestamp": "2026-06-15T00:04:56.234Z",
+      "user": "admin",
+      "action": "تسجيل دخول",
+      "details": "تم تسجيل دخول المستخدم admin"
+    },
+    {
+      "id": 1781480316387.2039,
+      "timestamp": "2026-06-14T23:38:36.387Z",
+      "user": "admin",
+      "action": "بطولة جديدة",
+      "details": "تم إنشاء بطولة جديدة باسم eeee"
+    },
     {
       "id": 1781475642099.9543,
       "timestamp": "2026-06-14T22:20:42.099Z",
@@ -1329,5 +1378,5 @@
   ],
   "is_activation": false,
   "is_reset": false,
-  "last_seen_time": "2026-06-14T23:21:53.741Z"
+  "last_seen_time": "2026-06-15T00:08:42.893Z"
 }
