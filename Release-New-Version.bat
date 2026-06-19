@@ -16,12 +16,29 @@ echo.
 echo [2/4] Incrementing version (Automatic)...
 :: Force increment to avoid git check issues
 call npm version patch --no-git-tag-version --force
+node -e "const fs = require('fs'); const root = JSON.parse(fs.readFileSync('package.json')); const pkg = JSON.parse(fs.readFileSync('classico-v3/package.json')); pkg.version = root.version; fs.writeFileSync('classico-v3/package.json', JSON.stringify(pkg, null, 2) + '\n');"
 
+:build_step
 echo.
 echo [3/4] Building and Publishing the Installer (EXE) to GitHub...
 echo [System] This may take a few minutes, please wait...
 set /p GH_TOKEN=<github-token.txt
 call npm run electron:build -- -p always
+set BUILD_ERR=%ERRORLEVEL%
+
+if %BUILD_ERR% neq 0 (
+    echo.
+    echo [!] ERROR: Building or publishing to GitHub failed.
+    echo [!] This is usually caused by network issues or internet disconnection.
+    echo.
+    choice /c yn /m "Do you want to retry building and publishing? "
+    if errorlevel 2 (
+        echo [System] Skipping publish step and proceeding...
+    ) else (
+        echo [System] Retrying...
+        goto :build_step
+    )
+)
 
 echo.
 echo [4/4] Syncing Source Code with GitHub...
@@ -55,5 +72,23 @@ git config user.name "Ayman Classico"
 git add .
 git commit -m "Update Classico Pro: %date% %time%"
 git branch -M main
+
+:git_push_step
 git push -u origin main --force
+set PUSH_ERR=%ERRORLEVEL%
+
+if %PUSH_ERR% neq 0 (
+    echo.
+    echo [!] ERROR: Git push failed.
+    echo [!] This is usually caused by internet disconnection or repository access issues.
+    echo.
+    choice /c yn /m "Do you want to retry pushing code to GitHub? "
+    if errorlevel 2 (
+        echo [System] Skipping git push.
+    ) else (
+        echo [System] Retrying git push...
+        goto :git_push_step
+    )
+)
 goto :eof
+
