@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>مميزات نظام كلاسيكو برو المتكامل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-highlight: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(0, 229, 255, 0.05));
+      --accent: #00e5ff;
+      --accent-gradient: linear-gradient(90deg, #00e5ff, #7c3aed);
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --text-light: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Cairo', 'Outfit', sans-serif;
+      background: radial-gradient(circle at center, #1e293b 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      padding: 40px;
+      direction: rtl;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 30px;
+    }
+
+    .logo-container {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 15px;
+      text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    }
+
+    .logo-container span {
+      background: linear-gradient(90deg, #00e5ff, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    /* Features grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card.highlighted {
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      background: var(--bg-highlight);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card.highlighted::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+    }
+
+    .f-icon {
+      font-size: 2.2rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .f-content {
+      flex-grow: 1;
+    }
+
+    .f-content h3 {
+      font-size: 1.15rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-featured {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 50px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      white-space: nowrap;
+    }
+
+    .f-content p {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    /* Sub points styles */
+    .feature-points-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .feature-points-list li {
+      font-size: 0.88rem;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.4;
+    }
+
+    .feature-points-list li .bullet {
+      color: var(--accent);
+      font-weight: bold;
+      font-size: 0.9rem;
+      text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+    }
+
+    /* Contact styling */
+    .contact-section {
+      text-align: center;
+      margin-top: 40px;
+      padding: 24px;
+      background: rgba(0, 229, 255, 0.03);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 14px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      break-inside: avoid;
+    }
+
+    .contact-section #phone-num {
+      color: var(--accent);
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+    }
+
+    .btn-copy {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-copy:hover {
+      background: #fff;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+      transform: scale(1.05);
+    }
+
+    /* Footer styling */
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Print page optimization */
+    @media print {
+      body {
+        padding: 25px;
+        background: #0f172a !important;
+      }
+      .feature-card {
+        background: #1e293b !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+      .feature-card.highlighted {
+        background: #1e293b !important;
+        border: 1px solid #00e5ff !important;
+      }
+      .btn-copy {
+        display: none !important;
+      }
+      .contact-section {
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-container">🚀 <span>كلاسيكو برو</span></div>
+      <div class="subtitle">مميزات النظام المتكامل لإدارة الكافيهات وصالات الألعاب</div>
+    </header>
+
+    <div class="features-grid">
+      <!-- 1. أجهزة وترابيزات غير محدودة -->
+      <div class="feature-card">
+        <span class="f-icon">♾️</span>
+        <div class="f-content">
+          <h3>أجهزة وترابيزات غير محدودة</h3>
+          <p>إدارة كاملة لكل الأجهزة والطاولات المسجلة بدون أي قيود تقنية</p>
+        </div>
+      </div>
+
+      <!-- 2. تنظيم بطولات بلاي ستيشن -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">🏆</span>
+        <div class="f-content">
+          <h3>تنظيم بطولات بلاي ستيشن <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <ul class="feature-points-list">
+            <li><span class="bullet">✦</span> إنشاء عدة بطولات مختلفة في نفس الوقت</li>
+            <li><span class="bullet">✦</span> توليد لكل بطولة لينك لتسجيل المشتركين فيه أونلاين</li>
+            <li><span class="bullet">✦</span> إمكانية دفع الاشتراك أونلاين</li>
+            <li><span class="bullet">✦</span> تقرير رسمي بالفائزين في البطولة لعرضه على وسائل التواصل الاجتماعي</li>
+            <li><span class="bullet">✦</span> نظام محاسبي خاص بالبطولات</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 3. إدارة البوفيه والطلبات السريعة -->
+      <div class="feature-card">
+        <span class="f-icon">🍔</span>
+        <div class="f-content">
+          <h3>إدارة البوفيه والطلبات السريعة</h3>
+          <p>إضافة المنتجات وتسجيل الطلبات وحساب إجمالياتها بمرونة شديدة</p>
+        </div>
+      </div>
+
+      <!-- 4. قائمة أسعار مرنة -->
+      <div class="feature-card">
+        <span class="f-icon">💰</span>
+        <div class="f-content">
+          <h3>قائمة أسعار مرنة</h3>
+          <p>إمكانية كتابة وتخصيص الأسعار وسعر الساعة لكل جهاز يدوياً حسب رغبتك</p>
+        </div>
+      </div>
+
+      <!-- 5. نظام الدفع المسبق والإنذار -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">⏳</span>
+        <div class="f-content">
+          <h3>نظام الدفع المسبق والإنذار <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>دعم تشغيل الأجهزة بوقت محدد مسبقاً، مع وميض إنذار مرئي وتنبيه عند اقتراب انتهاء الوقت</p>
+        </div>
+      </div>
+
+      <!-- 6. حسابات العملاء (آجل) -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">📒</span>
+        <div class="f-content">
+          <h3>حسابات العملاء (آجل) وإمكانية الترحيل <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>تسجيل وتتبع ديون الزبائن بدقة، مع إمكانية ترحيل وإرسال فواتير الأجهزة أو البوفيه والصالة مباشرة لحساب العميل الآجل لتسويتها لاحقاً.</p>
+        </div>
+      </div>
+
+      <!-- 7. الطباعة الحرارية المدمجة -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">🖨️</span>
+        <div class="f-content">
+          <h3>الطباعة الحرارية المدمجة <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>إصدار فواتير حرارية منسقة وتلقائية مع إمكانية طباعة بون طلبات البوفيه للمطبخ فوراً</p>
+        </div>
+      </div>
+
+      <!-- 8. النسخ الاحتياطي الهجين -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">☁️</span>
+        <div class="f-content">
+          <h3>النسخ الاحتياطي الهجين <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>تأمين أرباحك وبياناتك عبر حفظ نسخ احتياطية محلياً وسحابياً على السحابة بنقرة واحدة</p>
+        </div>
+      </div>
+
+      <!-- 9. مركز التحكم بظهور الصفحات -->
+      <div class="feature-card">
+        <span class="f-icon">👁️</span>
+        <div class="f-content">
+          <h3>مركز التحكم بظهور الصفحات</h3>
+          <p>إمكانية إخفاء أو إظهار أقسام بأكملها من شاشات البرنامج ليناسب نشاطك بدقة</p>
+        </div>
+      </div>
+
+      <!-- 10. دمج وترحيل حساب الصالة للأجهزة والعكس -->
+      <div class="feature-card">
+        <span class="f-icon">🔄</span>
+        <div class="f-content">
+          <h3>دمج وترحيل حساب الصالة للأجهزة والعكس</h3>
+          <p>دمج وترحيل طلبات مشروبات الصالة مباشرة إلى الأجهزة والعكس لتسهيل الحساب وتجنب النسيان بنقرة واحدة.</p>
+        </div>
+      </div>
+
+      <!-- 11. سجل مسحوبات الموظفين والرواتب -->
+      <div class="feature-card">
+        <span class="f-icon">💵</span>
+        <div class="f-content">
+          <h3>سجل مسحوبات الموظفين والرواتب</h3>
+          <p>تسجيل سلف الموظفين والمسحوبات اليومية من الدرج وتصفية رواتبهم بنهاية الوردية</p>
+        </div>
+      </div>
+
+      <!-- 12. تقارير يومية وشاملة للوردية -->
+      <div class="feature-card">
+        <span class="f-icon">📊</span>
+        <div class="f-content">
+          <h3>تقارير يومية وشاملة للوردية</h3>
+          <p>ملخصات دقيقة لأرباح الأجهزة والصالة، المصروفات والرواتب، وصافي المبالغ بالدرج</p>
+        </div>
+      </div>
+
+      <!-- 13. أرشيف كامل ومؤمن -->
+      <div class="feature-card">
+        <span class="f-icon">📁</span>
+        <div class="f-content">
+          <h3>أرشيف كامل ومؤمن</h3>
+          <p>إمكانية مراجعة أي فاتورة قديمة أو جلسة لعب سابقة بالتفصيل وتاريخ تشغيلها</p>
+        </div>
+      </div>
+
+      <!-- 14. إدارة المصروفات -->
+      <div class="feature-card">
+        <span class="f-icon">📑</span>
+        <div class="f-content">
+          <h3>إدارة المصروفات</h3>
+          <p>تسجيل كافة المصروفات التشغيلية والرواتب اليومية ومسحوبات الموظفين لمتابعة حركة الأموال بالكامل.</p>
+        </div>
+      </div>
+
+      <!-- 15. صلاحيات الموظفين الدقيقة -->
+      <div class="feature-card">
+        <span class="f-icon">🔐</span>
+        <div class="f-content">
+          <h3>صلاحيات الموظفين الدقيقة</h3>
+          <p>التحكم الكامل في تحديد ما يمكن لكل كاشير رؤيته، تعديله، أو إخفائه بالأقسام</p>
+        </div>
+      </div>
+
+      <!-- 16. ربط السلاسل والفروع المتعددة للاطلاع والمراقبة -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">🏢</span>
+        <div class="f-content">
+          <h3>ربط السلاسل والفروع المتعددة <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>ربط فروعك وأجهزتك المتعددة بحساب مركزي واحد، مما يتيح لك كمشرف تصفية ومراقبة تقارير كل فرع على حدة، ومتابعة إيرادات الأجهزة والصالة وسجل العمليات لحظة بلحظة من مكانك.</p>
+        </div>
+      </div>
+
+      <!-- 17. واجهة سهلة الاستخدام -->
+      <div class="feature-card">
+        <span class="f-icon">💡</span>
+        <div class="f-content">
+          <h3>واجهة سهلة الاستخدام</h3>
+          <p>تصميم عصري ومريح للعين، يدعم الوضع الليلي والشاشات اللمسية لتوفير أسهل تجربة إدارة ممكنة.</p>
+        </div>
+      </div>
+
+      <!-- 18. تحليلات ذكاء الأعمال BI -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">📈</span>
+        <div class="f-content">
+          <h3>تحليلات ذكاء الأعمال BI <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>رسومات بيانية تفاعلية (ApexCharts) تعرض ساعات الذروة، الأصناف الأكثر مبيعاً، وتطور أرباحك</p>
+        </div>
+      </div>
+
+      <!-- 19. سجل الرقابة والنشاط الكامل -->
+      <div class="feature-card">
+        <span class="f-icon">📜</span>
+        <div class="f-content">
+          <h3>سجل الرقابة والنشاط الكامل</h3>
+          <p>تسجيل كافة عمليات النظام (تسجيل الدخول، الخروج، وتعديل الفواتير) لحماية الكاش من السرقة</p>
+        </div>
+      </div>
+
+      <!-- 20. الأرشفة التلقائية والصيانة -->
+      <div class="feature-card">
+        <span class="f-icon">⚡</span>
+        <div class="f-content">
+          <h3>الأرشفة التلقائية والصيانة</h3>
+          <p>نظام ذكي لنقل السجلات القديمة للأرشيف للحفاظ على سرعة الصاروخ للبرنامج مدى الحياة</p>
+        </div>
+      </div>
+
+      <!-- 21. تحديثات مستمرة وتطوير دوري -->
+      <div class="feature-card">
+        <span class="f-icon">🛠️</span>
+        <div class="f-content">
+          <h3>تحديثات مستمرة وتطوير دوري</h3>
+          <p>متابعة ودعم مستمر للتطبيق وإطلاق تحسينات وإضافات مستمرة لزيادة مبيعاتك</p>
+        </div>
+      </div>
+
+      <!-- 22. نظام فحص وصيانة أذرع البلاي ستيشن -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">🎮</span>
+        <div class="f-content">
+          <h3>نظام فحص وصيانة أذرع البلاي ستيشن <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>محاكاة كاملة ودقيقة لذراع التحكم (DualSense/DualShock) عبر توصيل الـ USB لقياس حساسية وجودة الأزرار، الأنالوج بدقة، واختبار الهزازات (Haptics) للحفاظ على كفاءة ذراع اللعب.</p>
+        </div>
+      </div>
+
+      <!-- 23. الاستشارة والدعم الفني المتكامل -->
+      <div class="feature-card highlighted">
+        <span class="f-icon">📞</span>
+        <div class="f-content">
+          <h3>الاستشارة والدعم الفني المتكامل <span class="badge-featured">⭐ ميزة حصرية</span></h3>
+          <p>تقديم استشارات تشغيلية مجانية لمشروعك ودعم فني متواصل على مدار الساعة لحل أي مشكلة وضمان استمرارية العمل بأمان.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-section">
+      <span>للتواصل والاستفسار والحجز  التواصل على الرقم:</span>
+      <span id="phone-num">01094085228</span>
+      <button class="btn-copy" onclick="copyNumber()">نسخ الرقم 📋</button>
+    </div>
+
+    <footer>
+      كلاسيكو برو — نظام التشغيل المتكامل والمثالي لصالات الألعاب والكافيهات
+    </footer>
+  </div>
+
+  <script>
+    function copyNumber() {
+      const num = "01094085228";
+      navigator.clipboard.writeText(num).then(() => {
+        const btn = document.querySelector('.btn-copy');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'تم النسخ! ✓';
+        btn.style.background = '#10b981';
+        btn.style.color = '#fff';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.style.color = '';
+        }, 1500);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+  </script>
+</body>
+</html>
