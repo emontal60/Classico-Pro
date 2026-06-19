@@ -9,9 +9,10 @@ try {
   console.log('Building Vue application...');
   execSync('npm run build --prefix classico-v3', { stdio: 'inherit' });
   
-  // Copy OwnerPortal.html, features.html and logoapp.png to the dist directory before deployment
-  console.log('Copying OwnerPortal.html, features.html and logoapp.png to dist...');
+  // Copy OwnerPortal.html, portal.html, features.html and logoapp.png to the dist directory before deployment
+  console.log('Copying OwnerPortal.html, portal.html, features.html and logoapp.png to dist...');
   fs.copyFileSync(path.join(__dirname, 'OwnerPortal.html'), path.join(distDir, 'OwnerPortal.html'));
+  fs.copyFileSync(path.join(__dirname, 'portal.html'), path.join(distDir, 'portal.html'));
   fs.copyFileSync(path.join(__dirname, 'features.html'), path.join(distDir, 'features.html'));
   fs.copyFileSync(path.join(__dirname, 'logoapp.png'), path.join(distDir, 'logoapp.png'));
 } catch (err) {
@@ -51,6 +52,7 @@ try {
   runGitRm('app-icon.png');
   runGitRm('logos');
   runGitRm('features.html');
+  runGitRm('portal.html');
 
   // Helper function to copy recursively
   function copyDirSync(src, dest) {
@@ -84,7 +86,7 @@ try {
 
   // 5. Stage only the build files and push to master
   console.log('Committing and pushing to master...');
-  execSync('git add index.html manifest.json favicon.svg icons.svg logo1.png app-icon.png assets/ logos/ OwnerPortal.html logoapp.png features.html', { stdio: 'inherit' });
+  execSync('git add index.html manifest.json favicon.svg icons.svg logo1.png app-icon.png assets/ logos/ OwnerPortal.html portal.html logoapp.png features.html', { stdio: 'inherit' });
   execSync('git commit -m "Deploy: update public registration page, features page, and owner portal with latest changes"', { stdio: 'inherit' });
   execSync('git push origin master', { stdio: 'inherit' });
 
