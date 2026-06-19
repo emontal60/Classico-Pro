@@ -270,6 +270,21 @@ BEGIN
         'paymentNumberCash', found_tour->'paymentNumberCash',
         'paymentNumberInstapay', found_tour->'paymentNumberInstapay',
         'paymentNumberWallet', found_tour->'paymentNumberWallet',
+        'stage', found_tour->'stage',
+        'groups', (
+            SELECT COALESCE(jsonb_object_agg(g.key, (
+                SELECT COALESCE(jsonb_agg(
+                    jsonb_build_object(
+                        'id', gp->'id',
+                        'nickname', gp->'nickname',
+                        'logoId', gp->'logoId'
+                    )
+                ), '[]'::jsonb)
+                FROM jsonb_array_elements(g.value) gp
+            )), '{}'::jsonb)
+            FROM jsonb_each(CASE WHEN jsonb_typeof(found_tour->'groups') = 'object' THEN found_tour->'groups' ELSE '{}'::jsonb END) g
+        ),
+        'matches', found_tour->'matches',
         'players', (
             SELECT COALESCE(jsonb_agg(
                 jsonb_build_object(
@@ -443,6 +458,21 @@ BEGIN
             'paymentNumberCash', tour_item->'paymentNumberCash',
             'paymentNumberInstapay', tour_item->'paymentNumberInstapay',
             'paymentNumberWallet', tour_item->'paymentNumberWallet',
+            'stage', tour_item->'stage',
+            'groups', (
+                SELECT COALESCE(jsonb_object_agg(g.key, (
+                    SELECT COALESCE(jsonb_agg(
+                        jsonb_build_object(
+                            'id', gp->'id',
+                            'nickname', gp->'nickname',
+                            'logoId', gp->'logoId'
+                        )
+                    ), '[]'::jsonb)
+                    FROM jsonb_array_elements(g.value) gp
+                )), '{}'::jsonb)
+                FROM jsonb_each(CASE WHEN jsonb_typeof(tour_item->'groups') = 'object' THEN tour_item->'groups' ELSE '{}'::jsonb END) g
+            ),
+            'matches', tour_item->'matches',
             'players', (
                 SELECT jsonb_agg(
                     jsonb_build_object(
