@@ -154,7 +154,11 @@ DROP POLICY IF EXISTS "Owner backup access" ON cloud_backups;
 DROP POLICY IF EXISTS "Devices can manage own backups" ON cloud_backups;
 
 -- Allow devices to manage their own backups
-CREATE POLICY "Enable backup management" ON cloud_backups FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Devices can manage own backups" ON cloud_backups 
+FOR ALL TO anon 
+USING (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'))
+WITH CHECK (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'));
+
 -- Allow Owner to view/manage all backups
 CREATE POLICY "Owner backup access" ON cloud_backups FOR ALL TO authenticated
 USING (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com')
@@ -454,3 +458,76 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
+
+
+-- ==========================================================
+-- LINTER & SECURITY HARDENING FIXES
+-- ==========================================================
+
+-- 1. Enable RLS on tables that have policies but RLS is currently disabled (Red Linter Errors)
+ALTER TABLE IF EXISTS public.devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.payment_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- 1b. Restrict Admin policies to the owner email to solve the Permissive RLS warnings
+DROP POLICY IF EXISTS "Admin_Full_Access" ON public.profiles;
+CREATE POLICY "Admin_Full_Access" ON public.profiles 
+FOR ALL TO authenticated
+USING (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com')
+WITH CHECK (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com');
+
+DROP POLICY IF EXISTS "Admin_Full_Access_Devices" ON public.devices;
+CREATE POLICY "Admin_Full_Access_Devices" ON public.devices 
+FOR ALL TO authenticated
+USING (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com')
+WITH CHECK (auth.jwt() ->> 'email' = 'emontal.33@yahoo.com');
+
+
+-- 2. Fix search path for all custom functions to prevent search path hijacking (Yellow Linter Warnings)
+ALTER FUNCTION public.generate_unique_short_id() SET search_path = public;
+ALTER FUNCTION public.set_short_id() SET search_path = public;
+ALTER FUNCTION public.has_backup_access(text, text) SET search_path = public;
+ALTER FUNCTION public.register_public_player(text, text, jsonb) SET search_path = public;
+ALTER FUNCTION public.get_public_tournament(text, text) SET search_path = public;
+ALTER FUNCTION public.verify_player_login(text, text, text, text) SET search_path = public;
+
+-- 3. Secure SECURITY DEFINER functions by revoking public execute and granting only to specific roles (Yellow Linter Warnings)
+REVOKE EXECUTE ON FUNCTION public.has_backup_access(text, text) FROM public;
+GRANT EXECUTE ON FUNCTION public.has_backup_access(text, text) TO anon, authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.register_public_player(text, text, jsonb) FROM public;
+GRANT EXECUTE ON FUNCTION public.register_public_player(text, text, jsonb) TO anon, authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.get_public_tournament(text, text) FROM public;
+GRANT EXECUTE ON FUNCTION public.get_public_tournament(text, text) TO anon, authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.verify_player_login(text, text, text, text) FROM public;
+GRANT EXECUTE ON FUNCTION public.verify_player_login(text, text, text, text) TO anon, authenticated, service_role;
+
+-- 4. Secure legacy sync tables RLS policies if columns exist (Yellow Linter Warnings)
+DO $$
+BEGIN
+    -- For sync_history
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sync_history' AND column_name = 'machine_id') THEN
+        DROP POLICY IF EXISTS "Allow anonymous upsert" ON sync_history;
+        CREATE POLICY "Allow anonymous upsert" ON sync_history FOR ALL TO anon
+        USING (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'))
+        WITH CHECK (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'));
+    END IF;
+    
+    -- For sync_lounge_history
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sync_lounge_history' AND column_name = 'machine_id') THEN
+        DROP POLICY IF EXISTS "Allow anonymous upsert" ON sync_lounge_history;
+        CREATE POLICY "Allow anonymous upsert" ON sync_lounge_history FOR ALL TO anon
+        USING (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'))
+        WITH CHECK (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'));
+    END IF;
+
+    -- For sync_users
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'sync_users' AND column_name = 'machine_id') THEN
+        DROP POLICY IF EXISTS "Allow anonymous access" ON sync_users;
+        CREATE POLICY "Allow anonymous access" ON sync_users FOR ALL TO anon
+        USING (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'))
+        WITH CHECK (machine_id = (current_setting('request.headers', true)::json->>'x-machine-id'));
+    END IF;
+END $$;

@@ -118,7 +118,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useUIStore } from '../../stores/uiStore';
-import axios from 'axios';
+import { supabase } from '../../utils/supabase';
 
 const ui = useUIStore();
 const isLoggedIn = ref(false);
@@ -135,28 +135,48 @@ const customAlert = ref({
   onConfirm: () => {}
 });
 
-const handleLogin = () => {
-  if (loginForm.value.email === 'emontal.33@yahoo.com' && loginForm.value.password === 'EMOmoro30630') {
-    isLoggedIn.value = true;
-    fetchData();
-  } else {
-    ui.showToast('بيانات الدخول غير صحيحة!', 'error');
+const handleLogin = async () => {
+  if (!loginForm.value.email || !loginForm.value.password) {
+    return ui.showToast('يرجى كتابة البريد الإلكتروني وكلمة المرور!', 'warning');
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginForm.value.email.trim(),
+      password: loginForm.value.password
+    });
+
+    if (error) throw error;
+
+    // Double check that the logged-in user is the owner
+    if (data.user?.email === 'emontal.33@yahoo.com') {
+      isLoggedIn.value = true;
+      ui.showToast('مرحباً بك في لوحة الإدارة! 👋', 'success');
+      fetchData();
+    } else {
+      await supabase.auth.signOut();
+      ui.showToast('عذراً، ليس لديك صلاحية الوصول لهذه البوابة.', 'error');
+    }
+  } catch (err) {
+    ui.showToast(err.message || 'بيانات الدخول غير صحيحة!', 'error');
   }
 };
 
 const fetchData = async () => {
   try {
-    const res = await axios.post('http://localhost:3000/api/admin/subscriptions/list', {
-      password: loginForm.value.password
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    subscriptions.value = data || [];
+    subscriptions.value.forEach(s => {
+      if (!dayAdjustments.value[s.machine_id]) dayAdjustments.value[s.machine_id] = 0;
     });
-    if (res.data) {
-      subscriptions.value = res.data;
-      res.data.forEach(s => {
-        if (!dayAdjustments.value[s.machine_id]) dayAdjustments.value[s.machine_id] = 0;
-      });
-    }
   } catch (err) {
-    ui.showToast('فشل في جلب البيانات من السيرفر', 'error');
+    ui.showToast('فشل في جلب البيانات من السحابة: ' + err.message, 'error');
   }
 };
 
@@ -185,19 +205,55 @@ const approveRequest = async (req) => {
   expiry.setDate(expiry.getDate() + days);
 
   try {
-    await axios.post('http://localhost:3000/api/admin/subscriptions/update', {
-      password: loginForm.value.password,
-      machine_id: req.machine_id,
-      updates: {
-        status: 'active',
+    // 1. Update status in subscriptions
+    const { data: subData, error: subErr } = await supabase
+      .from('subscriptions')
+      .update({ 
+        status: 'active', 
+        activated_at: new Date().toISOString(), 
         expires_at: expiry.toISOString(),
         device_limit: req.device_limit || (req.plan_type === 'yearly' ? 50 : 20)
-      }
+      })
+      .eq('machine_id', req.machine_id)
+      .select();
+
+    if (subErr) throw subErr;
+
+    // 2. Log it
+    await supabase.from('subscription_logs').insert({
+      machine_id: req.machine_id, 
+      plan_type: req.plan_type, 
+      status: 'active', 
+      action: 'approved', 
+      expires_at: expiry.toISOString()
     });
+
+    // 3. Generate Keys if multi-device
+    const sub = subData[0];
+    const maxDevices = parseInt(sub?.max_devices) || 1;
+    if (maxDevices > 1) {
+      const { data: existingKeys } = await supabase
+        .from('subscription_keys')
+        .select('id')
+        .eq('owner_machine_id', req.machine_id);
+
+      const keysToGen = (maxDevices - 1) - (existingKeys?.length || 0);
+      
+      for (let i = 0; i < keysToGen; i++) {
+        const randomKey = 'CLASS-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        await supabase.from('subscription_keys').insert({
+          owner_machine_id: req.machine_id, 
+          serial_key: randomKey, 
+          status: 'unused', 
+          expires_at: expiry.toISOString()
+        });
+      }
+    }
+
     ui.showToast(`تم تفعيل الجهاز ${req.machine_id} بنجاح!`, 'success');
     fetchData();
   } catch (err) {
-    ui.showToast('فشل في تفعيل الجهاز. تأكد من إعدادات السيرفر.', 'error');
+    ui.showToast('فشل في تفعيل الجهاز: ' + err.message, 'error');
   }
 };
 
@@ -221,29 +277,49 @@ const adjustSubscription = async (sub, days) => {
   currentExpiry.setDate(currentExpiry.getDate() + days);
 
   try {
-    await axios.post('http://localhost:3000/api/admin/subscriptions/update', {
-      password: loginForm.value.password,
-      machine_id: sub.machine_id,
-      updates: { expires_at: currentExpiry.toISOString() }
-    });
+    const { error } = await supabase
+      .from('subscriptions')
+      .update({ expires_at: currentExpiry.toISOString() })
+      .eq('machine_id', sub.machine_id);
+
+    if (error) throw error;
+
     ui.showToast('تم تحديث مدة الاشتراك بنجاح!', 'success');
     dayAdjustments.value[sub.machine_id] = 0;
     fetchData();
   } catch (err) {
-    ui.showToast('فشل في تحديث المدة.', 'error');
+    ui.showToast('فشل في تحديث المدة: ' + err.message, 'error');
   }
 };
 
 const rejectRequest = async (req) => {
   try {
-    await axios.post('http://localhost:3000/api/admin/subscriptions/delete', {
-      password: loginForm.value.password,
-      machine_id: req.machine_id
+    // 1. Delete subscription keys
+    await supabase
+      .from('subscription_keys')
+      .delete()
+      .eq('owner_machine_id', req.machine_id);
+
+    // 2. Delete subscription
+    const { error } = await supabase
+      .from('subscriptions')
+      .delete()
+      .eq('machine_id', req.machine_id);
+
+    if (error) throw error;
+
+    // 3. Log deletion
+    await supabase.from('subscription_logs').insert({
+      machine_id: req.machine_id, 
+      plan_type: req.plan_type || 'unknown', 
+      status: 'deleted', 
+      action: 'rejected'
     });
+
     ui.showToast('تم حذف السجل بنجاح.', 'info');
     fetchData();
   } catch (err) {
-    ui.showToast('فشل في عملية الحذف.', 'error');
+    ui.showToast('فشل في عملية الحذف: ' + err.message, 'error');
   }
 };
 
@@ -260,8 +336,13 @@ const confirmDelete = (sub) => {
   };
 };
 
-onMounted(() => {
-  if (isLoggedIn.value) fetchData();
+onMounted(async () => {
+  // Check if session is already active in supabase client
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session && session.user?.email === 'emontal.33@yahoo.com') {
+    isLoggedIn.value = true;
+    fetchData();
+  }
 });
 </script>
 

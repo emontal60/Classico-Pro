@@ -5,10 +5,13 @@ classico-v3/node_modules/
 # Build outputs
 dist_electron/
 classico-v3/dist/
+assets/
+index.html
 
 # Local database/backups
 local_backups/
 backups/
+database.json
 
 # Sensitive data
 .env
@@ -26,35 +29,3 @@ npm-debug.log*
 # System files
 .DS_Store
 Thumbs.db
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 
-github-token.txt 

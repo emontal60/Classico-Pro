@@ -45,7 +45,7 @@ if not exist ".gitignore" (
     echo classico-v3/dist/ >> .gitignore
 )
 :: Ensure token is ignored
-echo github-token.txt >> .gitignore
+findstr /x /c:"github-token.txt" .gitignore >nul || echo github-token.txt>> .gitignore
 if not exist ".git" (
     git init
     git remote add origin https://github.com/emontal60/Classico-Pro.git

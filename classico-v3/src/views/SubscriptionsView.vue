@@ -129,6 +129,21 @@
           </div>
         </div>
 
+        <!-- تنظيم بطولات بلاي ستيشن (⭐ ميزة حصرية) -->
+        <div class="feature-item highlighted">
+          <span class="f-icon">🏆</span>
+          <div class="f-content">
+            <h4>تنظيم بطولات بلاي ستيشن <span class="badge-featured">⭐ ميزة حصرية</span></h4>
+            <ul class="feature-points-list">
+              <li><span class="bullet">✦</span> إنشاء عدة بطولات مختلفة في نفس الوقت</li>
+              <li><span class="bullet">✦</span> توليد لكل بطولة لينك لتسجيل المشتركين فيه أونلاين</li>
+              <li><span class="bullet">✦</span> إمكانية دفع الاشتراك أونلاين</li>
+              <li><span class="bullet">✦</span> تقرير رسمي بالفائزين في البطولة لعرضه على وسائل التواصل الاجتماعي</li>
+              <li><span class="bullet">✦</span> نظام محاسبي خاص بالبطولات</li>
+            </ul>
+          </div>
+        </div>
+
         <!-- 2. إدارة البوفيه والطلبات -->
         <div class="feature-item">
           <span class="f-icon">🍔</span>
@@ -320,6 +335,10 @@
       </div>
     </div>
 
+    <div class="contact-footer-section">
+      <p>للتواصل والاستفسار والحجز  التواصل على الرقم: <span class="phone-highlight">01094085228</span> <button class="btn-copy-small" @click="copyPhoneNumber">نسخ الرقم 📋</button></p>
+    </div>
+
     <div class="machine-id-footer">
       <p>معرف الجهاز الحالي: <span>{{ store.machineId || 'جاري التحميل...' }}</span></p>
     </div>
@@ -507,6 +526,14 @@ const selectPlan = async (plan, devices = 1) => {
   }
 };
 
+const copyPhoneNumber = () => {
+  navigator.clipboard.writeText('01094085228').then(() => {
+    ui.showToast('تم نسخ الرقم بنجاح! ✓', 'success');
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+  });
+};
+
 </script>
 
 <style scoped>
@@ -686,6 +713,73 @@ const selectPlan = async (plan, devices = 1) => {
 .f-icon { font-size: 2rem; }
 .f-content h4 { color: #00e5ff; margin-bottom: 0.5rem; font-size: 1.1rem; }
 .f-content p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; }
+
+.feature-points-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: right;
+}
+
+.feature-points-list li {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+
+.feature-points-list li .bullet {
+  color: #00e5ff;
+  font-size: 1rem;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+.contact-footer-section {
+  margin-top: 4rem;
+  padding: 1.2rem 2rem;
+  background: rgba(0, 229, 255, 0.03);
+  border-radius: 50px;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.contact-footer-section .phone-highlight {
+  color: #00e5ff;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.btn-copy-small {
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  color: #00e5ff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Cairo', sans-serif;
+}
+
+.btn-copy-small:hover {
+  background: #00e5ff;
+  color: #000;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
 
 .machine-id-footer {
   margin-top: 5rem;
